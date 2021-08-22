@@ -1,0 +1,117 @@
+{% extends 'scrapper/base_template.html' %}
+
+{% block title %}{{category}}{% endblock %}
+
+{% block content %}
+
+
+<!-- Category compare of English and Arabic -->
+<p><b>Category : </b>{{category}}</p>
+<div class="row">
+
+	<div class="col">
+		<H2 class="alert alert-info text-center">English Attributes</H2>
+		{% for i in product_details_en %}
+		<p>
+			<!-- <span>
+				{{forloop.counter}}#<br>
+			</span> -->
+			<div class="input-group input-group-sm">
+			  <div class="input-group-prepend">
+			    <span class="input-group-text en-attr" id="inputGroup-sizing-sm">{{i.attributes}}</span>
+			  </div>
+			  <input type="text" class="form-control Arabic-{{forloop.counter}}" aria-label="Small" aria-describedby="inputGroup-sizing-sm" placeholder="{{forloop.counter}}" disabled>
+			</div>
+		</p>
+		{% endfor %}
+	</div>
+
+	<div class="col">
+		<H2 class="alert alert-info text-center">Arabic Attributes</H2>
+		{% for i in product_details_ar %}
+		<p>
+			<!-- <span>
+				{{forloop.counter}}#<br>
+			</span> -->
+			<div class="input-group input-group-sm">
+			  <div class="input-group-prepend">
+			    <span class="input-group-text ar-attr" id="inputGroup-sizing-sm">{{i.attributes}}</span>
+			  </div>
+			  <input type="text" class="form-control" id="data-{{forloop.counter}}" aria-label="Small" aria-describedby="inputGroup-sizing-sm">
+			</div>
+		</p>
+		{% endfor %}
+	</div>
+	
+</div>
+
+<div class="row">
+	<button class="btn btn-outline-info" id="btn-submit">Download</button>
+</div>
+
+
+
+{% endblock %}
+
+{% block internalJavaScript %}
+
+<script type="text/javascript">
+
+	var ar_list = document.getElementsByClassName('ar-attr')
+	var ar_dict = {}
+
+	var en_list = document.getElementsByClassName('en-attr')
+	var en_dict = {}
+	const btn_submit = document.getElementById('btn-submit')
+
+	btn_submit.addEventListener('click', ()=>{
+		// Arabic
+		for (var i in ar_list){
+			var txt = ar_list[i].textContent
+			i++
+			if (i) {
+				// console.log(i)
+				var value = document.getElementById(`data-${i}`).value
+				if (value){
+					ar_dict[parseInt(value)] = txt
+				}
+			}
+			
+		}
+
+		// English
+		for (var i in en_list){
+			var txt = en_list[i].textContent
+			i++
+			if (i) {
+				en_dict[i] = txt
+			}
+			
+		}
+
+		ar_dict = JSON.stringify(ar_dict)
+		en_dict = JSON.stringify(en_dict)
+
+		$.ajax({
+			type: 'POST',
+			url: "{% url 'category_export' %}",
+			data: ({csrfmiddlewaretoken: '{{ csrf_token }}', text_en:en_dict, text_ar:ar_dict, Category:"{{category}}" }),
+			success: function(response){
+				console.log(response.data)
+				var blob=new Blob([JSON.stringify(response.data, null, 4)],{type : 'application/json'});
+			    var link=document.createElement('a');
+			    link.href=window.URL.createObjectURL(blob);
+			    link.download="{{category}}.json";
+			    link.click();
+			},
+			error: function(error){
+				console.log(error)
+			},
+
+		})
+	})
+
+	
+</script>
+
+{% endblock %}

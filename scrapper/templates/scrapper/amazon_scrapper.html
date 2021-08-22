@@ -1,0 +1,74 @@
+{% extends 'scrapper/base_template.html' %}
+{% load static %}
+
+{% block title %}Amazon Scrapper{% endblock %}
+
+{% block content %}
+
+<div class="card card-body">
+    <div class="card-header">
+        <h3>Amazon Crawler <img src="{% static 'images/Amazon_logo.png' %}" id="logo" class='float-right'></h3>
+    </div>
+    <!-- Applying data normalization -->
+    <div class="row border border-success border-3 rounded m-2 p-4">
+        <div class="col-md-12">
+
+            <form id="link-form" method="POST">
+                {% csrf_token %}
+                Input Category Link :
+                <input type="text" id="category-link" class="form-control form-control-input mt-2 mb-2" pattern="[a-z]+[\W]+[a-z]+\.amazon\.(ae|sa).+" title="Please Input amazon.ae or amazon.sa Category Page Link" required="submit">
+
+                <div id="btn-activate-div">
+                    <button class="btn btn-primary btn-sm" type="submit">Activate Crawler</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+    <a href="{% url 'productVaraitions' %}" class="btn btn-outline-info d-block rounded m-2">Show Products which Holds Variation</a>
+</div>
+
+{% endblock %}
+
+
+
+{% block internalJavaScript %}
+
+<script type="text/javascript">
+
+    var form = document.getElementById('link-form')
+
+    form.addEventListener('submit', (e)=>{
+        console.log('Amazon Crawler Activated')
+        var category = document.getElementById('category-link').value
+
+        e.preventDefault();
+
+        $.ajax({
+            type: 'POST',
+            url: '',
+            data: { csrfmiddlewaretoken: '{{ csrf_token }}' ,'category-link': category},
+            beforeSend: function(){
+                form.reset();
+                document.getElementById('btn-activate-div').innerHTML = `<div class="spinner-border text-primary" role="status">
+                                                  <span class="visually-hidden"></span>
+                                                </div>
+                                                `
+            },
+            success: function(data){
+                console.log(data)
+                document.getElementById('btn-activate-div').innerHTML = `<button class="btn btn-primary btn-sm" type="submit">Activate Crawler</button>`;
+            },
+            error: function(error){
+                console.log(error)
+            },
+        })
+
+    })
+
+        
+    
+
+</script>
+
+{% endblock %}

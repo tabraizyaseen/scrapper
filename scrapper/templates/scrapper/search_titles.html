@@ -1,0 +1,486 @@
+{% extends 'scrapper/base_template.html' %}
+
+{% block title %}Cartlow Manager{% endblock %}
+
+{% block internalCSS %}
+<style type="text/css">
+	/* Style the tab */
+	.tab {
+	  overflow: hidden;
+	  border: 1px solid #ccc;
+	  background-color: #f1f1f1;
+	}
+
+	/* Style the buttons that are used to open the tab content */
+	.tab button {
+	  background-color: inherit;
+	  float: left;
+	  border: none;
+	  outline: none;
+	  cursor: pointer;
+	  padding: 14px 16px;
+	  transition: 0.3s;
+	}
+
+	/* Change background color of buttons on hover */
+	.tab button:hover {
+	  background-color: #ddd;
+	}
+
+	/* Create an active/current tablink class */
+	.tab button.active {
+	  background-color: #ccc;
+	}
+
+	/* Style the tab content */
+	.tabcontent {
+	  display: none;
+	  padding: 6px 12px;
+	  border: 1px solid #ccc;
+	  border-top: none;
+	  animation: fadeEffect 1s; /* Fading effect takes 1 second */
+	}
+	/* Go from zero to full opacity */
+	@keyframes fadeEffect {
+	  from {opacity: 0;}
+	  to {opacity: 1;}
+	}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- File Input -->
+<br>
+<div class="card card-body">
+
+	<form action="" method="POST" enctype="multipart/form-data">
+		{% csrf_token %}
+		<div class="form-inline">
+			<input type="file" name="titles_file" accept=".csv" class="form-control input-sm mr-2">
+			<button type="submit" class="btn btn-primary">Search</button>
+		</div>
+	</form>
+	{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-danger fade show mt-3">
+		
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        	<strong>{{message}}</strong>
+        	<ul><li>Please upload a CSV file with ASIN column</li></ul>
+            
+        
+    </div>
+    {% endfor %}
+    {% endif %}
+	<br>
+
+	{% if results %}
+	<div class="row data-container">
+	{% else %}
+	<div class="row" style="display: none">
+	{% endif %}
+
+		<div class="col-md">
+
+			<!-- Stats of uploaded file -->
+			<div class="row">
+				<div class="col">
+					<div class="col-md">
+						<div class="card text-center text-black mb-2 mt-2" style="background-color: #4cb4c7;">
+						  	<div class="card-header">
+						  		<h5 class="card-title">Total Products</h5>
+						  	</div>
+						  	<div class="card-body">
+						    	<h3 class="card-title">{{counting}}</h3>
+						  	</div>
+						</div>
+					</div>
+				</div>
+				<div class="col">
+					<div class="col-md">
+						<div class="card text-center text-black mb-2 mt-2" style="background-color: #7CD1C0;">
+						  	<div class="card-header">
+						  		<h5 class="card-title">Valid Stored Responses</h5>
+						  	</div>
+						  	<div class="card-body">
+						    	<h3 class="card-title valid-count">{{accepted}}</h3>
+						  	</div>
+						</div>
+					</div>
+				</div>
+
+			</div>
+
+			<div class="card card-body">
+				<p class="card-title">
+					
+					<!-- Export Block -->
+					<div class="dropright">
+					  <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					    Export as
+					  </button>
+					  <div class="dropdown-menu">
+					    <!-- Dropdown menu links -->
+					    <b class="dropdown-header">Select file format</b>
+					    <a class="dropdown-item" href="{% url 'export_csv' %}">CSV</a>
+					    <div class="dropdown-divider"></div>
+					    <a class="dropdown-item" href="{% url 'export_demanded_json' %}">JSON</a>
+					    <div class="dropdown-divider"></div>
+					    <a class="dropdown-item" href="{% url 'requiredJsonFormat' %}">JSON <span class="badge badge-pill badge-danger glow">new</span></a>
+					  </div>
+					</div>
+				</p>
+
+				<div class="row">
+
+	                
+	                <div class="col">
+	                    <div class="card-footer text-center mt-2 mb-2">
+	                        <b>For input data</b>
+	                    </div>
+	                    <div class="text-center" id="activate-crawler">
+	                    	<button class="btn btn-outline-primary btn-sm btn-block" id="btn-activate-crawler">
+		                        Activate Crawler for Input Data
+		                    </button>
+		                    <div class="spinner-border text-primary" style="display:none;" role="status">
+							  <span class="visually-hidden"></span>
+							</div>
+
+	                    </div>
+	                    
+	                    <hr>
+	                    <div class="text-center" id="product-details">
+		                    <button class="btn btn-outline-primary btn-sm btn-block" id="btn-product-details">
+		                        Get Details of Products
+		                    </button>
+		                    <div class="spinner-border text-primary" style="display:none;" role="status">
+							  <span class="visually-hidden"></span>
+							</div>
+	                    </div>
+	                </div>
+
+	                <div class="col">
+	                    <div class="card-footer text-center mt-2 mb-2">
+	                        <b>For product variations</b>
+	                    </div>
+
+	                    <div class="text-center" id="save-variations">
+		                    <button class="btn btn-outline-primary btn-sm btn-block" id="btn-save-variations">
+		                        Save Possible Variations
+		                    </button>
+		                    <div class="spinner-border text-primary" style="display:none;" role="status">
+							  <span class="visually-hidden"></span>
+							</div>
+		                </div>
+
+	                    <hr>
+
+	                    <div class="text-center" id="variation-crawler">
+		                    <button class="btn btn-outline-primary btn-sm btn-block" id="btn-variation-crawler">
+		                        Activate Crawler for Product Variations
+		                    </button>
+		                    <div class="spinner-border text-primary" style="display:none;" role="status">
+							  <span class="visually-hidden"></span>
+							</div>
+		                </div>
+
+	                    <hr>
+
+	                    <div class="text-center" id="product-variations">
+		                    <button class="btn btn-outline-primary btn-sm btn-block mb-2" id="btn-product-variations">
+		                        Get Details of Product Variations
+		                    </button>
+		                    <div class="spinner-border text-primary" style="display:none;" role="status">
+							  <span class="visually-hidden"></span>
+							</div>
+	                	</div>
+
+	                </div>
+
+	            </div>
+
+	            <!-- Tab links -->
+	            <div class="tab">
+				  <button class="tablinks" onclick="openDetails(event, 'AmazonUAE')" id="defaultOpen">
+				  	Amazon UAE
+				  </button>
+				  <button class="tablinks" onclick="openDetails(event, 'AmazonKSA')">
+				  	Amazon KSA
+				  </button>
+				  <button class="tablinks" onclick="openDetails(event, 'totalVariation')">
+				  	Total Variations
+				  </button>
+				</div>
+
+	            <!-- Amazon UAE -->
+				<table id= 'AmazonUAE' class="table text-center table-striped tabcontent table-responsive">
+					<thead>
+						<tr>
+							<th>Asin</th>
+							<th style="width: 50%">EN</th>
+							<th style="width: 50%">AR</th>
+						</tr>
+					</thead>
+					<tbody id="table-amazonUAE">
+					{% for products in results %}
+						<tr>
+							<td>{{products.productID}}</td>
+							<td>{{products.description_en}}</td>
+							<td>{{products.description_ar}}</td>
+						</tr>
+					{% endfor %}
+					</tbody>
+				</table>
+
+				<!-- Amazon KSA -->
+				<div id="AmazonKSA" class="tabcontent">
+					<div class="text-center" id="activate-crawler-ksa">
+						<button class="btn btn-primary btn-sm" id="btn-activate-crawler-ksa" onclick="activate_crawler_ksa()">
+		                        Activate Crawler of KSA for Input Data
+		                </button>
+
+		                <div class="spinner-border text-primary" style="display:none;" role="status">
+						  <span class="visually-hidden"></span>
+						</div>
+	            	</div>
+	                <hr>
+	                <!-- <a class="btn btn-primary btn-sm" href="{% url 'export_csv_ksa' %}">
+	                        Export as CSV
+	                </a> -->
+	            	{% if results_ksa %}
+					<table class="table text-center table-striped table-responsive">
+						<thead>
+							<tr>
+								<th>Asin</th>
+								<th style="width: 50%">EN</th>
+								<th style="width: 50%">AR</th>
+							</tr>
+						</thead>
+						<tbody id="table-amazonKSA">
+						{% for products in results_ksa %}
+							<tr>
+								<td>{{products.productID}}</td>
+								<td>{{products.description_en}}</td>
+								<td>{{products.description_ar}}</td>
+							</tr>
+						{% endfor %}
+						</tbody>
+					</table>
+					{% endif %}
+				</div>
+
+				<!-- Amazon UAE -->
+				<table id= 'totalVariation' class="table text-center table-striped tabcontent table-responsive">
+					<thead>
+						<tr>
+							<th style="width: 25%">Asin</th>
+							<th style="width: 25%">Current Asin</th>
+							<th style="width: 25%">Parent Asin</th>
+							<th style="width: 25%">EN</th>
+							<th style="width: 25%">AR</th>
+						</tr>
+					</thead>
+					<tbody id="totalVariationDisplay">
+						<!-- write variation detail data here -->
+						{% for variation in variations %}
+						<tr>
+							<td>{{variation.productID.productID}}</td>
+							<td>{{variation.current_asin}}</td>
+							<td>{{variation.parent_asin}}</td>
+							<td>{{variation.description_en}}</td>
+							<td>{{variation.description_ar}}</td>
+						</tr>
+						{% endfor %}
+						
+					</tbody>
+				</table>
+
+			</div>
+		</div>
+	</div>
+
+
+
+</div>
+
+
+{% endblock %}
+
+{% block internalJavaScript %}
+<script type="text/javascript">
+	function openDetails(evt, tableID) {
+	  // Declare all variables
+	  var i, tabcontent, tablinks;
+
+	  // Get all elements with class="tabcontent" and hide them
+	  tabcontent = document.getElementsByClassName("tabcontent");
+	  for (i = 0; i < tabcontent.length; i++) {
+	    tabcontent[i].style.display = "none";
+	  }
+
+	  // Get all elements with class="tablinks" and remove the class "active"
+	  tablinks = document.getElementsByClassName("tablinks");
+	  for (i = 0; i < tablinks.length; i++) {
+	    tablinks[i].className = tablinks[i].className.replace(" active", "");
+	  }
+
+	  // Show the current tab, and add an "active" class to the button that opened the tab
+	  document.getElementById(tableID).style.display = "block";
+	  evt.currentTarget.className += " active";
+	}
+	// Get the element with id="defaultOpen" and click on it
+	document.getElementById("defaultOpen").click();
+
+	// Divs
+	activate_crawler_div = document.getElementById('activate-crawler')
+	activate_crawler_ksa_div = document.getElementById('activate-crawler-ksa')
+	product_details_div = document.getElementById('product-details')
+
+	save_variations_div = document.getElementById('save-variations')
+	variation_crawler_div = document.getElementById('variation-crawler')
+	product_variations_div = document.getElementById('product-variations')
+
+	// Buttons
+	activate_crawler_btn = document.getElementById('btn-activate-crawler')
+	activate_crawler_ksa_btn = document.getElementById('btn-activate-crawler-ksa')
+	product_details_btn = document.getElementById('btn-product-details')
+
+	save_variations_btn = document.getElementById('btn-save-variations')
+	variation_crawler_btn = document.getElementById('btn-variation-crawler')
+	product_variations_btn = document.getElementById('btn-product-variations')
+
+	activate_crawler_btn.addEventListener("click", function(){
+		crawler_handler("{% url 'robust_search_valid' %}", activate_crawler_div, activate_crawler_btn)
+	});
+
+	activate_crawler_ksa_btn.addEventListener("click", function(){
+		crawler_handler("{% url 'robust_search_valid_ksa' %}", activate_crawler_ksa_div, activate_crawler_ksa_btn)
+	});
+
+	product_details_btn.addEventListener("click", function(){
+		crawler_handler("{% url 'robust_search_details' %}", product_details_div, product_details_btn)
+	});
+
+	save_variations_btn.addEventListener("click", function(){
+		crawler_handler("{% url 'save_variations' %}", save_variations_div, save_variations_btn)
+	});
+
+	variation_crawler_btn.addEventListener("click", function(){
+		crawler_handler("{% url 'varience_crawler' %}", variation_crawler_div, variation_crawler_btn)
+	});
+
+	product_variations_btn.addEventListener("click", function(){
+		crawler_handler("{% url 'total_varience' %}", product_variations_div, product_variations_btn)
+	});
+
+	function crawler_handler(url, div_name, skip_btn) {
+		all_btns = [activate_crawler_btn, activate_crawler_ksa_btn, product_details_btn, save_variations_btn, variation_crawler_btn, product_variations_btn]
+		$.ajax({
+			type: 'POST',
+			url: url, 
+			data: { csrfmiddlewaretoken: '{{ csrf_token }}'},
+			beforeSend: function(){
+				div_name.getElementsByTagName('div')[0].style.display = "block"
+				div_name.getElementsByTagName('button')[0].style.display  = 'none'
+
+				for (let i = 0; i < all_btns.length; i++) { 
+				  if (all_btns[i] !== skip_btn){
+				  	all_btns[i].setAttribute("disabled","true")
+				  }
+				}
+
+			},
+			success: function(data){
+				div_name.getElementsByTagName('div')[0].style.display = 'none'
+				div_name.getElementsByTagName('button')[0].style.display = "block"
+
+				for (let i = 0; i < all_btns.length; i++) { 
+				  if (all_btns[i] !== skip_btn){
+				  	all_btns[i].removeAttribute("disabled")
+				  }
+				}
+
+				if (data.type === "crawler report"){
+					var txt_data = data.report
+					var table_data = ''
+
+					for (let i=0; i < txt_data.length; i++){
+						table_data += `
+										<tr>
+										<td>${txt_data[i].productID}</td>
+										<td>${txt_data[i].description_en}</td>
+										<td>${txt_data[i].description_ar}</td>
+										</tr>
+										`
+					}
+
+					document.getElementById('table-amazonUAE').innerHTML = table_data
+					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count
+				}
+
+				else if (data.type === "variation report"){
+					var txt_data = data.report
+					var table_data = ''
+
+					for (let i=0; i < txt_data.length; i++){
+						table_data += `
+										<tr>
+										<td>${txt_data[i].asin}</td>
+										<td>${txt_data[i].current_asin}</td>
+										<td>${txt_data[i].parent_asin}</td>
+										<td>${txt_data[i].description_en}</td>
+										<td>${txt_data[i].description_ar}</td>
+										</tr>
+										`
+					}
+
+					document.getElementById('totalVariationDisplay').innerHTML = table_data
+
+					var product_data = data.products
+					var product_table = ''
+
+					for (let i=0; i < product_data.length; i++){
+						product_table += `
+										<tr>
+										<td>${product_data[i].productID}</td>
+										<td>${product_data[i].description_en}</td>
+										<td>${product_data[i].description_ar}</td>
+										</tr>
+										`
+					}
+
+					document.getElementById('table-amazonUAE').innerHTML = product_table
+					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count
+				}
+
+				else if(data.type === "ksa report"){
+					var txt_data = data.report
+					var table_data = ''
+
+					for (let i=0; i < txt_data.length; i++){
+						table_data += `
+										<tr>
+										<td>${txt_data[i].productID}</td>
+										<td>${txt_data[i].description_en}</td>
+										<td>${txt_data[i].description_ar}</td>
+										</tr>
+										`
+					}
+
+					document.getElementById('table-amazonKSA').innerHTML = table_data
+				}	
+
+				
+			},
+			error: function(error) {
+				console.log(error)
+			},
+		})
+	}
+
+	
+</script>
+{% endblock %}
