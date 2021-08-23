@@ -1322,7 +1322,7 @@ def requiredJsonFormat(request):
 
 				# Brand
 				brand = ''
-				brand_db = item_db[0].productdetails_set.filter(language='EN', attributes__in=('Brand','Brand, Seller, or Collection Name','Manufacturer'))
+				brand_db = item_db[0].productdetails_set.filter(language='EN', attributes='Brand') or item_db[0].productdetails_set.filter(language='EN', attributes__in=('Brand, Seller, or Collection Name','Manufacturer'))
 				if brand_db:
 					brand = brand_db[0].values
 
