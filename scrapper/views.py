@@ -148,7 +148,7 @@ def searchTitles(request):
 		# try:
 
 		global global_file
-		global_file = pd.read_csv(file,low_memory=False, delimiter=',', header=0, encoding='unicode_escape')
+		global_file = pd.read_csv(file,low_memory=False, sep=r'\s*,\s*', header=0, encoding='unicode_escape',engine='python')
 		global_file.dropna(subset=['ASIN'],inplace=True)
 		global_file.fillna('', inplace=True)
 
