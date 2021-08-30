@@ -26,7 +26,7 @@ SECRET_KEY = 'e&49mr_e&!z_*x(ds9%5u3%e)=z=a=ofq(to@gz83y1*bva=_p'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.2.13','127.0.0.1']
 
 
 # Application definition
@@ -86,10 +86,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'db_web_scrapper',
-        'HOST': 'localhost',
-        'USER': 'root',
+        'USER': 'tabi',
         'PASSWORD': 'tabipass',
-        'PORT': 3306,
         'OPTIONS': {'charset': 'utf8mb4'},
     }
 }
@@ -137,13 +135,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
-
-if DEBUG:
-    STATICFILES_DIRS = [
-        os.path.join(BASE_DIR, 'static')
-    ]
-else:
-    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 
 CELERY_ACCEPT_CONTENT = ['json']
