@@ -146,9 +146,9 @@ def searchTitles(request):
 	if request.method == 'POST':
 		file = request.FILES['titles_file']
 		# try:
-		
+
 		global global_file
-		global_file = pd.read_csv(file, encoding='unicode_escape')
+		global_file = pd.read_csv(file,low_memory=False, delimiter=',', header=0, encoding='unicode_escape')
 		global_file.dropna(subset=['ASIN'],inplace=True)
 		global_file.fillna('', inplace=True)
 
