@@ -150,7 +150,7 @@ def searchTitles(request):
 			global_file = pd.read_csv(file, low_memory=False, encoding='unicode_escape')
 			colns = global_file.columns
 			print(colns[1])
-			global_file.dropna(subset=['ASIN'],inplace=True)
+			# global_file.dropna(subset=['ASIN'],inplace=True)
 			global_file.fillna('', inplace=True)
 
 			if 'Amazon_Category' in global_file.columns:
