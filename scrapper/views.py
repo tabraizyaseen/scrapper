@@ -145,31 +145,30 @@ def searchTitles(request):
 	
 	if request.method == 'POST':
 		file = request.FILES['titles_file']
-		try:
-			global global_file
-			global_file = pd.read_csv(file, low_memory=False, encoding='unicode_escape')
-			colns = global_file.columns
-			print(colns[1])
-			# global_file.dropna(subset=['ASIN'],inplace=True)
-			global_file.fillna('', inplace=True)
+		# try:
+		
+		global global_file
+		global_file = pd.read_csv(file, encoding='unicode_escape')
+		global_file.dropna(subset=['ASIN'],inplace=True)
+		global_file.fillna('', inplace=True)
 
-			if 'Amazon_Category' in global_file.columns:
-				for counting,(item,category) in enumerate(zip(global_file['ASIN'], global_file['Amazon_Category']), start=1):
-					asin_manager(item, results, validated, results_ksa, variations)
+		if 'Amazon_Category' in global_file.columns:
+			for counting,(item,category) in enumerate(zip(global_file['ASIN'], global_file['Amazon_Category']), start=1):
+				asin_manager(item, results, validated, results_ksa, variations)
 
-					if category:
-						category = category.replace('>','›')
-						productPagesScrapper.objects.filter(productID=item).update(category=category)
-			else:
-				for counting,item in enumerate(global_file['ASIN'], start=1):
+				if category:
+					category = category.replace('>','›')
+					productPagesScrapper.objects.filter(productID=item).update(category=category)
+		else:
+			for counting,item in enumerate(global_file['ASIN'], start=1):
 
-					asin_manager(item, results, validated, results_ksa, variations)
+				asin_manager(item, results, validated, results_ksa, variations)
 
 
-			variations_lst = [i for sub in variations for i in sub]
+		variations_lst = [i for sub in variations for i in sub]
 
-		except Exception as e:
-			messages.info(request, e)
+		# except Exception as e:
+		# 	messages.info(request, e)
 
 	context = {
 		'results' : results,
