@@ -442,18 +442,20 @@
 					var product_data = data.products;
 					var product_table = '';
 
-					for (let i=0; i < product_data.length; i++){
-						product_table += `
-										<tr>
-										<td>${product_data[i].productID}</td>
-										<td>${product_data[i].description_en}</td>
-										<td>${product_data[i].description_ar}</td>
-										</tr>
-										`;
-					}
+					if (product_data.length) {
+						for (let i=0; i < product_data.length; i++){
+							product_table += `
+											<tr>
+											<td>${product_data[i].productID}</td>
+											<td>${product_data[i].description_en}</td>
+											<td>${product_data[i].description_ar}</td>
+											</tr>
+											`;
+						}
 
-					document.getElementById('table-amazonUAE').innerHTML = product_table;
-					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
+						document.getElementById('table-amazonUAE').innerHTML = product_table;
+						document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
+					}
 				}
 
 				else if(data.type === "ksa report"){
