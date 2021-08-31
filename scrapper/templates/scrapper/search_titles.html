@@ -335,77 +335,77 @@
 	document.getElementById("defaultOpen").click();
 
 	// Divs
-	activate_crawler_div = document.getElementById('activate-crawler')
-	activate_crawler_ksa_div = document.getElementById('activate-crawler-ksa')
-	product_details_div = document.getElementById('product-details')
+	activate_crawler_div = document.getElementById('activate-crawler');
+	activate_crawler_ksa_div = document.getElementById('activate-crawler-ksa');
+	product_details_div = document.getElementById('product-details');
 
-	save_variations_div = document.getElementById('save-variations')
-	variation_crawler_div = document.getElementById('variation-crawler')
-	product_variations_div = document.getElementById('product-variations')
+	save_variations_div = document.getElementById('save-variations');
+	variation_crawler_div = document.getElementById('variation-crawler');
+	product_variations_div = document.getElementById('product-variations');
 
 	// Buttons
-	activate_crawler_btn = document.getElementById('btn-activate-crawler')
-	activate_crawler_ksa_btn = document.getElementById('btn-activate-crawler-ksa')
-	product_details_btn = document.getElementById('btn-product-details')
+	activate_crawler_btn = document.getElementById('btn-activate-crawler');
+	activate_crawler_ksa_btn = document.getElementById('btn-activate-crawler-ksa');
+	product_details_btn = document.getElementById('btn-product-details');
 
-	save_variations_btn = document.getElementById('btn-save-variations')
-	variation_crawler_btn = document.getElementById('btn-variation-crawler')
-	product_variations_btn = document.getElementById('btn-product-variations')
+	save_variations_btn = document.getElementById('btn-save-variations');
+	variation_crawler_btn = document.getElementById('btn-variation-crawler');
+	product_variations_btn = document.getElementById('btn-product-variations');
 
 	activate_crawler_btn.addEventListener("click", function(){
-		crawler_handler("{% url 'robust_search_valid' %}", activate_crawler_div, activate_crawler_btn)
+		crawler_handler("{% url 'robust_search_valid' %}", activate_crawler_div, activate_crawler_btn);
 	});
 
 	activate_crawler_ksa_btn.addEventListener("click", function(){
-		crawler_handler("{% url 'robust_search_valid_ksa' %}", activate_crawler_ksa_div, activate_crawler_ksa_btn)
+		crawler_handler("{% url 'robust_search_valid_ksa' %}", activate_crawler_ksa_div, activate_crawler_ksa_btn);
 	});
 
 	product_details_btn.addEventListener("click", function(){
-		crawler_handler("{% url 'robust_search_details' %}", product_details_div, product_details_btn)
+		crawler_handler("{% url 'robust_search_details' %}", product_details_div, product_details_btn);
 	});
 
 	save_variations_btn.addEventListener("click", function(){
-		crawler_handler("{% url 'save_variations' %}", save_variations_div, save_variations_btn)
+		crawler_handler("{% url 'save_variations' %}", save_variations_div, save_variations_btn);
 	});
 
 	variation_crawler_btn.addEventListener("click", function(){
-		crawler_handler("{% url 'varience_crawler' %}", variation_crawler_div, variation_crawler_btn)
+		crawler_handler("{% url 'varience_crawler' %}", variation_crawler_div, variation_crawler_btn);
 	});
 
 	product_variations_btn.addEventListener("click", function(){
-		crawler_handler("{% url 'total_varience' %}", product_variations_div, product_variations_btn)
+		crawler_handler("{% url 'total_varience' %}", product_variations_div, product_variations_btn);
 	});
 
 	function crawler_handler(url, div_name, skip_btn) {
-		all_btns = [activate_crawler_btn, activate_crawler_ksa_btn, product_details_btn, save_variations_btn, variation_crawler_btn, product_variations_btn]
+		all_btns = [activate_crawler_btn, activate_crawler_ksa_btn, product_details_btn, save_variations_btn, variation_crawler_btn, product_variations_btn];
 		$.ajax({
 			type: 'POST',
 			url: url, 
 			data: { csrfmiddlewaretoken: '{{ csrf_token }}'},
 			beforeSend: function(){
-				div_name.getElementsByTagName('div')[0].style.display = "block"
-				div_name.getElementsByTagName('button')[0].style.display  = 'none'
+				div_name.getElementsByTagName('div')[0].style.display = "block";
+				div_name.getElementsByTagName('button')[0].style.display  = 'none';
 
 				for (let i = 0; i < all_btns.length; i++) { 
 				  if (all_btns[i] !== skip_btn){
-				  	all_btns[i].setAttribute("disabled","true")
+				  	all_btns[i].setAttribute("disabled","true");
 				  }
 				}
 
 			},
 			success: function(data){
-				div_name.getElementsByTagName('div')[0].style.display = 'none'
-				div_name.getElementsByTagName('button')[0].style.display = "block"
+				div_name.getElementsByTagName('div')[0].style.display = 'none';
+				div_name.getElementsByTagName('button')[0].style.display = "block";
 
 				for (let i = 0; i < all_btns.length; i++) { 
 				  if (all_btns[i] !== skip_btn){
-				  	all_btns[i].removeAttribute("disabled")
+				  	all_btns[i].removeAttribute("disabled");
 				  }
 				}
 
 				if (data.type === "crawler report"){
-					var txt_data = data.report
-					var table_data = ''
+					var txt_data = data.report;
+					var table_data = '';
 
 					for (let i=0; i < txt_data.length; i++){
 						table_data += `
@@ -414,16 +414,16 @@
 										<td>${txt_data[i].description_en}</td>
 										<td>${txt_data[i].description_ar}</td>
 										</tr>
-										`
+										`;
 					}
 
-					document.getElementById('table-amazonUAE').innerHTML = table_data
-					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count
+					document.getElementById('table-amazonUAE').innerHTML = table_data;
+					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
 				}
 
 				else if (data.type === "variation report"){
-					var txt_data = data.report
-					var table_data = ''
+					var txt_data = data.report;
+					var table_data = '';
 
 					for (let i=0; i < txt_data.length; i++){
 						table_data += `
@@ -434,13 +434,13 @@
 										<td>${txt_data[i].description_en}</td>
 										<td>${txt_data[i].description_ar}</td>
 										</tr>
-										`
+										`;
 					}
 
-					document.getElementById('totalVariationDisplay').innerHTML = table_data
+					document.getElementById('totalVariationDisplay').innerHTML = table_data;
 
-					var product_data = data.products
-					var product_table = ''
+					var product_data = data.products;
+					var product_table = '';
 
 					for (let i=0; i < product_data.length; i++){
 						product_table += `
@@ -449,16 +449,16 @@
 										<td>${product_data[i].description_en}</td>
 										<td>${product_data[i].description_ar}</td>
 										</tr>
-										`
+										`;
 					}
 
-					document.getElementById('table-amazonUAE').innerHTML = product_table
-					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count
+					document.getElementById('table-amazonUAE').innerHTML = product_table;
+					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
 				}
 
 				else if(data.type === "ksa report"){
-					var txt_data = data.report
-					var table_data = ''
+					var txt_data = data.report;
+					var table_data = '';
 
 					for (let i=0; i < txt_data.length; i++){
 						table_data += `
@@ -467,18 +467,18 @@
 										<td>${txt_data[i].description_en}</td>
 										<td>${txt_data[i].description_ar}</td>
 										</tr>
-										`
+										`;
 					}
 
-					document.getElementById('table-amazonKSA').innerHTML = table_data
+					document.getElementById('table-amazonKSA').innerHTML = table_data;
 				}	
 
 				
 			},
 			error: function(error) {
-				console.log(error)
+				console.log(error);
 			},
-		})
+		});
 	}
 
 	
