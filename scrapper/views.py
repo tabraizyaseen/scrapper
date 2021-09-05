@@ -166,6 +166,7 @@ def searchTitles(request):
 
 
 		variations_lst = [i for sub in variations for i in sub]
+		# results = sorted(results, key=lambda k: k.title_en)
 
 		# except Exception as e:
 		# 	messages.info(request, e)

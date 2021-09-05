@@ -220,16 +220,20 @@
 					<thead>
 						<tr>
 							<th>Asin</th>
+							<!-- <th>Title</th> -->
 							<th style="width: 50%">EN</th>
 							<th style="width: 50%">AR</th>
+							<!-- <th>Parent Asin</th> -->
 						</tr>
 					</thead>
 					<tbody id="table-amazonUAE">
 					{% for products in results %}
 						<tr>
 							<td>{{products.productID}}</td>
+							<!-- <td>{{products.title_en}}</td> -->
 							<td>{{products.description_en}}</td>
 							<td>{{products.description_ar}}</td>
+							<!-- <td>{{products.get_parent_asin}}</td> -->
 						</tr>
 					{% endfor %}
 					</tbody>

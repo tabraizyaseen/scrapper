@@ -17,6 +17,14 @@ class productPagesScrapper(models.Model):
 	def __str__(self):
 		return self.productID
 
+	@property
+	def get_parent_asin(self):
+		parents = self.totalvariations_set.all()
+		if parents:
+			return parents[0].parent_asin
+		else:
+			return None
+
 	class Meta:
 		verbose_name_plural="Product Pages Scrapper"
 
