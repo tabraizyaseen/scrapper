@@ -21,7 +21,7 @@ djangorestframework==3.12.4
 idna==3.2
 kombu==5.1.0
 lxml==4.6.3
-mysqlclient==2.0.3
+mysqlclient
 numpy
 pandas
 Pillow==8.3.1
