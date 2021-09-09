@@ -583,6 +583,18 @@ def singleProductValidate(request):
 
 		return JsonResponse(context)
 
+
+def deleteAsin(request):
+	if request.is_ajax():
+		asin = request.POST['asin']
+
+		productPagesScrapper.objects.get(productID=asin).delete()
+
+		context = {
+			'report': 'okay'
+		}
+	return JsonResponse(context)
+
 # Product Details English
 def amazonProductDetails(request, pk):
 	asin = productPagesScrapper.objects.get(id=pk)

@@ -29,7 +29,7 @@ class productPagesScrapper(models.Model):
 		verbose_name_plural="Product Pages Scrapper"
 
 class productDetails(models.Model):
-	productID = models.ForeignKey(productPagesScrapper, null=True, on_delete=models.SET_NULL)
+	productID = models.ForeignKey(productPagesScrapper, null=True, on_delete=models.CASCADE)
 	attributes = models.CharField(max_length=512, null=True, blank=True)
 	values = models.CharField(max_length=1024, null=True, blank=True)
 	language = models.CharField(max_length=50, null=True, blank=True)
@@ -41,7 +41,7 @@ class productDetails(models.Model):
 		verbose_name_plural="Product Details"
 
 class productImages(models.Model):
-	productID = models.ForeignKey(productPagesScrapper, null=True, on_delete=models.SET_NULL)
+	productID = models.ForeignKey(productPagesScrapper, null=True, on_delete=models.CASCADE)
 	image = models.CharField(max_length=512, null=True, blank=True)
 
 	def __str__(self):
@@ -51,7 +51,7 @@ class productImages(models.Model):
 		verbose_name_plural="Product Images"
 
 class productHighlights(models.Model):
-	productID = models.ForeignKey(productPagesScrapper, null=True, on_delete=models.SET_NULL)
+	productID = models.ForeignKey(productPagesScrapper, null=True, on_delete=models.CASCADE)
 	highlight = models.TextField(null=True, blank=True)
 	language = models.CharField(max_length=50, null=True, blank=True)
 
@@ -62,7 +62,7 @@ class productHighlights(models.Model):
 		verbose_name_plural="Product Highlights"
 
 class productDescription(models.Model):
-	productID= models.ForeignKey(productPagesScrapper, null=True, on_delete=models.SET_NULL)
+	productID= models.ForeignKey(productPagesScrapper, null=True, on_delete=models.CASCADE)
 	long_description = models.TextField(null=True, blank=True)
 	language = models.CharField(max_length=50, null=True, blank=True)
 
@@ -73,7 +73,7 @@ class productDescription(models.Model):
 		verbose_name_plural="Product Description"
 
 class variationSettings(models.Model):
-	productID = models.ForeignKey(productPagesScrapper, null=True, on_delete=models.SET_NULL)
+	productID = models.ForeignKey(productPagesScrapper, null=True, on_delete=models.CASCADE)
 	parent_asin = models.CharField(max_length=50, null=True, blank=True)
 	current_asin = models.CharField(max_length=50, null=True, blank=True)
 	dimension = models.CharField(max_length=50, null=True, blank=True)
@@ -96,7 +96,7 @@ class variationSettings(models.Model):
 		verbose_name_plural="Variation Settings"
 
 class totalVariations(models.Model):
-	productID = models.ForeignKey(productPagesScrapper, null=True, on_delete=models.SET_NULL)
+	productID = models.ForeignKey(productPagesScrapper, null=True, on_delete=models.CASCADE)
 	parent_asin = models.CharField(max_length=50, null=True, blank=True)
 	name_en = models.CharField(max_length=50, null=True, blank=True)
 	name_ar = models.CharField(max_length=50, null=True, blank=True)

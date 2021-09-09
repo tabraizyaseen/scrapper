@@ -78,6 +78,7 @@
 						<th style="width: 15%">Asin</th>
 						<th>Title</th>
 						<th>Action</th>
+						<th>Delete</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -96,10 +97,37 @@
 						<td><p class="badge badge-info">Valid</p></td>
 						{% endif %}
 						</td>
+						<td>
+							<!-- Button trigger modal -->
+							<button class="btn btn-sm btn-outline-danger rounded-pill" data-toggle="modal" data-target="#deleteModal" onclick="modal_body('{{products.productID}}')">
+								Delete
+							</button>
+						</td>
 					</tr>
 				{% endfor %}
 				</tbody>
 			</table>
+
+			<!-- Modal -->
+			<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+			  <div class="modal-dialog" role="document">
+			    <div class="modal-content">
+			      <div class="modal-header">
+			        <h5 class="modal-title" id="deleteModalLabel">Are you sure ?</h5>
+			        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			          <span aria-hidden="true">&times;</span>
+			        </button>
+			      </div>
+			      <div class="modal-body" id="modal-txtbody">
+			        ...
+			      </div>
+			      <div class="modal-footer">
+			        <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+			        <button type="button" class="btn btn-primary" data-dismiss="modal" id="del-yes">Yes</button>
+			      </div>
+			    </div>
+			  </div>
+			</div>
 
 			<!-- Pagination -->
 			<nav aria-label="Page navigation example">
@@ -191,6 +219,28 @@
 		
 		
 	})
+
+	function modal_body(productID) {
+		document.getElementById('modal-txtbody').innerText = `Do you want to delete ${productID}?`;
+
+		yes_btn = document.getElementById('del-yes');
+
+		yes_btn.addEventListener('click',function(){
+			$.ajax({
+				type: 'POST',
+				url: "{% url 'delete_asin' %}",
+				data: { csrfmiddlewaretoken: '{{ csrf_token }}', 'asin': productID},
+				success: function(data){
+					console.log(data)
+					location.reload()
+				},
+				error: function(response){
+					console.log(response)
+				}
+			})
+			
+		})
+	}
 
 </script>
 

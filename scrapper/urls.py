@@ -44,6 +44,7 @@ urlpatterns = [
     path('product_arabic_details/<str:pk>/', views.productDetailsArabic, name='product_arabic_details'),
 
     path('single_product/', views.singleProductValidate, name='single_product'),
+    path('asin_delete/', views.deleteAsin, name='delete_asin'),
 
     path('sample_json', views.sampleJson, name='sample_json'),
 ]
