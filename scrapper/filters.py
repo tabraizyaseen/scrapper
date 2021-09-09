@@ -54,7 +54,8 @@ class TotalVariationsFilter(django_filters.FilterSet):
 
 	productID__productID = CharFilter(field_name='productID__productID', lookup_expr='icontains', label="ProductID")
 	parent_asin = CharFilter(field_name='parent_asin', lookup_expr='icontains', label="Parent Asin")
+	name_en = CharFilter(field_name='name_en', lookup_expr='icontains', label="Name English")
 
 	class Meta:
 		model = totalVariations
-		fields = ['productID__productID', 'parent_asin']
+		fields = ['productID__productID', 'parent_asin', 'name_en']
