@@ -27,6 +27,7 @@ import pandas as pd
 import itertools
 from collections import Counter
 import datetime
+import os
 
 from bs4 import BeautifulSoup
 import io
@@ -588,7 +589,18 @@ def deleteAsin(request):
 	if request.is_ajax():
 		asin = request.POST['asin']
 
-		productPagesScrapper.objects.get(productID=asin).delete()
+		product = productPagesScrapper.objects.get(productID=asin)
+		product.delete()
+
+		product_variations = variationSettings.objects.filter(productID=product)
+
+		for vari in product_variations:
+			lst_exists = [f'static/docs/productPages/EN_{vari.current_asin}.txt',f'static/docs/productPages/AR_{vari.current_asin}.txt']
+
+			for i in lst_exists:
+				print(i)
+				if os.path.exists(i):
+					os.remove(i)
 
 		context = {
 			'report': 'okay'
