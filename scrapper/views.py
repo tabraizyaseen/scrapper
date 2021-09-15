@@ -29,6 +29,8 @@ from collections import Counter
 import datetime
 import os
 
+from time import perf_counter 
+
 from bs4 import BeautifulSoup
 import io
 
@@ -125,7 +127,7 @@ def searchTitles(request):
 			(lambda x: validated.append(x) if x.description_en and x.description_ar else x)(item_db)
 
 			# Get variations
-			variations.append([i for x in variationSettings.objects.filter(current_asin=item_db.productID) for i in variationSettings.objects.filter(parent_asin=x.parent_asin) if x])
+			variations.append([i for x in variationSettings.objects.filter(current_asin=item_db.productID) for i in variationSettings.objects.filter(productID=x.productID) if x])
 
 		else:
 			productPagesScrapper.objects.create(productID=item.strip(), source='amazon.ae')
@@ -150,10 +152,18 @@ def searchTitles(request):
 
 		global global_file
 		global_file = pd.read_csv(file, encoding='unicode_escape')
+		strt = perf_counter()
 		global_file.dropna(subset=['ASIN'],inplace=True)
+		global_file = global_file.drop_duplicates(['ASIN'],keep= 'last')
 		global_file.fillna('', inplace=True)
+		end = perf_counter()
+
+		print(f'file cleaning : {end-strt}')
+
+		strt = perf_counter()
 
 		if 'Amazon_Category' in global_file.columns:
+			print('Amazon_Category given')
 			for counting,(item,category) in enumerate(zip(global_file['ASIN'], global_file['Amazon_Category']), start=1):
 				asin_manager(item, results, validated, results_ksa, variations)
 
@@ -161,6 +171,7 @@ def searchTitles(request):
 					category = category.replace('>','›')
 					productPagesScrapper.objects.filter(productID=item).update(category=category)
 		else:
+			print('Amazon_Category not given')
 			for counting,item in enumerate(global_file['ASIN'], start=1):
 
 				asin_manager(item, results, validated, results_ksa, variations)
@@ -171,6 +182,9 @@ def searchTitles(request):
 
 		# except Exception as e:
 		# 	messages.info(request, e)
+
+		end = perf_counter()
+		print(f'file displaying : {end-strt}')
 
 	context = {
 		'results' : results,
