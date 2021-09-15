@@ -482,6 +482,7 @@
 				
 			},
 			error: function(error) {
+				div_name.getElementsByTagName('div')[0].innerText = error;
 				console.log(error);
 			},
 		});
