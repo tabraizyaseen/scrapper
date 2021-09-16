@@ -1556,3 +1556,76 @@ def requiredJsonFormat(request):
 	json.dump(data, response, ensure_ascii = False, indent=4)
 
 	return response
+
+def categoryAttributesManager(request):
+
+	current_date = str(datetime.date.today())
+	name = current_date+'_Category_Scrapped.json'
+
+	data = []
+
+	# Identifying unique cartlow category ids
+	file_category = list(global_file['Category'].unique())
+
+	for categories in file_category:
+		category_dic = {}
+
+		# Seprating asins which matched with cartlow category id
+		match_file = global_file[global_file['Category'] == categories]
+
+		category_qs = productPagesScrapper.objects.filter(productID__in=tuple(match_file['ASIN']),description_en=True,description_ar=True)
+
+		category_dic['category'] = str(categories)
+
+		# Attributes
+		attributes_lst = []
+
+		if category_qs:
+
+			product_details_en = productDetails.objects.filter(productID__in=tuple([cate for cate in category_qs]), language='EN').exclude(attributes__in=('Brand','Asin','ASIN')).values('attributes').distinct()
+			product_details_ar = productDetails.objects.filter(productID__in=tuple([cate for cate in category_qs]), language='AR').exclude(attributes__in=('Brand','Asin','العلامة التجارية','ASIN')).values('attributes').distinct()
+			
+			for prod_en in product_details_en:
+				prod_dic = {}
+				prod_dic['type'] = ''
+				prod_dic['language'] = 'EN'
+				prod_dic['name'] = prod_en['attributes']
+
+				possible_val_en = productDetails.objects.filter(productID__in=tuple([cate for cate in category_qs]),attributes=prod_en['attributes'], language='EN').values('values').distinct()
+				if len(possible_val_en) > 1:
+					prod_dic['type'] = 'select'
+					prod_dic['possible_values'] = [{'name':v['values']} for v in possible_val_en]
+
+				else:
+					prod_dic['type'] = 'text'
+					prod_dic['possible_values'] = [{'name':v['values']} for v in possible_val_en]
+
+				attributes_lst.append(prod_dic)
+
+			for prod_ar in product_details_ar:
+				prod_dic = {}
+				prod_dic['type'] = ''
+				prod_dic['language'] = 'AR'
+				prod_dic['name'] = prod_ar['attributes']
+
+				possible_val_ar = productDetails.objects.filter(productID__in=tuple([cate for cate in category_qs]),attributes=prod_ar['attributes'], language='AR').values('values').distinct()
+				if len(possible_val_ar) > 1:
+					prod_dic['type'] = 'select'
+					prod_dic['possible_values'] = [{'name':av['values']} for av in possible_val_ar]
+
+				else:
+					prod_dic['type'] = 'text'
+					prod_dic['possible_values'] = [{'name':av['values']} for av in possible_val_ar]
+
+				attributes_lst.append(prod_dic)
+
+		category_dic['attributes'] = attributes_lst
+
+		data.append(category_dic)
+
+	response = HttpResponse(content_type='application/json')
+	response['Content-Disposition'] = f'attachment; filename="{name}"'
+
+	json.dump(data, response, ensure_ascii = False, indent=4)
+
+	return response

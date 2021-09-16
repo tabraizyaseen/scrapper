@@ -23,6 +23,7 @@ urlpatterns = [
     path('export_csv/', views.export_csv, name='export_csv'),
 	path('export_demanded_json/', views.export_demanded_json, name='export_demanded_json'),
     path('requiredJsonFormat/', views.requiredJsonFormat, name='requiredJsonFormat'),
+    path('category_attributes/',views.categoryAttributesManager, name='category_attributes'),
 
 	path('robust_search_valid_ksa/', views.robustSearchValidKSA, name='robust_search_valid_ksa'),
 	path('export_csv_ksa/', views.export_csv_ksa, name='export_csv_ksa'),
