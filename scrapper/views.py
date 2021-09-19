@@ -353,7 +353,9 @@ def robustSearchValidKSA(request):
 
 		print(counting)
 
-	return JsonResponse({'report':results_lst, 'type':'ksa report'})
+	validated = [item for item in results_lst if item['description_en'] and item['description_ar']]
+
+	return JsonResponse({'report':results_lst, 'valid_count':len(validated), 'type':'ksa report'})
 
 def robustSearchDetails(request):
 
