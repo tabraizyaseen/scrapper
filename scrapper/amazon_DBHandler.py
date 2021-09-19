@@ -1,6 +1,7 @@
 from .models import *
 from . import amazon_scrapper
 from . import amazon_ksa
+from . import amazon_india
 from .variations import *
 
 class amazon_DBHandler_cls():
@@ -28,11 +29,18 @@ class amazon_DBHandler_cls():
 		if not item_db.description_ar:
 			amazon_ksa.ResponseValidateArabic(item_db)
 
+	def get_valid_india(self):
+		asin = self.asin
+
+		item_db = productPagesScrapper.objects.get(productID=asin)
+		if not item_db.description_en:
+			amazon_india.ResponseValidate(item_db)
+
 	def get_product_data(self, item):
 
 		def get_product_detail(item, language, product_details_class):
 
-			if not productDetails.objects.filter(productID=item, language=language):
+			if not productDetails.objects.filter(productID=item, language=language).exists():
 				specifications = product_details_class.Specifications()
 
 				data = [
@@ -42,12 +50,12 @@ class amazon_DBHandler_cls():
 
 				productDetails.objects.bulk_create(data)
 
-			if not productDescription.objects.filter(productID=item, language=language):
+			if not productDescription.objects.filter(productID=item, language=language).exists():
 				long_description = product_details_class.ProductDescription()
 
 				productDescription.objects.create(productID=item, language=language, long_description=long_description)
 
-			if not productHighlights.objects.filter(productID=item, language=language):
+			if not productHighlights.objects.filter(productID=item, language=language).exists():
 				highlights = product_details_class.Highlights()
 
 				highlights_data = [
