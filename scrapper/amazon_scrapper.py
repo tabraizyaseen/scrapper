@@ -125,7 +125,7 @@ def amazonCategoryScrapper(url):
 
 			# Price
 			try:
-				price = container.find('span','a-price-whole').text[:-1].replace(",","")
+				price = container.find('span','a-price-whole').replace(".","").replace(",","")
 			except AttributeError:
 				price = ""
 
