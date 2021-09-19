@@ -570,10 +570,10 @@ class Variant():
 		if item.productID.source == "amazon.ae":
 			response_ar = self.soupParser(f'https://www.amazon.ae/-/en/dp/{item.current_asin}')
 			if response_ar:
-				checkResponse(response_ar, title_only, item)
+				checkArResponse(response_ar, title_only, item)
 
 		# For KSA
 		elif item.productID.source == "amazon.sa":
 			response_ar = self.soupParserSA(f'https://www.amazon.sa/-/en/dp/{item.current_asin}')
 			if response_ar:
-				checkResponse(response_ar, title_only, item)
+				checkArResponse(response_ar, title_only, item)
