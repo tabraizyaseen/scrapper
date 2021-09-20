@@ -191,7 +191,7 @@ def searchTitles(request):
 		'results' : results,
 		'results_ksa' : results_ksa,
 		'results_india': results_india,
-		'counting' : len(results + results_ksa + results_india),
+		'counting' : len(results + results_ksa),
 		'accepted' : len(validated),
 		'variations' : variations_lst
 	}
