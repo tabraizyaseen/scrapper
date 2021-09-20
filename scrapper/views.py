@@ -1470,18 +1470,20 @@ def requiredJsonFormat(request):
 						if countings < 9999:
 
 							index_dimension = '_'.join(map(str,k))
-							index_value = '/'.join([i.replace("/","-") for i in v])
+							index_value = '/'.join(v)
 
 							# Initializing variation dictionary
 							variations_dict = {}
 
 							# Match variation despute of order
-							dimension_list = v[1:]
+							new_v = [i.replace("-","/") for i in v]
+							dimension_list = new_v[1:]
 							total_variations = ''
 
 							for match_variation in variationSettings.objects.filter(productID=single_variant_db[0].productID, available=True):
 								if set(dimension_list) == set(match_variation.dimension_val_en.split(',')):
 									total_variations = match_variation
+									break
 			
 							if total_variations:
 
