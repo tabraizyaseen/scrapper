@@ -165,9 +165,6 @@ def ResponseValidate(productResponse):
 					source='amazon.sa',
 				)
 
-	else:
-		pass
-
 def ResponseValidateArabic(productResponse):
 
 	# For Arabic title validation
@@ -191,7 +188,4 @@ def ResponseValidateArabic(productResponse):
 				description_ar=valid,
 				title_ar=title,
 			)
-
-	else:
-		pass
 

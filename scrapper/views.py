@@ -110,7 +110,7 @@ def searchTitles(request):
 			item_db.description_en = False
 			item_db.save()
 
-	def asin_manager(item, results, validated, results_ksa, variations):
+	def asin_manager(item, results, validated, results_ksa, results_india, variations):
 
 		item_db = productPagesScrapper.objects.filter(productID=item)
 		if item_db:
@@ -121,7 +121,7 @@ def searchTitles(request):
 			# check_latest(item_db)
 
 			# Differentiating SA and AE products
-			(lambda x: results_ksa.append(x) if x.source == 'amazon.sa' else results.append(x))(item_db)
+			(lambda x: results_ksa.append(x) if x.source == 'amazon.sa' else (results_india.append(x) if x.source == 'amazon.in' else results.append(x)))(item_db)
 
 			# Get count of validated items
 			(lambda x: validated.append(x) if x.description_en and x.description_ar else x)(item_db)
@@ -143,6 +143,7 @@ def searchTitles(request):
 	results = []
 	validated = []
 	results_ksa = []
+	results_india = []
 	variations = []
 	variations_lst = []
 	
@@ -165,7 +166,7 @@ def searchTitles(request):
 		if 'Amazon_Category' in global_file.columns:
 			print('Amazon_Category given')
 			for counting,(item,category) in enumerate(zip(global_file['ASIN'], global_file['Amazon_Category']), start=1):
-				asin_manager(item, results, validated, results_ksa, variations)
+				asin_manager(item, results, validated, results_ksa, results_india, variations)
 
 				if category:
 					category = category.replace('>','›')
@@ -174,7 +175,7 @@ def searchTitles(request):
 			print('Amazon_Category not given')
 			for counting,item in enumerate(global_file['ASIN'], start=1):
 
-				asin_manager(item, results, validated, results_ksa, variations)
+				asin_manager(item, results, validated, results_ksa, results_india, variations)
 
 
 		variations_lst = [i for sub in variations for i in sub]
@@ -189,7 +190,8 @@ def searchTitles(request):
 	context = {
 		'results' : results,
 		'results_ksa' : results_ksa,
-		'counting' : len(results + results_ksa),
+		'results_india': results_india,
+		'counting' : len(results + results_ksa + results_india),
 		'accepted' : len(validated),
 		'variations' : variations_lst
 	}
@@ -353,10 +355,34 @@ def robustSearchValidKSA(request):
 
 		print(counting)
 
-	# validated = [item for item in results_lst if item['description_en'] and item['description_ar']]
-	validated = [i for i in range(100)]
+	validated = productPagesScrapper.objects.filter(productID__in=tuple(global_file['ASIN']), description_en=True, description_ar=True)
 
 	return JsonResponse({'report':results_lst, 'valid_count':len(validated), 'type':'ksa report'})
+
+def robustSearchValidIndia(request):
+
+	results_lst = []
+
+	# Calling global variable here
+	for counting, item in enumerate(global_file['ASIN'], start=1 ):
+
+		dbhandler_ins = amazon_DBHandler_cls(item)
+		dbhandler_ins.get_valid_india()
+
+		context = {}
+		item_db = productPagesScrapper.objects.filter(productID=item, source='amazon.in')
+		if item_db:
+			item_db = item_db[0]
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+
+			results_lst.append(context)
+
+		print(counting)
+
+	validated = productPagesScrapper.objects.filter(productID__in=tuple(global_file['ASIN']), description_en=True, description_ar=True)
+
+	return JsonResponse({'report':results_lst, 'valid_count':len(validated), 'type':'india report'})
 
 def robustSearchDetails(request):
 
@@ -1153,71 +1179,6 @@ def export_csv(request):
 	except AttributeError:
 		long_descriptionAR=''
 	'''
-
-def export_csv_ksa(request):
-
-	current_date = str(datetime.date.today())
-	name = 'KSA_'+current_date+'_Scrapped.csv'
-
-	# Create the HttpResponse object with the appropriate CSV header.
-	response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
-	response['Content-Disposition'] = f'attachment; filename={name}'
-
-	writer = csv.writer(response)
-	writer.writerow([
-		'product_id','Asin','Category', 'SKU' ,'Brand','Title',
-		'Title Arabic','Description','Description Arabic','Long Description',
-		'Long Description Arabic','product_id.1', 'Market Price (AED)', 
-		'Price (AED)', 'Quantity', 'Ship To UAE','Ship To KSA', 'GradeId', 
-		'WeightClassId', 'Ship to Dubai Cost (AED)', 
-		'Ship to Everywhere Cost (AED)', 'ImageLinks (Comma Separated)'])
-
-	# Calling global variable global_file
-	for item in global_file['ASIN']:
-		item_db = productPagesScrapper.objects.filter(productID=item, description_en=True, description_ar=True, source='amazon.sa')
-		if item_db:
-			# Category
-			try:
-				category = item_db[0].category
-			except Exception:
-				category = ''
-
-			# Brand
-			brand = ''
-			brand_db = item_db[0].productdetails_set.filter(language='EN', attributes='Brand')
-			if brand_db:
-				brand = brand_db[0].values
-
-			asin = item_db[0].productID
-			title_en = item_db[0].title_en
-			title_ar = item_db[0].title_ar
-
-			try:
-				description_en = ', '.join([highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='EN')])
-			except Exception:
-				description_en = ''
-
-			try:
-				description_ar = ', '.join([highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='AR')])
-			except Exception:
-				description_ar = ''
-			
-			# English Long Description
-			long_descriptionEN_db = item_db[0].productdescription_set.filter(language='EN')
-			long_descriptionEN = long_descriptionEN_db[0].long_description
-
-			# Arabic Long Description
-			long_descriptionAR_db = item_db[0].productdescription_set.filter(language='AR')
-			long_descriptionAR = long_descriptionAR_db[0].long_description
-
-			images = ','.join([images.image for images in item_db[0].productimages_set.all()])
-			
-			writer.writerow([
-				'',asin,category,'',brand,title_en,title_ar,description_en,description_ar, 
-				long_descriptionEN,long_descriptionAR,'','','','','','','','','','',images])
-
-
-	return response
 
 
 # Old one

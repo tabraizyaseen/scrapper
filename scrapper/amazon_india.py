@@ -163,33 +163,4 @@ def ResponseValidate(productResponse):
 					source='amazon.in',
 				)
 
-	else:
-		pass
-
-def ResponseValidateArabic(productResponse):
-
-	# For Arabic title validation
-	soup, response = soupParser(f'https://www.amazon.in/-/ar/dp/{productResponse.productID}')
-
-	if soup:
-
-		valid = False
-		try:
-			# Finding title
-			title = soup.find('span', {'id': 'productTitle'}).text.strip().split('】')[-1].split('𝐆𝐢𝐟𝐭 ')[-1]
-			valid = True
-		except AttributeError:
-			title = ''
-
-		# Writing File
-		with io.open(f'static/docs/productPages/AR_{productResponse.productID}.txt', 'w', encoding='UTF-8') as responseFile:
-
-			responseFile.writelines(response.text)
-			productPagesScrapper.objects.filter(id=productResponse.id).update(
-				description_ar=valid,
-				title_ar=title,
-			)
-
-	else:
-		pass
 

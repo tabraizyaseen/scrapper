@@ -26,7 +26,7 @@ urlpatterns = [
     path('category_attributes/',views.categoryAttributesManager, name='category_attributes'),
 
 	path('robust_search_valid_ksa/', views.robustSearchValidKSA, name='robust_search_valid_ksa'),
-	path('export_csv_ksa/', views.export_csv_ksa, name='export_csv_ksa'),
+    path('robust_search_valid_india/', views.robustSearchValidIndia, name='robust_search_valid_india'),
 
     # Category work
     path('view_categories/', views.viewCategories, name='view_categories'),
