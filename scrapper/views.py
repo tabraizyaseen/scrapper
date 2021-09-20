@@ -1441,7 +1441,7 @@ def requiredJsonFormat(request):
 						variations_settings_dict = {}
 
 						variations_settings_dict['name'] = variations.name_en.replace('_',' ').title()
-						variations_settings_dict['values'] = [i.replace("/","&") for i in variations.value_en.split(',')]
+						variations_settings_dict['values'] = [i.replace("/","-") for i in variations.value_en.split(',')]
 						variations_settings_dict['name_ar'] = variations.name_ar.replace('_',' ').title()
 						variations_settings_dict['values_ar'] = variations.value_ar.split(',')
 
@@ -1470,7 +1470,7 @@ def requiredJsonFormat(request):
 						if countings < 9999:
 
 							index_dimension = '_'.join(map(str,k))
-							index_value = '/'.join([i.replace("/","&") for i in v])
+							index_value = '/'.join([i.replace("/","-") for i in v])
 
 							# Initializing variation dictionary
 							variations_dict = {}
