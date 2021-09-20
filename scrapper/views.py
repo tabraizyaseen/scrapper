@@ -186,12 +186,13 @@ def searchTitles(request):
 
 		end = perf_counter()
 		print(f'file displaying : {end-strt}')
-
+	print("results : ",results)
+	print("results India : ",results_india)
 	context = {
 		'results' : results,
 		'results_ksa' : results_ksa,
 		'results_india': results_india,
-		'counting' : len(results + results_ksa),
+		'counting' : len(results + results_ksa + results_india),
 		'accepted' : len(validated),
 		'variations' : variations_lst
 	}
@@ -390,12 +391,20 @@ def robustSearchDetails(request):
 	for counting, item in enumerate(global_file['ASIN'], start=1):
 
 		product = productPagesScrapper.objects.filter(productID=item, description_ar=True, description_en=True)
+		india_product = productPagesScrapper.objects.filter(productID=item, description_en=True, source="amazon.in")
 
 		if product:
 
 			print(counting)
 			dbhandler_ins = amazon_DBHandler_cls(item)
 			dbhandler_ins.get_product_data(product[0])
+
+		if india_product:
+
+			print("india - ",counting)
+			dbhandler_ins = amazon_DBHandler_cls(item)
+			dbhandler_ins.get_product_data_EN(india_product[0])
+
 
 	return JsonResponse({'report':'Okay'})
 
@@ -1081,215 +1090,6 @@ def categoryExportARJson(request):
 
 	return response
 
-
-def export_csv(request):
-
-	current_date = str(datetime.date.today())
-	name = current_date+'_Scrapped.csv'
-
-	# Create the HttpResponse object with the appropriate CSV header.
-	response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
-	response['Content-Disposition'] = f'attachment; filename={name}'
-
-	writer = csv.writer(response)
-	writer.writerow([
-		'product_id','Asin','Category', 'SKU' ,'Brand','Title',
-		'Title Arabic','Description','Description Arabic','Long Description',
-		'Long Description Arabic','product_id.1', 'Market Price (AED)', 
-		'Price (AED)', 'Quantity', 'Ship To UAE','Ship To KSA', 'GradeId', 
-		'WeightClassId', 'Ship to Dubai Cost (AED)', 
-		'Ship to Everywhere Cost (AED)', 'ImageLinks (Comma Separated)'])
-
-	# Calling global variable global_file
-	for item in global_file['ASIN']:
-		item_db = productPagesScrapper.objects.filter(productID=item, description_en=True, description_ar=True)
-		if item_db:
-			# Category
-			try:
-				category = item_db[0].category
-			except Exception:
-				category = ''
-
-			# Brand
-			brand = ''
-			brand_db = item_db[0].productdetails_set.filter(language='EN', attributes='Brand')
-			if brand_db:
-				brand = brand_db[0].values
-
-			asin = item_db[0].productID
-			title_en = item_db[0].title_en
-			title_ar = item_db[0].title_ar
-
-			try:
-				description_en = ', '.join([highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='EN')])
-			except Exception:
-				description_en = ''
-
-			try:
-				description_ar = ', '.join([highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='AR')])
-			except Exception:
-				description_ar = ''
-			
-			# English Long Description
-			long_descriptionEN_db = item_db[0].productdescription_set.filter(language='EN')
-			long_descriptionEN = long_descriptionEN_db[0].long_description
-
-			# Arabic Long Description
-			long_descriptionAR_db = item_db[0].productdescription_set.filter(language='AR')
-			long_descriptionAR = long_descriptionAR_db[0].long_description
-
-			images = ','.join([images.image for images in item_db[0].productimages_set.all()])
-			
-			writer.writerow([
-				'',asin,category,'',brand,title_en,title_ar,description_en,description_ar, 
-				long_descriptionEN,long_descriptionAR,'','','','','','','','','','',images])
-
-
-	return response
-
-	# Quick Solution
-	'''
-	# Reading English File
-	with io.open(f'static/docs/productPages/EN_{asin}.txt', 'r', encoding='UTF-8') as html_file:
-		soup_en = BeautifulSoup(html_file.read(), 'html.parser')
-
-	#Description English
-	try:
-		long_descriptionEN_div = soup_en.find('div',{'id':'productDescription'})
-		long_descriptionEN_p = long_descriptionEN_div.find_all('p')
-		for p_tag in long_descriptionEN_p:
-			if p_tag.text:
-				long_descriptionEN = p_tag.text.strip()
-				break
-	except AttributeError:
-		long_descriptionEN=''
-
-	# Reading Arabic File
-	with io.open(f'static/docs/productPages/AR_{asin}.txt', 'r', encoding='UTF-8') as html_file:
-		soup_ar = BeautifulSoup(html_file.read(), 'html.parser')
-
-	#Description Arabic
-	try:
-		long_descriptionAR_div = soup_ar.find('div',{'id':'productDescription'})
-		long_descriptionAR_p = long_descriptionAR_div.find_all('p')
-		for p_tag in long_descriptionAR_p:
-			if p_tag.text:
-				long_descriptionAR = p_tag.text.strip()
-				break
-	except AttributeError:
-		long_descriptionAR=''
-	'''
-
-
-# Old one
-def export_demanded_json(request):
-
-	current_date = str(datetime.date.today())
-	name = current_date+'_Scrapped.json'
-
-	data = []
-	for item in global_file['ASIN']: # As global_file is a global variable
-
-		item_db = productPagesScrapper.objects.filter(productID=item, description_en=True, description_ar=True)
-		if item_db:
-			print(item_db[0].productID)
-			data_dict = {}
-
-			# Category
-			try:
-				category = item_db[0].category
-			except Exception:
-				category = ''
-
-			data_dict['category'] = category
-			data_dict['weight_class'] = ''
-
-			# Brand
-			brand = ''
-			brand_db = item_db[0].productdetails_set.filter(language='EN', attributes='Brand')
-			if brand_db:
-				brand = brand_db[0].values
-
-			data_dict['brand'] = brand
-			data_dict['title'] = item_db[0].title_en
-			data_dict['title_ar'] = item_db[0].title_ar
-			data_dict['description'] = ' '.join([long_desc.long_description for long_desc in item_db[0].productdescription_set.filter(language='EN')])
-			data_dict['description_ar'] = ' '.join([long_desc.long_description for long_desc in item_db[0].productdescription_set.filter(language='AR')])
-			data_dict['highlights'] = [highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='EN')]
-			data_dict['highlights_ar'] = [highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='AR')]
-
-			data_dict['gtin'] = ''
-			data_dict['ean'] = ''
-			data_dict['upc'] = ''
-
-			data_dict['default_images'] = [images.image for images in item_db[0].productimages_set.all()]
-
-			# Specifications
-			category_lst = []
-
-			specs_en = item_db[0].productdetails_set.filter(language='EN').exclude(attributes__in=('Brand','Asin','ASIN'))
-			specs_ar = item_db[0].productdetails_set.filter(language='AR').exclude(attributes__in=('Brand','Asin','العلامة التجارية','ASIN'))
-
-			for indexes,specs in enumerate(specs_en):
-				spec_dict = {}
-
-				try:
-					spec_dict['type'] = 'text'
-					spec_dict['name_en'] = specs.attributes
-					spec_dict['name_ar'] = specs_ar[indexes].attributes
-					spec_dict['value'] = specs.values
-					spec_dict['value_ar'] = specs_ar[indexes].values
-
-					category_lst.append(spec_dict)
-				except Exception:
-					break
-				
-			data_dict['category_attributes'] = category_lst
-
-			# Reading English File
-			with io.open(f'static/docs/productPages/EN_{item_db[0].productID}.txt', 'r', encoding='UTF-8') as html_file:
-				soup_en = BeautifulSoup(html_file.read(), 'html.parser')
-
-			# Javascript Tag
-			try:
-				pattern = re.compile(r"P\.register\('twister-js-init-dpx-data', function\(\) \{")
-				javascript_tag = soup_en.find('script',string=pattern).contents[0]
-				val_start = javascript_tag.find('"variationValues"')+20
-				variationValues = javascript_tag[val_start:].split('\n')[0][:-1]
-				variations = json.loads(variationValues)
-
-			except Exception:
-				variations = {}
-
-			# Variation_Data
-			if variations:
-				variation_lst = []
-				variation_lst.append({"name":"Conditions","values":['FRA','FRB']})
-
-				for k,v in variations.items():
-					variation_dict = {}
-					variation_dict["name"] = k
-					variation_dict["values"] = v
-					variation_lst.append(variation_dict)
-
-				data_dict['variation_settings'] = variation_lst
-
-			else:
-				data_dict['variation_settings'] = []
-
-			data_dict['variations'] = []
-
-
-			data.append(data_dict)
-
-
-	response = HttpResponse(content_type='application/json')
-	response['Content-Disposition'] = f'attachment; filename={name}'
-
-	json.dump(data, response, ensure_ascii = False, indent=4)
-
-	return response
-
 # New One
 def requiredJsonFormat(request):
 
@@ -1310,7 +1110,7 @@ def requiredJsonFormat(request):
 
 		if item in check_list:
 
-			item_db = productPagesScrapper.objects.filter(productID=item, description_en=True, description_ar=True)
+			item_db = productPagesScrapper.objects.filter(productID=item, description_en=True, description_ar=True) or productPagesScrapper.objects.filter(productID=item, description_en=True, source="amazon.in")
 			if item_db:
 				print(item_db[0].productID)
 				data_dict = {}

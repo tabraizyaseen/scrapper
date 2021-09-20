@@ -77,7 +77,7 @@
     {% endif %}
 	<br>
 
-	{% if results %}
+	{% if results or results_ksa or results_india %}
 	<div class="row data-container">
 	{% else %}
 	<div class="row" style="display: none">
@@ -125,14 +125,10 @@
 					  <div class="dropdown-menu">
 					    <!-- Dropdown menu links -->
 					    <b class="dropdown-header">Select file format</b>
-					    <a class="dropdown-item" href="{% url 'export_csv' %}">CSV</a>
-					    <div class="dropdown-divider"></div>
-					    <a class="dropdown-item" href="{% url 'export_demanded_json' %}">JSON</a>
-					    <div class="dropdown-divider"></div>
-					    <a class="dropdown-item" href="{% url 'requiredJsonFormat' %}">JSON <span class="badge badge-pill badge-danger glow">new</span></a>
+					    <a class="dropdown-item" href="{% url 'requiredJsonFormat' %}">JSON</a>
 					    <!-- Category Attributes -->
 					    <div class="dropdown-divider"></div>
-					    <a class="dropdown-item" href="{% url 'category_attributes' %}">Category Attributes <span class="badge badge-pill badge-danger glow">new</span></a>
+					    <a class="dropdown-item" href="{% url 'category_attributes' %}">Category Attributes</a>
 					  </div>
 					</div>
 				</p>

@@ -19,9 +19,7 @@ urlpatterns = [
     path('save_variations/', views.saveVariations, name='save_variations'),
     path('varience_crawler/', views.varienceCrawler, name='varience_crawler'),
     path('total_varience/', views.productTotalVarience, name='total_varience'),
-
-    path('export_csv/', views.export_csv, name='export_csv'),
-	path('export_demanded_json/', views.export_demanded_json, name='export_demanded_json'),
+    
     path('requiredJsonFormat/', views.requiredJsonFormat, name='requiredJsonFormat'),
     path('category_attributes/',views.categoryAttributesManager, name='category_attributes'),
 

@@ -36,6 +36,70 @@ class amazon_DBHandler_cls():
 		if not item_db.description_en:
 			amazon_india.ResponseValidate(item_db)
 
+	def get_product_data_EN(self,item):
+		
+		if item.description_en:
+
+			product_details_class = amazon_scrapper.AmazonProductDetails(item)
+
+			if productImages.objects.filter(productID=item).exists():
+
+				images = product_details_class.ImagesList()
+
+				images_db = productImages.objects.filter(productID=item)
+
+				for image, image_db in zip(images,images_db):
+					image_db.image = image
+
+				productImages.objects.bulk_update(images_db, ['image'])
+
+			if not productImages.objects.filter(productID=item).exists():
+
+				images = product_details_class.ImagesList()
+
+				images_data = [
+					productImages(productID=item, image=image)
+					for image in images
+				]
+
+				productImages.objects.bulk_create(images_data)
+
+			if not item.price:
+				price = product_details_class.price()
+				item.price = price
+				item.save()
+
+			if not item.old_price:
+				old_price = product_details_class.old_price()
+				item.old_price = old_price
+				item.save()
+
+			if not productDetails.objects.filter(productID=item, language="EN").exists():
+				specifications = product_details_class.Specifications()
+
+				data = [
+					productDetails(productID=item, language="EN", attributes=attr, values=val)
+					for attr, val in specifications
+				]
+
+				productDetails.objects.bulk_create(data)
+
+			if not productDescription.objects.filter(productID=item, language="EN").exists():
+				long_description = product_details_class.ProductDescription()
+
+				productDescription.objects.create(productID=item, language="EN", long_description=long_description)
+
+			if not productHighlights.objects.filter(productID=item, language="EN").exists():
+				highlights = product_details_class.Highlights()
+
+				highlights_data = [
+					productHighlights(productID=item, language="EN", highlight=highlight)
+					for highlight in highlights
+				]
+
+				productHighlights.objects.bulk_create(highlights_data)
+
+
 	def get_product_data(self, item):
 
 		def get_product_detail(item, language, product_details_class):
@@ -113,8 +177,6 @@ class amazon_DBHandler_cls():
 					product_details_class = amazon_scrapper.AmazonProductDetailsArabic(item)
 
 				get_product_detail(item, language, product_details_class)
-		else:
-			pass
 
 
 	# Saving product variations
