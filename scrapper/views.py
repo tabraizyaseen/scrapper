@@ -1198,7 +1198,7 @@ def requiredJsonFormat(request):
 				single_variant_db = lambda_variant_func(variationSettings.objects.filter(current_asin=item_db[0].productID),variationSettings.objects.filter(parent_asin=item_db[0].productID))
 
 				if single_variant_db:
-					variations_settings = totalVariations.objects.filter(productID=single_variant_db[0].productID).order_by('-id')
+					variations_settings = totalVariations.objects.filter(parent_asin=single_variant_db[0].parent_asin).order_by('-id') or totalVariations.objects.filter(productID=single_variant_db[0].productID).order_by('-id')
 
 					data_dict['asin'] = variations_settings[0].parent_asin
 
