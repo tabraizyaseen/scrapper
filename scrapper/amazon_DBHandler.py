@@ -1,3 +1,5 @@
+from django.db.models import Q
+
 from .models import *
 from . import amazon_scrapper
 from . import amazon_ksa
@@ -35,6 +37,70 @@ class amazon_DBHandler_cls():
 		item_db = productPagesScrapper.objects.get(productID=asin)
 		if not item_db.description_en:
 			amazon_india.ResponseValidate(item_db)
+
+	def get_product_data_EN(self,item):
+		
+		if item.description_en:
+
+			product_details_class = amazon_scrapper.AmazonProductDetails(item)
+
+			if productImages.objects.filter(productID=item).exists():
+
+				images = product_details_class.ImagesList()
+
+				images_db = productImages.objects.filter(productID=item)
+
+				for image, image_db in zip(images,images_db):
+					image_db.image = image
+
+				productImages.objects.bulk_update(images_db, ['image'])
+
+			if not productImages.objects.filter(productID=item).exists():
+
+				images = product_details_class.ImagesList()
+
+				images_data = [
+					productImages(productID=item, image=image)
+					for image in images
+				]
+
+				productImages.objects.bulk_create(images_data)
+
+			if not item.price:
+				price = product_details_class.price()
+				item.price = price
+				item.save()
+
+			if not item.old_price:
+				old_price = product_details_class.old_price()
+				item.old_price = old_price
+				item.save()
+
+			if not productDetails.objects.filter(productID=item, language="EN").exists():
+				specifications = product_details_class.Specifications()
+
+				data = [
+					productDetails(productID=item, language="EN", attributes=attr, values=val)
+					for attr, val in specifications
+				]
+
+				productDetails.objects.bulk_create(data)
+
+			if not productDescription.objects.filter(productID=item, language="EN").exists():
+				long_description = product_details_class.ProductDescription()
+
+				productDescription.objects.create(productID=item, language="EN", long_description=long_description)
+
+			if not productHighlights.objects.filter(productID=item, language="EN").exists():
+				highlights = product_details_class.Highlights()
+
+				highlights_data = [
+					productHighlights(productID=item, language="EN", highlight=highlight)
+					for highlight in highlights
+				]
+
+				productHighlights.objects.bulk_create(highlights_data)
+
 
 	def get_product_data(self, item):
 
@@ -113,12 +179,30 @@ class amazon_DBHandler_cls():
 					product_details_class = amazon_scrapper.AmazonProductDetailsArabic(item)
 
 				get_product_detail(item, language, product_details_class)
-		else:
-			pass
 
 
 	# Saving product variations
 	def saveVariations(self):
+
+		def func_variationSettingsEN(variation,parent_asin,variationSettings_instance,item):
+			dimensions = variation.Dimensions()
+			dimensionsDetails = variation.DimensionsDetails()
+			
+			if variationSettings_instance:
+				for countings, (k,v) in enumerate(dimensions.items()):
+
+					create_dict = {'parent_asin':parent_asin,'dimension':k, 'dimension_val_en':','.join(dimensionsDetails[v])}
+					variationSettings.objects.get_or_create(productID=variationSettings_instance[0].productID, current_asin=v, defaults=create_dict)
+					
+
+					# if parent asin is the same
+					'''
+					create_dict = {'dimension':k, 'dimension_val_en':','.join(dimensionsDetails[v])}
+					variationSettings.objects.get_or_create(productID=variationSettings_instance[0].productID, parent_asin=parent_asin, current_asin=v, defaults=create_dict)
+					'''
+			else:
+				for k,v in dimensions.items():
+					variationSettings.objects.create(productID=item, parent_asin=parent_asin, current_asin=v, dimension=k, dimension_val_en=','.join(dimensionsDetails[v]))
 
 		def func_variationSettings(variation,parent_asin,variationSettings_instance,item):
 
@@ -141,6 +225,26 @@ class amazon_DBHandler_cls():
 			else:
 				for k,v in dimensions.items():
 					variationSettings.objects.create(productID=item, parent_asin=parent_asin, current_asin=v, dimension=k, dimension_val_en=','.join(dimensionsDetails[v]), dimension_val_ar=','.join(dimensionsDetailsAR[v]))
+
+		def func_totalVariationsEN(variation,parent_asin,item):
+
+			total_variations = variation.TotalVariation()
+
+			# multiple parent Asin Solution
+			lambda_presence_check = lambda x,y: x if x else y
+
+			for k1,v1 in total_variations.items():
+				
+				instance_check = lambda_presence_check(totalVariations.objects.filter(productID=item, name_en=k1), totalVariations.objects.filter(parent_asin=parent_asin, name_en=k1))
+
+				if instance_check:
+					instance_check = instance_check[0]
+					value_en = instance_check.value_en.split(',') + list(set(v1).difference(instance_check.value_en.split(',')))
+
+					update_dict = {'value_en':','.join(value_en)}
+					_, created = totalVariations.objects.update_or_create(productID=instance_check.productID, name_en=k1, defaults=update_dict)
+				else:
+					totalVariations.objects.create(productID=item, parent_asin=parent_asin, name_en=k1, value_en=','.join(v1))
 
 
 		def func_totalVariations(variation,parent_asin,item):
@@ -167,7 +271,7 @@ class amazon_DBHandler_cls():
 
 
 		asin = self.asin
-		items = productPagesScrapper.objects.filter(productID=asin, description_en=True, description_ar=True, source__startswith='amazon')
+		items = productPagesScrapper.objects.filter(Q(productID=asin, description_en=True, description_ar=True, source__startswith='amazon') | Q(productID=asin, description_en=True, source='amazon.in'))
 
 		if items:
 			item = items[0]
@@ -182,8 +286,15 @@ class amazon_DBHandler_cls():
 
 					variationSettings_instance = variationSettings.objects.filter(current_asin=asin) or variationSettings.objects.filter(parent_asin=asin)
 
-					func_totalVariations(variation,parent_asin,item)
-					func_variationSettings(variation,parent_asin,variationSettings_instance,item)
+					if item.source == 'amazon.in':
+
+						func_totalVariationsEN(variation,parent_asin,item)
+						func_variationSettingsEN(variation,parent_asin,variationSettings_instance,item)
+
+					elif item.source == 'amazon.ae' or item.source == 'amazon.sa':
+
+						func_totalVariations(variation,parent_asin,item)
+						func_variationSettings(variation,parent_asin,variationSettings_instance,item)
 					
 				except Exception as e:
 					print(e)
@@ -208,8 +319,10 @@ class amazon_DBHandler_cls():
 				varience = varienceDetail(item)
 
 				item.title_en = varience.titleParser()
-				item.title_ar = varience.titleParserAR()
 				item.images = varience.allImages()
+
+				if item.productID.source == 'amazon.ae' or item.productID.source == 'amazon.ae':
+					item.title_ar = varience.titleParserAR()
 
 				item.save()
 
@@ -228,7 +341,7 @@ class amazon_DBHandler_cls():
 
 		asin = self.asin
 
-		items = productPagesScrapper.objects.filter(productID=asin, description_en=True, description_ar=True, source__startswith='amazon')
+		items = productPagesScrapper.objects.filter(Q(productID=asin, description_en=True, description_ar=True, source__startswith='amazon') | Q(productID=asin, description_en=True, source='amazon.in'))
 
 		if items:
 			item = items[0]

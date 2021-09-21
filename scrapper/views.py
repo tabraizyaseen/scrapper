@@ -110,7 +110,7 @@ def searchTitles(request):
 			item_db.description_en = False
 			item_db.save()
 
-	def asin_manager(item, results, validated, results_ksa, variations):
+	def asin_manager(item, results, validated, results_ksa, results_india, variations):
 
 		item_db = productPagesScrapper.objects.filter(productID=item)
 		if item_db:
@@ -121,10 +121,10 @@ def searchTitles(request):
 			# check_latest(item_db)
 
 			# Differentiating SA and AE products
-			(lambda x: results_ksa.append(x) if x.source == 'amazon.sa' else results.append(x))(item_db)
+			(lambda x: results_ksa.append(x) if x.source == 'amazon.sa' else (results_india.append(x) if x.source == 'amazon.in' else results.append(x)))(item_db)
 
 			# Get count of validated items
-			(lambda x: validated.append(x) if x.description_en and x.description_ar else x)(item_db)
+			(lambda x: validated.append(x) if x.description_en and x.description_ar else (validated.append(x) if x.description_en and x.source=='amazon.in' else x))(item_db)
 
 			# Get variations
 			variations.append([i for x in variationSettings.objects.filter(current_asin=item_db.productID) for i in variationSettings.objects.filter(productID=x.productID) if x])
@@ -143,6 +143,7 @@ def searchTitles(request):
 	results = []
 	validated = []
 	results_ksa = []
+	results_india = []
 	variations = []
 	variations_lst = []
 	
@@ -165,7 +166,7 @@ def searchTitles(request):
 		if 'Amazon_Category' in global_file.columns:
 			print('Amazon_Category given')
 			for counting,(item,category) in enumerate(zip(global_file['ASIN'], global_file['Amazon_Category']), start=1):
-				asin_manager(item, results, validated, results_ksa, variations)
+				asin_manager(item, results, validated, results_ksa, results_india, variations)
 
 				if category:
 					category = category.replace('>','›')
@@ -174,7 +175,7 @@ def searchTitles(request):
 			print('Amazon_Category not given')
 			for counting,item in enumerate(global_file['ASIN'], start=1):
 
-				asin_manager(item, results, validated, results_ksa, variations)
+				asin_manager(item, results, validated, results_ksa, results_india, variations)
 
 
 		variations_lst = [i for sub in variations for i in sub]
@@ -185,11 +186,13 @@ def searchTitles(request):
 
 		end = perf_counter()
 		print(f'file displaying : {end-strt}')
-
+	print("results : ",results)
+	print("results India : ",results_india)
 	context = {
 		'results' : results,
 		'results_ksa' : results_ksa,
-		'counting' : len(results + results_ksa),
+		'results_india': results_india,
+		'counting' : len(results + results_ksa + results_india),
 		'accepted' : len(validated),
 		'variations' : variations_lst
 	}
@@ -222,6 +225,7 @@ def saveVariations(request):
 		context["parent_asin"] = data.parent_asin
 		context["description_en"] = data.description_en
 		context["description_ar"] = data.description_ar
+		context["source"] = data.productID.source
 
 		context_lst.append(context)
 
@@ -234,7 +238,7 @@ def saveVariations(request):
 		context["description_ar"] = item_db.description_ar
 		product_list.append(context)
 
-	validated = [item for item in updated_record if item.description_en and item.description_ar]
+	validated = [item for item in updated_record if (item.description_en and item.description_ar) or (item.description_en and item.source=='amazon.in')]
 
 	return JsonResponse({'report':context_lst, 'type':"variation report", 'products':product_list, 'valid_count':len(validated)})
 
@@ -252,13 +256,21 @@ def varienceCrawler(request):
 
 			for num_childern,single_asin in enumerate(all_asins, start=1):
 
-				if not single_asin.description_en:
-					variance = Variant(single_asin)
-					variance.saveResponse()
+				if single_asin.productID.source == 'amazon.in':
 
-				if not single_asin.description_ar:
-					variance = Variant(single_asin)
-					variance.saveResponseAR()
+					if not single_asin.description_en:
+						variance = Variant(single_asin)
+						variance.saveResponse()
+
+				elif single_asin.productID.source == 'amazon.ae' or single_asin.source == 'amazon.sa':
+
+					if not single_asin.description_en:
+						variance = Variant(single_asin)
+						variance.saveResponse()
+
+					if not single_asin.description_ar:
+						variance = Variant(single_asin)
+						variance.saveResponseAR()
 
 				print(f'{countings}-{num_childern}')
 
@@ -278,6 +290,7 @@ def varienceCrawler(request):
 		context["parent_asin"] = data.parent_asin
 		context["description_en"] = data.description_en
 		context["description_ar"] = data.description_ar
+		context["source"] = data.productID.source
 
 		context_lst.append(context)
 
@@ -288,8 +301,8 @@ def productTotalVarience(request):
 
 	for countings, product in enumerate(global_file['ASIN'], start=1):
 
-		item_CA = [i for x in variationSettings.objects.filter(current_asin=product) for i in variationSettings.objects.filter(parent_asin=x.parent_asin,description_ar=True, description_en=True) if x]
-		item_PA = variationSettings.objects.filter(parent_asin=product, description_ar=True, description_en=True)
+		item_CA = [i for x in variationSettings.objects.filter(current_asin=product) for i in variationSettings.objects.filter(Q(productID=x.productID,description_ar=True, description_en=True) | Q(productID=x.productID, description_en=True, productID__source='amazon.in')) if x]
+		item_PA = variationSettings.objects.filter(Q(parent_asin=product, description_ar=True, description_en=True) | Q(parent_asin=product, description_en=True, productID__source='amazon.in'))
 
 		items = item_CA or item_PA
 
@@ -327,7 +340,7 @@ def robustSearchValid(request):
 
 		print(counting)
 
-	validated = [item for item in results_lst if item['description_en'] and item['description_ar']]
+	validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source='amazon.in'))
 
 	return JsonResponse({'report':results_lst, 'valid_count':len(validated), 'type':'crawler report'})
 
@@ -353,10 +366,34 @@ def robustSearchValidKSA(request):
 
 		print(counting)
 
-	# validated = [item for item in results_lst if item['description_en'] and item['description_ar']]
-	validated = [i for i in range(100)]
+	validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source='amazon.in'))
 
 	return JsonResponse({'report':results_lst, 'valid_count':len(validated), 'type':'ksa report'})
+
+def robustSearchValidIndia(request):
+
+	results_lst = []
+
+	# Calling global variable here
+	for counting, item in enumerate(global_file['ASIN'], start=1 ):
+
+		dbhandler_ins = amazon_DBHandler_cls(item)
+		dbhandler_ins.get_valid_india()
+
+		context = {}
+		item_db = productPagesScrapper.objects.filter(productID=item, source='amazon.in')
+		if item_db:
+			item_db = item_db[0]
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+
+			results_lst.append(context)
+
+		print(counting)
+
+	validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source='amazon.in'))
+
+	return JsonResponse({'report':results_lst, 'valid_count':len(validated), 'type':'india report'})
 
 def robustSearchDetails(request):
 
@@ -364,12 +401,20 @@ def robustSearchDetails(request):
 	for counting, item in enumerate(global_file['ASIN'], start=1):
 
 		product = productPagesScrapper.objects.filter(productID=item, description_ar=True, description_en=True)
+		india_product = productPagesScrapper.objects.filter(productID=item, description_en=True, source="amazon.in")
 
 		if product:
 
 			print(counting)
 			dbhandler_ins = amazon_DBHandler_cls(item)
 			dbhandler_ins.get_product_data(product[0])
+
+		if india_product:
+
+			print("india - ",counting)
+			dbhandler_ins = amazon_DBHandler_cls(item)
+			dbhandler_ins.get_product_data_EN(india_product[0])
+
 
 	return JsonResponse({'report':'Okay'})
 
@@ -1055,280 +1100,6 @@ def categoryExportARJson(request):
 
 	return response
 
-
-def export_csv(request):
-
-	current_date = str(datetime.date.today())
-	name = current_date+'_Scrapped.csv'
-
-	# Create the HttpResponse object with the appropriate CSV header.
-	response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
-	response['Content-Disposition'] = f'attachment; filename={name}'
-
-	writer = csv.writer(response)
-	writer.writerow([
-		'product_id','Asin','Category', 'SKU' ,'Brand','Title',
-		'Title Arabic','Description','Description Arabic','Long Description',
-		'Long Description Arabic','product_id.1', 'Market Price (AED)', 
-		'Price (AED)', 'Quantity', 'Ship To UAE','Ship To KSA', 'GradeId', 
-		'WeightClassId', 'Ship to Dubai Cost (AED)', 
-		'Ship to Everywhere Cost (AED)', 'ImageLinks (Comma Separated)'])
-
-	# Calling global variable global_file
-	for item in global_file['ASIN']:
-		item_db = productPagesScrapper.objects.filter(productID=item, description_en=True, description_ar=True)
-		if item_db:
-			# Category
-			try:
-				category = item_db[0].category
-			except Exception:
-				category = ''
-
-			# Brand
-			brand = ''
-			brand_db = item_db[0].productdetails_set.filter(language='EN', attributes='Brand')
-			if brand_db:
-				brand = brand_db[0].values
-
-			asin = item_db[0].productID
-			title_en = item_db[0].title_en
-			title_ar = item_db[0].title_ar
-
-			try:
-				description_en = ', '.join([highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='EN')])
-			except Exception:
-				description_en = ''
-
-			try:
-				description_ar = ', '.join([highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='AR')])
-			except Exception:
-				description_ar = ''
-			
-			# English Long Description
-			long_descriptionEN_db = item_db[0].productdescription_set.filter(language='EN')
-			long_descriptionEN = long_descriptionEN_db[0].long_description
-
-			# Arabic Long Description
-			long_descriptionAR_db = item_db[0].productdescription_set.filter(language='AR')
-			long_descriptionAR = long_descriptionAR_db[0].long_description
-
-			images = ','.join([images.image for images in item_db[0].productimages_set.all()])
-			
-			writer.writerow([
-				'',asin,category,'',brand,title_en,title_ar,description_en,description_ar, 
-				long_descriptionEN,long_descriptionAR,'','','','','','','','','','',images])
-
-
-	return response
-
-	# Quick Solution
-	'''
-	# Reading English File
-	with io.open(f'static/docs/productPages/EN_{asin}.txt', 'r', encoding='UTF-8') as html_file:
-		soup_en = BeautifulSoup(html_file.read(), 'html.parser')
-
-	#Description English
-	try:
-		long_descriptionEN_div = soup_en.find('div',{'id':'productDescription'})
-		long_descriptionEN_p = long_descriptionEN_div.find_all('p')
-		for p_tag in long_descriptionEN_p:
-			if p_tag.text:
-				long_descriptionEN = p_tag.text.strip()
-				break
-	except AttributeError:
-		long_descriptionEN=''
-
-	# Reading Arabic File
-	with io.open(f'static/docs/productPages/AR_{asin}.txt', 'r', encoding='UTF-8') as html_file:
-		soup_ar = BeautifulSoup(html_file.read(), 'html.parser')
-
-	#Description Arabic
-	try:
-		long_descriptionAR_div = soup_ar.find('div',{'id':'productDescription'})
-		long_descriptionAR_p = long_descriptionAR_div.find_all('p')
-		for p_tag in long_descriptionAR_p:
-			if p_tag.text:
-				long_descriptionAR = p_tag.text.strip()
-				break
-	except AttributeError:
-		long_descriptionAR=''
-	'''
-
-def export_csv_ksa(request):
-
-	current_date = str(datetime.date.today())
-	name = 'KSA_'+current_date+'_Scrapped.csv'
-
-	# Create the HttpResponse object with the appropriate CSV header.
-	response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
-	response['Content-Disposition'] = f'attachment; filename={name}'
-
-	writer = csv.writer(response)
-	writer.writerow([
-		'product_id','Asin','Category', 'SKU' ,'Brand','Title',
-		'Title Arabic','Description','Description Arabic','Long Description',
-		'Long Description Arabic','product_id.1', 'Market Price (AED)', 
-		'Price (AED)', 'Quantity', 'Ship To UAE','Ship To KSA', 'GradeId', 
-		'WeightClassId', 'Ship to Dubai Cost (AED)', 
-		'Ship to Everywhere Cost (AED)', 'ImageLinks (Comma Separated)'])
-
-	# Calling global variable global_file
-	for item in global_file['ASIN']:
-		item_db = productPagesScrapper.objects.filter(productID=item, description_en=True, description_ar=True, source='amazon.sa')
-		if item_db:
-			# Category
-			try:
-				category = item_db[0].category
-			except Exception:
-				category = ''
-
-			# Brand
-			brand = ''
-			brand_db = item_db[0].productdetails_set.filter(language='EN', attributes='Brand')
-			if brand_db:
-				brand = brand_db[0].values
-
-			asin = item_db[0].productID
-			title_en = item_db[0].title_en
-			title_ar = item_db[0].title_ar
-
-			try:
-				description_en = ', '.join([highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='EN')])
-			except Exception:
-				description_en = ''
-
-			try:
-				description_ar = ', '.join([highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='AR')])
-			except Exception:
-				description_ar = ''
-			
-			# English Long Description
-			long_descriptionEN_db = item_db[0].productdescription_set.filter(language='EN')
-			long_descriptionEN = long_descriptionEN_db[0].long_description
-
-			# Arabic Long Description
-			long_descriptionAR_db = item_db[0].productdescription_set.filter(language='AR')
-			long_descriptionAR = long_descriptionAR_db[0].long_description
-
-			images = ','.join([images.image for images in item_db[0].productimages_set.all()])
-			
-			writer.writerow([
-				'',asin,category,'',brand,title_en,title_ar,description_en,description_ar, 
-				long_descriptionEN,long_descriptionAR,'','','','','','','','','','',images])
-
-
-	return response
-
-
-# Old one
-def export_demanded_json(request):
-
-	current_date = str(datetime.date.today())
-	name = current_date+'_Scrapped.json'
-
-	data = []
-	for item in global_file['ASIN']: # As global_file is a global variable
-
-		item_db = productPagesScrapper.objects.filter(productID=item, description_en=True, description_ar=True)
-		if item_db:
-			print(item_db[0].productID)
-			data_dict = {}
-
-			# Category
-			try:
-				category = item_db[0].category
-			except Exception:
-				category = ''
-
-			data_dict['category'] = category
-			data_dict['weight_class'] = ''
-
-			# Brand
-			brand = ''
-			brand_db = item_db[0].productdetails_set.filter(language='EN', attributes='Brand')
-			if brand_db:
-				brand = brand_db[0].values
-
-			data_dict['brand'] = brand
-			data_dict['title'] = item_db[0].title_en
-			data_dict['title_ar'] = item_db[0].title_ar
-			data_dict['description'] = ' '.join([long_desc.long_description for long_desc in item_db[0].productdescription_set.filter(language='EN')])
-			data_dict['description_ar'] = ' '.join([long_desc.long_description for long_desc in item_db[0].productdescription_set.filter(language='AR')])
-			data_dict['highlights'] = [highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='EN')]
-			data_dict['highlights_ar'] = [highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='AR')]
-
-			data_dict['gtin'] = ''
-			data_dict['ean'] = ''
-			data_dict['upc'] = ''
-
-			data_dict['default_images'] = [images.image for images in item_db[0].productimages_set.all()]
-
-			# Specifications
-			category_lst = []
-
-			specs_en = item_db[0].productdetails_set.filter(language='EN').exclude(attributes__in=('Brand','Asin','ASIN'))
-			specs_ar = item_db[0].productdetails_set.filter(language='AR').exclude(attributes__in=('Brand','Asin','العلامة التجارية','ASIN'))
-
-			for indexes,specs in enumerate(specs_en):
-				spec_dict = {}
-
-				try:
-					spec_dict['type'] = 'text'
-					spec_dict['name_en'] = specs.attributes
-					spec_dict['name_ar'] = specs_ar[indexes].attributes
-					spec_dict['value'] = specs.values
-					spec_dict['value_ar'] = specs_ar[indexes].values
-
-					category_lst.append(spec_dict)
-				except Exception:
-					break
-				
-			data_dict['category_attributes'] = category_lst
-
-			# Reading English File
-			with io.open(f'static/docs/productPages/EN_{item_db[0].productID}.txt', 'r', encoding='UTF-8') as html_file:
-				soup_en = BeautifulSoup(html_file.read(), 'html.parser')
-
-			# Javascript Tag
-			try:
-				pattern = re.compile(r"P\.register\('twister-js-init-dpx-data', function\(\) \{")
-				javascript_tag = soup_en.find('script',string=pattern).contents[0]
-				val_start = javascript_tag.find('"variationValues"')+20
-				variationValues = javascript_tag[val_start:].split('\n')[0][:-1]
-				variations = json.loads(variationValues)
-
-			except Exception:
-				variations = {}
-
-			# Variation_Data
-			if variations:
-				variation_lst = []
-				variation_lst.append({"name":"Conditions","values":['FRA','FRB']})
-
-				for k,v in variations.items():
-					variation_dict = {}
-					variation_dict["name"] = k
-					variation_dict["values"] = v
-					variation_lst.append(variation_dict)
-
-				data_dict['variation_settings'] = variation_lst
-
-			else:
-				data_dict['variation_settings'] = []
-
-			data_dict['variations'] = []
-
-
-			data.append(data_dict)
-
-
-	response = HttpResponse(content_type='application/json')
-	response['Content-Disposition'] = f'attachment; filename={name}'
-
-	json.dump(data, response, ensure_ascii = False, indent=4)
-
-	return response
-
 # New One
 def requiredJsonFormat(request):
 
@@ -1349,7 +1120,7 @@ def requiredJsonFormat(request):
 
 		if item in check_list:
 
-			item_db = productPagesScrapper.objects.filter(productID=item, description_en=True, description_ar=True)
+			item_db = productPagesScrapper.objects.filter(productID=item, description_en=True, description_ar=True) or productPagesScrapper.objects.filter(productID=item, description_en=True, source="amazon.in")
 			if item_db:
 				print(item_db[0].productID)
 				data_dict = {}
@@ -1427,7 +1198,7 @@ def requiredJsonFormat(request):
 				single_variant_db = lambda_variant_func(variationSettings.objects.filter(current_asin=item_db[0].productID),variationSettings.objects.filter(parent_asin=item_db[0].productID))
 
 				if single_variant_db:
-					variations_settings = totalVariations.objects.filter(parent_asin=single_variant_db[0].parent_asin).order_by('-id') or totalVariations.objects.filter(productID=single_variant_db[0].productID).order_by('-id')
+					variations_settings = totalVariations.objects.filter(productID=single_variant_db[0].productID).order_by('-id')
 
 					data_dict['asin'] = variations_settings[0].parent_asin
 
@@ -1442,8 +1213,10 @@ def requiredJsonFormat(request):
 
 						variations_settings_dict['name'] = variations.name_en.replace('_',' ').title()
 						variations_settings_dict['values'] = [i.replace("/","-") for i in variations.value_en.split(',')]
-						variations_settings_dict['name_ar'] = variations.name_ar.replace('_',' ').title()
-						variations_settings_dict['values_ar'] = variations.value_ar.split(',')
+
+						if variations.productID.source == 'amazon.ae' or variations.productID.source == 'amazon.ae':
+							variations_settings_dict['name_ar'] = variations.name_ar.replace('_',' ').title()
+							variations_settings_dict['values_ar'] = variations.value_ar.split(',')
 
 						variations_settings_list.append(variations_settings_dict)
 
@@ -1578,7 +1351,7 @@ def categoryAttributesManager(request):
 		# Seprating asins which matched with cartlow category id
 		match_file = global_file[global_file['Category'] == categories]
 
-		category_qs = productPagesScrapper.objects.filter(productID__in=tuple(match_file['ASIN']),description_en=True,description_ar=True)
+		category_qs = productPagesScrapper.objects.filter(Q(productID__in=tuple(match_file['ASIN']),description_en=True,description_ar=True) | Q(productID__in=tuple(match_file['ASIN']),description_en=True, source='amazon.in'))
 
 		category_dic['category'] = str(categories)
 

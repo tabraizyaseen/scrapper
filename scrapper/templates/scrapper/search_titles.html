@@ -77,7 +77,7 @@
     {% endif %}
 	<br>
 
-	{% if results %}
+	{% if results or results_ksa or results_india %}
 	<div class="row data-container">
 	{% else %}
 	<div class="row" style="display: none">
@@ -125,14 +125,10 @@
 					  <div class="dropdown-menu">
 					    <!-- Dropdown menu links -->
 					    <b class="dropdown-header">Select file format</b>
-					    <a class="dropdown-item" href="{% url 'export_csv' %}">CSV</a>
-					    <div class="dropdown-divider"></div>
-					    <a class="dropdown-item" href="{% url 'export_demanded_json' %}">JSON</a>
-					    <div class="dropdown-divider"></div>
-					    <a class="dropdown-item" href="{% url 'requiredJsonFormat' %}">JSON <span class="badge badge-pill badge-danger glow">new</span></a>
+					    <a class="dropdown-item" href="{% url 'requiredJsonFormat' %}">JSON</a>
 					    <!-- Category Attributes -->
 					    <div class="dropdown-divider"></div>
-					    <a class="dropdown-item" href="{% url 'category_attributes' %}">Category Attributes <span class="badge badge-pill badge-danger glow">new</span></a>
+					    <a class="dropdown-item" href="{% url 'category_attributes' %}">Category Attributes</a>
 					  </div>
 					</div>
 				</p>
@@ -213,6 +209,9 @@
 				  <button class="tablinks" onclick="openDetails(event, 'AmazonKSA')">
 				  	Amazon KSA
 				  </button>
+				  <button class="tablinks" onclick="openDetails(event, 'AmazonIndia')">
+				  	Amazon India
+				  </button>
 				  <button class="tablinks" onclick="openDetails(event, 'totalVariation')">
 				  	Total Variations
 				  </button>
@@ -247,7 +246,7 @@
 				<!-- Amazon KSA -->
 				<div id="AmazonKSA" class="tabcontent">
 					<div class="text-center" id="activate-crawler-ksa">
-						<button class="btn btn-primary btn-sm" id="btn-activate-crawler-ksa" onclick="activate_crawler_ksa()">
+						<button class="btn btn-outline-primary btn-sm" id="btn-activate-crawler-ksa">
 		                        Activate Crawler of KSA for Input Data
 		                </button>
 
@@ -256,10 +255,6 @@
 						</div>
 	            	</div>
 	                <hr>
-	                <!-- <a class="btn btn-primary btn-sm" href="{% url 'export_csv_ksa' %}">
-	                        Export as CSV
-	                </a> -->
-	            	{% if results_ksa %}
 					<table class="table text-center table-striped table-responsive">
 						<thead>
 							<tr>
@@ -280,19 +275,53 @@
 						{% endfor %}
 						</tbody>
 					</table>
-					{% endif %}
 				</div>
 
-				<!-- Amazon UAE -->
+				<!-- Amazon India -->
+				<div id='AmazonIndia' class="tabcontent">
+					<div class="text-center" id="activate-crawler-india">
+						<button class="btn btn-outline-primary btn-sm" id="btn-activate-crawler-india">
+		                        Activate Crawler of India for Input Data
+		                </button>
+
+		                <div class="spinner-border text-primary" style="display:none;" role="status">
+						  <span class="visually-hidden"></span>
+						</div>
+	            	</div>
+	                <hr>
+					<table class="table text-center table-striped table-responsive">
+						<thead>
+							<tr>
+								<th style="width: 5%">#</th>
+								<th>Asin</th>
+								<th style="width: 50%">EN</th>
+							</tr>
+						</thead>
+						<tbody id="table-amazonIndia">
+							
+						{% for products in results_india %}
+							<tr>
+								<td>{{forloop.counter}}</td>
+								<td>{{products.productID}}</td>
+								<td>{{products.description_en}}</td>
+							</tr>
+						{% endfor %}
+
+						</tbody>
+					</table>
+				</div>
+
+				<!-- Total Variations -->
 				<table id= 'totalVariation' class="table text-center table-striped tabcontent table-responsive">
 					<thead>
 						<tr>
 							<th style="width: 5%">#</th>
-							<th style="width: 25%">Asin</th>
-							<th style="width: 25%">Current Asin</th>
-							<th style="width: 25%">Parent Asin</th>
-							<th style="width: 20%">EN</th>
-							<th style="width: 20%">AR</th>
+							<th>Asin</th>
+							<th>Current Asin</th>
+							<th>Parent Asin</th>
+							<th>EN</th>
+							<th>AR</th>
+							<th>source</th>
 						</tr>
 					</thead>
 					<tbody id="totalVariationDisplay">
@@ -305,6 +334,7 @@
 							<td>{{variation.parent_asin}}</td>
 							<td>{{variation.description_en}}</td>
 							<td>{{variation.description_ar}}</td>
+							<td>{{variation.productID.source}}</td>
 						</tr>
 						{% endfor %}
 						
@@ -350,6 +380,7 @@
 	// Divs
 	activate_crawler_div = document.getElementById('activate-crawler');
 	activate_crawler_ksa_div = document.getElementById('activate-crawler-ksa');
+	activate_crawler_india_div = document.getElementById('activate-crawler-india');
 	product_details_div = document.getElementById('product-details');
 
 	save_variations_div = document.getElementById('save-variations');
@@ -359,6 +390,7 @@
 	// Buttons
 	activate_crawler_btn = document.getElementById('btn-activate-crawler');
 	activate_crawler_ksa_btn = document.getElementById('btn-activate-crawler-ksa');
+	activate_crawler_india_btn = document.getElementById('btn-activate-crawler-india');
 	product_details_btn = document.getElementById('btn-product-details');
 
 	save_variations_btn = document.getElementById('btn-save-variations');
@@ -372,6 +404,10 @@
 	activate_crawler_ksa_btn.addEventListener("click", function(){
 		crawler_handler("{% url 'robust_search_valid_ksa' %}", activate_crawler_ksa_div, activate_crawler_ksa_btn);
 	});
+
+	activate_crawler_india_btn.addEventListener("click", function(){
+		crawler_handler("{% url 'robust_search_valid_india' %}", activate_crawler_india_div, activate_crawler_india_btn)
+	})
 
 	product_details_btn.addEventListener("click", function(){
 		crawler_handler("{% url 'robust_search_details' %}", product_details_div, product_details_btn);
@@ -390,7 +426,7 @@
 	});
 
 	function crawler_handler(url, div_name, skip_btn) {
-		all_btns = [activate_crawler_btn, activate_crawler_ksa_btn, product_details_btn, save_variations_btn, variation_crawler_btn, product_variations_btn];
+		all_btns = [activate_crawler_btn, activate_crawler_ksa_btn, activate_crawler_india_btn, product_details_btn, save_variations_btn, variation_crawler_btn, product_variations_btn];
 		$.ajax({
 			type: 'GET',
 			url: url, 
@@ -447,6 +483,7 @@
 										<td>${txt_data[i].parent_asin}</td>
 										<td>${txt_data[i].description_en}</td>
 										<td>${txt_data[i].description_ar}</td>
+										<td>${txt_data[i].source}</td>
 										</tr>
 										`;
 					}
@@ -489,6 +526,24 @@
 					}
 
 					document.getElementById('table-amazonKSA').innerHTML = table_data;
+					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
+				}
+
+				else if(data.type === "india report"){
+					var txt_data = data.report;
+					var table_data = '';
+
+					for (let i=0; i < txt_data.length; i++){
+						table_data += `
+										<tr>
+										<td>${i+1}</td>
+										<td>${txt_data[i].productID}</td>
+										<td>${txt_data[i].description_en}</td>
+										</tr>
+										`;
+					}
+
+					document.getElementById('table-amazonIndia').innerHTML = table_data;
 					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
 				}	
 

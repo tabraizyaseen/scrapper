@@ -125,14 +125,14 @@ def amazonCategoryScrapper(url):
 
 			# Price
 			try:
-				price = container.find('span','a-price-whole').replace(".","").replace(",","")
+				price = container.find('span','a-price-whole').replace(".","").replace(",","").replace('₹','')
 			except AttributeError:
 				price = ""
 
 			# old price
 			try:
 				old = container.find('span','a-text-price')
-				old_price = old.find('span',{'aria-hidden':'true'}).text.split("D")[-1].split(".")[0].replace(",","")
+				old_price = old.find('span',{'aria-hidden':'true'}).text.split("D")[-1].split(".")[0].replace(",","").replace('₹','')
 			except AttributeError:
 				old_price = ""
 
@@ -257,15 +257,15 @@ class AmazonProductDetails:
 		soup = self.soup
 
 		try:
-			price = soup.find('span',{'id':'priceblock_ourprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','')
+			price = soup.find('span',{'id':'priceblock_ourprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','')
 		except Exception:
 			try:
 				# Deal price
-				price = soup.find('span',{'id':'priceblock_dealprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','')
+				price = soup.find('span',{'id':'priceblock_dealprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','')
 			except Exception:
 				try:
 					# Book price
-					price = soup.find('span',{'id':'price'}).text.split('\xa0')[-1].split('.')[0].replace(',','')
+					price = soup.find('span',{'id':'price'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','')
 				except Exception:
 					price = ''
 
@@ -276,11 +276,11 @@ class AmazonProductDetails:
 		soup = self.soup
 
 		try:
-			old_price = soup.find('span','priceBlockStrikePriceString').text.strip().split('\xa0')[-1].split('.')[0].replace(',','')
+			old_price = soup.find('span','priceBlockStrikePriceString').text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','')
 		except Exception:
 			try:
 				# Book price
-				old_price = soup.find('span',{'id':'listPrice'}).text.strip().split('\xa0')[-1].split('.')[0].replace(',','')
+				old_price = soup.find('span',{'id':'listPrice'}).text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','')
 			except Exception:
 				old_price = ''
 
@@ -644,6 +644,7 @@ def ResponseValidate(productResponse):
 						description_en=valid,
 						title_en=title,
 						last_checked = timezone.now(),
+						source = "amazon.ae",
 					)
 				else:
 					productPagesScrapper.objects.filter(id=productResponse.id).update(

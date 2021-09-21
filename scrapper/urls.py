@@ -19,14 +19,12 @@ urlpatterns = [
     path('save_variations/', views.saveVariations, name='save_variations'),
     path('varience_crawler/', views.varienceCrawler, name='varience_crawler'),
     path('total_varience/', views.productTotalVarience, name='total_varience'),
-
-    path('export_csv/', views.export_csv, name='export_csv'),
-	path('export_demanded_json/', views.export_demanded_json, name='export_demanded_json'),
+    
     path('requiredJsonFormat/', views.requiredJsonFormat, name='requiredJsonFormat'),
     path('category_attributes/',views.categoryAttributesManager, name='category_attributes'),
 
 	path('robust_search_valid_ksa/', views.robustSearchValidKSA, name='robust_search_valid_ksa'),
-	path('export_csv_ksa/', views.export_csv_ksa, name='export_csv_ksa'),
+    path('robust_search_valid_india/', views.robustSearchValidIndia, name='robust_search_valid_india'),
 
     # Category work
     path('view_categories/', views.viewCategories, name='view_categories'),
