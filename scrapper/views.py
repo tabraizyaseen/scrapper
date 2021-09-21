@@ -262,7 +262,7 @@ def varienceCrawler(request):
 						variance = Variant(single_asin)
 						variance.saveResponse()
 
-				elif single_asin.productID.source == 'amazon.ae' or single_asin.source == 'amazon.sa':
+				elif single_asin.productID.source == 'amazon.ae' or single_asin.productID.source == 'amazon.sa':
 
 					if not single_asin.description_en:
 						variance = Variant(single_asin)
