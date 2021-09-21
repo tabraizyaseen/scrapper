@@ -124,7 +124,7 @@ def searchTitles(request):
 			(lambda x: results_ksa.append(x) if x.source == 'amazon.sa' else (results_india.append(x) if x.source == 'amazon.in' else results.append(x)))(item_db)
 
 			# Get count of validated items
-			(lambda x: validated.append(x) if x.description_en and x.description_ar else x)(item_db)
+			(lambda x: validated.append(x) if x.description_en and x.description_ar else (validated.append(x) if x.description_en and x.source=='amazon.in' else x))(item_db)
 
 			# Get variations
 			variations.append([i for x in variationSettings.objects.filter(current_asin=item_db.productID) for i in variationSettings.objects.filter(productID=x.productID) if x])
@@ -225,6 +225,7 @@ def saveVariations(request):
 		context["parent_asin"] = data.parent_asin
 		context["description_en"] = data.description_en
 		context["description_ar"] = data.description_ar
+		context["source"] = data.productID.source
 
 		context_lst.append(context)
 
@@ -237,7 +238,7 @@ def saveVariations(request):
 		context["description_ar"] = item_db.description_ar
 		product_list.append(context)
 
-	validated = [item for item in updated_record if item.description_en and item.description_ar]
+	validated = [item for item in updated_record if (item.description_en and item.description_ar) or (item.description_en and item.source=='amazon.in')]
 
 	return JsonResponse({'report':context_lst, 'type':"variation report", 'products':product_list, 'valid_count':len(validated)})
 
@@ -255,13 +256,21 @@ def varienceCrawler(request):
 
 			for num_childern,single_asin in enumerate(all_asins, start=1):
 
-				if not single_asin.description_en:
-					variance = Variant(single_asin)
-					variance.saveResponse()
+				if single_asin.productID.source == 'amazon.in':
 
-				if not single_asin.description_ar:
-					variance = Variant(single_asin)
-					variance.saveResponseAR()
+					if not single_asin.description_en:
+						variance = Variant(single_asin)
+						variance.saveResponse()
+
+				elif single_asin.productID.source == 'amazon.ae' or single_asin.source == 'amazon.sa':
+
+					if not single_asin.description_en:
+						variance = Variant(single_asin)
+						variance.saveResponse()
+
+					if not single_asin.description_ar:
+						variance = Variant(single_asin)
+						variance.saveResponseAR()
 
 				print(f'{countings}-{num_childern}')
 
@@ -281,6 +290,7 @@ def varienceCrawler(request):
 		context["parent_asin"] = data.parent_asin
 		context["description_en"] = data.description_en
 		context["description_ar"] = data.description_ar
+		context["source"] = data.productID.source
 
 		context_lst.append(context)
 
@@ -291,8 +301,8 @@ def productTotalVarience(request):
 
 	for countings, product in enumerate(global_file['ASIN'], start=1):
 
-		item_CA = [i for x in variationSettings.objects.filter(current_asin=product) for i in variationSettings.objects.filter(parent_asin=x.parent_asin,description_ar=True, description_en=True) if x]
-		item_PA = variationSettings.objects.filter(parent_asin=product, description_ar=True, description_en=True)
+		item_CA = [i for x in variationSettings.objects.filter(current_asin=product) for i in variationSettings.objects.filter(Q(productID=x.productID,description_ar=True, description_en=True) | Q(productID=x.productID, description_en=True, productID__source='amazon.in')) if x]
+		item_PA = variationSettings.objects.filter(Q(parent_asin=product, description_ar=True, description_en=True) | Q(parent_asin=product, description_en=True, productID__source='amazon.in'))
 
 		items = item_CA or item_PA
 
@@ -330,7 +340,7 @@ def robustSearchValid(request):
 
 		print(counting)
 
-	validated = [item for item in results_lst if item['description_en'] and item['description_ar']]
+	validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source='amazon.in'))
 
 	return JsonResponse({'report':results_lst, 'valid_count':len(validated), 'type':'crawler report'})
 
@@ -356,7 +366,7 @@ def robustSearchValidKSA(request):
 
 		print(counting)
 
-	validated = productPagesScrapper.objects.filter(productID__in=tuple(global_file['ASIN']), description_en=True, description_ar=True)
+	validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source='amazon.in'))
 
 	return JsonResponse({'report':results_lst, 'valid_count':len(validated), 'type':'ksa report'})
 
@@ -381,7 +391,7 @@ def robustSearchValidIndia(request):
 
 		print(counting)
 
-	validated = productPagesScrapper.objects.filter(productID__in=tuple(global_file['ASIN']), description_en=True, description_ar=True)
+	validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source='amazon.in'))
 
 	return JsonResponse({'report':results_lst, 'valid_count':len(validated), 'type':'india report'})
 
@@ -1188,7 +1198,7 @@ def requiredJsonFormat(request):
 				single_variant_db = lambda_variant_func(variationSettings.objects.filter(current_asin=item_db[0].productID),variationSettings.objects.filter(parent_asin=item_db[0].productID))
 
 				if single_variant_db:
-					variations_settings = totalVariations.objects.filter(parent_asin=single_variant_db[0].parent_asin).order_by('-id') or totalVariations.objects.filter(productID=single_variant_db[0].productID).order_by('-id')
+					variations_settings = totalVariations.objects.filter(productID=single_variant_db[0].productID).order_by('-id')
 
 					data_dict['asin'] = variations_settings[0].parent_asin
 
@@ -1203,8 +1213,10 @@ def requiredJsonFormat(request):
 
 						variations_settings_dict['name'] = variations.name_en.replace('_',' ').title()
 						variations_settings_dict['values'] = variations.value_en.split(',')
-						variations_settings_dict['name_ar'] = variations.name_ar.replace('_',' ').title()
-						variations_settings_dict['values_ar'] = variations.value_ar.split(',')
+
+						if variations.productID.source == 'amazon.ae' or variations.productID.source == 'amazon.ae':
+							variations_settings_dict['name_ar'] = variations.name_ar.replace('_',' ').title()
+							variations_settings_dict['values_ar'] = variations.value_ar.split(',')
 
 						variations_settings_list.append(variations_settings_dict)
 
@@ -1337,7 +1349,7 @@ def categoryAttributesManager(request):
 		# Seprating asins which matched with cartlow category id
 		match_file = global_file[global_file['Category'] == categories]
 
-		category_qs = productPagesScrapper.objects.filter(productID__in=tuple(match_file['ASIN']),description_en=True,description_ar=True)
+		category_qs = productPagesScrapper.objects.filter(Q(productID__in=tuple(match_file['ASIN']),description_en=True,description_ar=True) | Q(productID__in=tuple(match_file['ASIN']),description_en=True, source='amazon.in'))
 
 		category_dic['category'] = str(categories)
 

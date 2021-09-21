@@ -20,6 +20,12 @@ class VariationsSoup():
 
 		print("I'm the one : ",item)
 
+		self.item = item
+
+	def soupParserEN(self):
+
+		item = self.item
+
 		# Tag to parse
 		only_tags = SoupStrainer('script',{'type':'text/javascript'})
 
@@ -33,6 +39,15 @@ class VariationsSoup():
 			except AttributeError:
 				soup_en = ''
 
+		return soup_en
+
+	def soupParserAR(self):
+
+		item = self.item
+
+		# Tag to parse
+		only_tags = SoupStrainer('script',{'type':'text/javascript'})
+
 		# Reading Arabic File
 		with io.open(f'static/docs/productPages/AR_{item}.txt', 'r', encoding='UTF-8') as html_file:
 			soup = BeautifulSoup(html_file.read(), 'lxml', parse_only=only_tags)
@@ -42,13 +57,12 @@ class VariationsSoup():
 			except AttributeError:
 				soup_ar = ''
 
-		self.soup_en = soup_en
-		self.soup_ar = soup_ar
+		return soup_ar
 
 	
 	# "currentAsin" : "B08L5NLF53"
 	def CurrentAsin(self):
-		javascript_tag = self.soup_en
+		javascript_tag = self.soupParserEN()
 
 		if javascript_tag:
 			crnt_st = javascript_tag.find('"currentAsin"')+16
@@ -60,7 +74,7 @@ class VariationsSoup():
 
 	# 'Parent Asin': 'B08SDP1RJR'
 	def ParentAsin(self):
-		javascript_tag = self.soup_en
+		javascript_tag = self.soupParserEN()
 
 		if javascript_tag:
 
@@ -72,7 +86,7 @@ class VariationsSoup():
 
 	# 'configuration': ['64 GB', '128 GB', '256 GB']
 	def TotalVariation(self):
-		javascript_tag = self.soup_en
+		javascript_tag = self.soupParserEN()
 
 		if javascript_tag:
 			val_start = javascript_tag.find('"variationValues"')+20
@@ -83,7 +97,7 @@ class VariationsSoup():
 
 	# 'configuration': ['64 GB', '128 GB', '256 GB']
 	def TotalVariationAR(self):
-		javascript_tag = self.soup_ar
+		javascript_tag = self.soupParserAR()
 
 		if javascript_tag:
 			val_start = javascript_tag.find('"variationValues"')+20
@@ -94,7 +108,7 @@ class VariationsSoup():
 
 	# 'B08L5RJ392': ['International Version', '(PRODUCT)RED', '128 GB']
 	def DimensionsDetails(self):
-		javascript_tag = self.soup_en
+		javascript_tag = self.soupParserEN()
 
 		if javascript_tag:
 			dimstr_str = javascript_tag.find('"dimensionValuesDisplayData"')+31
@@ -106,7 +120,7 @@ class VariationsSoup():
 
 	# 'B08L5RJ392': ['International Version', '(PRODUCT)RED', '128 GB']
 	def DimensionsDetailsAR(self):
-		javascript_tag = self.soup_ar
+		javascript_tag = self.soupParserAR()
 
 		if javascript_tag:
 			dimstr_str = javascript_tag.find('"dimensionValuesDisplayData"')+31
@@ -119,7 +133,7 @@ class VariationsSoup():
 	# '0_0_0': 'B08L5RJ392'
 	def Dimensions(self):
 
-		javascript_tag = self.soup_en
+		javascript_tag = self.soupParserEN()
 
 		if javascript_tag:
 			dim_st = javascript_tag.find('"dimensionToAsinMap"')+23
@@ -131,7 +145,7 @@ class VariationsSoup():
 	# '0_0_0': 'B08L5RJ392'
 	def DimensionsAR(self):
 
-		javascript_tag = self.soup_ar
+		javascript_tag = self.soupParserAR()
 
 		if javascript_tag:
 			dim_st = javascript_tag.find('"dimensionToAsinMap"')+23
@@ -147,25 +161,36 @@ class varienceDetail():
 
 		self.item = item
 
+
+	def html_fileEN(self):
+		item = self.item
+
 		# Reading English File
 		with io.open(f'static/docs/productPages/EN_{item.current_asin}.txt', 'r', encoding='UTF-8') as html_file:
-			self.html_file = html_file.read()
+			html_file = html_file.read()
+
+		return html_file
+
+	def html_fileAR(self):
+		item = self.item
 
 		# Reading Arabic File
 		with io.open(f'static/docs/productPages/AR_{item.current_asin}.txt', 'r', encoding='UTF-8') as html_file:
-			self.html_file_ar = html_file.read()
+			html_file_ar = html_file.read()
+
+		return html_file_ar
 
 	def price(self):
 
-		html_file = self.html_file
+		html_file = self.html_fileEN()
 		price_only = SoupStrainer('div' , {'id':'price'})
 		soup = BeautifulSoup(html_file, 'lxml', parse_only=price_only)
 
 		try:
-			price = soup.find('span',{'id':'priceblock_ourprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','')
+			price = soup.find('span',{'id':'priceblock_ourprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','')
 		except Exception:
 			try:
-				price = soup.find('span',{'id':'priceblock_dealprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','')
+				price = soup.find('span',{'id':'priceblock_dealprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','')
 			except Exception:
 				price = ''
 
@@ -173,12 +198,12 @@ class varienceDetail():
 
 	def old_price(self):
 
-		html_file = self.html_file
+		html_file = self.html_fileEN()
 		price_only = SoupStrainer('div' , {'id':'price'})
 		soup = BeautifulSoup(html_file, 'lxml', parse_only=price_only)
 		
 		try:
-			old_price = soup.find('span','priceBlockStrikePriceString').text.strip().split('\xa0')[-1].split('.')[0].replace(',','')
+			old_price = soup.find('span','priceBlockStrikePriceString').text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','')
 		except Exception:
 			old_price = ''
 
@@ -186,7 +211,7 @@ class varienceDetail():
 
 	def titleParser(self):
 
-		html_file = self.html_file
+		html_file = self.html_fileEN()
 		item = self.item
 
 		title_only = SoupStrainer('span' , {'id':'productTitle'})
@@ -208,7 +233,7 @@ class varienceDetail():
 
 	def titleParserAR(self):
 
-		html_file = self.html_file_ar
+		html_file = self.html_fileAR()
 		item = self.item
 
 		title_only = SoupStrainer('span' , {'id':'productTitle'})
@@ -230,7 +255,7 @@ class varienceDetail():
 
 	def allImages(self):
 
-		html_file = self.html_file
+		html_file = self.html_fileEN()
 		item = self.item
 
 		scripts_only = SoupStrainer('script' , {'type':'text/javascript'})
@@ -351,6 +376,117 @@ class Variant():
 				{'http': 'http://79.120.177.106:8080'},
 				{'http': 'http://218.88.204.136:3256'},
 			]
+
+			session.proxies.update(random.choice(proxies))
+			session.headers.update(random.choice(HEADERS))
+
+			response = session.get(link, stream=True)
+
+			return response
+
+		except RequestException:
+			response = None
+
+			return response
+
+
+
+	def soupParserIndia(self, link):
+
+		try:
+
+			session = requests.Session()
+			session.mount('https://www.amazon.in', HTTPAdapter(max_retries=10))
+
+			HEADERS =[{
+			    'authority': 'www.amazon.in',
+			    'pragma': 'no-cache',
+			    'cache-control': 'no-cache',
+			    'dnt': '1',
+			    'upgrade-insecure-requests': '1',
+			    'accept': '*/*',
+			    'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0',
+			    'sec-fetch-site': 'none',
+			    'sec-fetch-mode': 'navigate',
+			    'sec-fetch-dest': 'document',
+			    'referer' : 'https://www.amazon.in/'
+			},{
+			    'authority': 'www.amazon.in',
+			    'pragma': 'no-cache',
+			    'cache-control': 'no-cache',
+			    'dnt': '1',
+			    'upgrade-insecure-requests': '1',
+			    'accept': '*/*',
+			    'User-Agent' : 'Mozilla/5.0 (iPad; CPU OS 8_4_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12H321 Safari/600.1.4',
+			    'sec-fetch-site': 'none',
+			    'sec-fetch-mode': 'navigate',
+			    'sec-fetch-dest': 'document',
+			    'referer' : 'https://www.google.com/'
+			},{
+			    'authority': 'www.amazon.in',
+			    'pragma': 'no-cache',
+			    'cache-control': 'no-cache',
+			    'dnt': '1',
+			    'upgrade-insecure-requests': '1',
+			    'accept': '*/*',
+			    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393',
+			    'sec-fetch-site': 'none',
+			    'sec-fetch-mode': 'navigate',
+			    'sec-fetch-dest': 'document',
+			    'referer' : 'https://www.amazon.in/'
+			},{
+			    'authority': 'www.amazon.in',
+			    'pragma': 'no-cache',
+			    'cache-control': 'no-cache',
+			    'dnt': '1',
+			    'upgrade-insecure-requests': '1',
+			    'accept': '*/*',
+			    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+			    'sec-fetch-site': 'none',
+			    'sec-fetch-mode': 'navigate',
+			    'sec-fetch-dest': 'document',
+			    'referer' : 'https://www.google.com/'
+			}]
+
+			proxies = [{ 
+			    "http": "http://43.224.10.31:6666"
+			},{
+			    "http": "http://103.251.214.167:6666"
+			},{
+			    "http": "http://125.99.120.166:40390"
+			},{
+			    "http": "http://115.243.184.76:23500"
+			},{
+			    "http": "http://103.241.227.106:6666"
+			},{
+			    "http": "http://139.99.105.185"
+			},{
+			    "http": "http://150.129.148.99:35101"
+			},{
+			    "http": "http://150.129.151.83:6666"
+			},{
+			    "http": "http://150.129.148.88:35101"
+			},{
+			    "http": "http://103.241.227.107:6666"
+			},{
+			    "http": "http://122.183.244.51:3128"
+			},{
+			    "http": "http://101.53.158.48:9300"
+			},{
+			    "http": "http://103.21.163.76:6666"
+			},{
+			    "http": "http://165.22.216.241:80"
+			},{
+			    "http": "http://27.116.51.181:6666"
+			},{
+			    "http": "http://103.216.82.153:6666"
+			},{
+			    "http": "http://103.21.163.81:6666"
+			},{
+			    "http": "http://103.197.49.165"
+			},{
+			    "http": "http://103.15.140.140"
+			}]
 
 			session.proxies.update(random.choice(proxies))
 			session.headers.update(random.choice(HEADERS))
@@ -545,6 +681,12 @@ class Variant():
 			if response:
 				checkResponse(response, title_only, item)
 
+		# For India
+		elif item.productID.source == "amazon.in":
+			response = self.soupParserIndia(f'https://www.amazon.in/-/en/dp/{item.current_asin}')
+			if response:
+				checkResponse(response, title_only, item)
+
 	def saveResponseAR(self):
 
 		def checkArResponse(response_ar, title_only, item):
@@ -568,12 +710,12 @@ class Variant():
 
 		# For UAE
 		if item.productID.source == "amazon.ae":
-			response_ar = self.soupParser(f'https://www.amazon.ae/-/en/dp/{item.current_asin}')
+			response_ar = self.soupParser(f'https://www.amazon.ae/-/ar/dp/{item.current_asin}')
 			if response_ar:
 				checkArResponse(response_ar, title_only, item)
 
 		# For KSA
 		elif item.productID.source == "amazon.sa":
-			response_ar = self.soupParserSA(f'https://www.amazon.sa/-/en/dp/{item.current_asin}')
+			response_ar = self.soupParserSA(f'https://www.amazon.sa/-/ar/dp/{item.current_asin}')
 			if response_ar:
 				checkArResponse(response_ar, title_only, item)

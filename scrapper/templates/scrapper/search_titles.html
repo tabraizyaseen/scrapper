@@ -316,11 +316,12 @@
 					<thead>
 						<tr>
 							<th style="width: 5%">#</th>
-							<th style="width: 25%">Asin</th>
-							<th style="width: 25%">Current Asin</th>
-							<th style="width: 25%">Parent Asin</th>
-							<th style="width: 20%">EN</th>
-							<th style="width: 20%">AR</th>
+							<th>Asin</th>
+							<th>Current Asin</th>
+							<th>Parent Asin</th>
+							<th>EN</th>
+							<th>AR</th>
+							<th>source</th>
 						</tr>
 					</thead>
 					<tbody id="totalVariationDisplay">
@@ -333,6 +334,7 @@
 							<td>{{variation.parent_asin}}</td>
 							<td>{{variation.description_en}}</td>
 							<td>{{variation.description_ar}}</td>
+							<td>{{variation.productID.source}}</td>
 						</tr>
 						{% endfor %}
 						
@@ -481,6 +483,7 @@
 										<td>${txt_data[i].parent_asin}</td>
 										<td>${txt_data[i].description_en}</td>
 										<td>${txt_data[i].description_ar}</td>
+										<td>${txt_data[i].source}</td>
 										</tr>
 										`;
 					}
