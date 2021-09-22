@@ -23,8 +23,12 @@ urlpatterns = [
     path('requiredJsonFormat/', views.requiredJsonFormat, name='requiredJsonFormat'),
     path('category_attributes/',views.categoryAttributesManager, name='category_attributes'),
 
+    # Multiple Amazon Countries Crawlers
 	path('robust_search_valid_ksa/', views.robustSearchValidKSA, name='robust_search_valid_ksa'),
     path('robust_search_valid_india/', views.robustSearchValidIndia, name='robust_search_valid_india'),
+    path('robust_search_valid_aus/', views.robustSearchValidAus, name='robust_search_valid_aus'),
+    path('robust_search_valid_uk/', views.robustSearchValidUk, name='robust_search_valid_uk'),
+    path('robust_search_valid_america/', views.robustSearchValidCom, name='robust_search_valid_america'),
 
     # Category work
     path('view_categories/', views.viewCategories, name='view_categories'),
