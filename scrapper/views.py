@@ -1420,7 +1420,7 @@ def uploadStats(request):
 	)
 
 	writer = csv.writer(response)
-	writer.writerow(['Uploaded ASIN', 'Parent Asin', 'Child Asin', 'Missing Asin'])
+	writer.writerow(['Uploaded ASIN', 'Parent Asin', 'Child Asin', 'Asin Available'])
 
 	csv_data = []
 	for asin in global_file['ASIN']:
@@ -1447,14 +1447,14 @@ def uploadStats(request):
 
 			if single_asin:
 				data_lst.append(single_asin[0].productID)
-				data_lst.append(False)
-				data_lst.append(False)
+				data_lst.append(single_asin[0].productID)
+				data_lst.append(single_asin[0].productID)
 				data_lst.append(False)
 
 			else:
 				data_lst.append(asin)
-				data_lst.append(False)
-				data_lst.append(False)
+				data_lst.append(asin)
+				data_lst.append(asin)
 				data_lst.append(True)
 
 			csv_data.append(data_lst)
