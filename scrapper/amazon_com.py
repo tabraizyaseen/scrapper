@@ -6,11 +6,11 @@ import io
 import random
 
 from .models import productPagesScrapper
-from .amazon_response_handler import responseIND
+from .amazon_response_handler import responseUSA
 
 def soupParser(link):
-	
-	response = responseIND(link)
+
+	response = responseUSA(link)
 
 	if response:
 		
@@ -57,7 +57,7 @@ def ResponseValidate(productResponse):
 
 		return category, title, valid
 
-	soup, response = soupParser(f'https://www.amazon.in/-/en/dp/{productResponse.productID}')
+	soup, response = soupParser(f'https://www.amazon.com/-/en/dp/{productResponse.productID}')
 	if soup:
 		category, title, valid = titleParser(soup)
 
@@ -71,7 +71,7 @@ def ResponseValidate(productResponse):
 					category=category,
 					description_en=valid,
 					title_en=title,
-					source='amazon.in',
+					source='amazon.com',
 				)
 
 

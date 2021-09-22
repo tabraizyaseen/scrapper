@@ -4,6 +4,9 @@ from .models import *
 from . import amazon_scrapper
 from . import amazon_ksa
 from . import amazon_india
+from . import amazon_aus
+from . import amazon_com
+from . import amazon_uk
 from .variations import *
 
 class amazon_DBHandler_cls():
@@ -37,6 +40,27 @@ class amazon_DBHandler_cls():
 		item_db = productPagesScrapper.objects.get(productID=asin)
 		if not item_db.description_en:
 			amazon_india.ResponseValidate(item_db)
+
+	def get_valid_aus(self):
+		asin = self.asin
+
+		item_db = productPagesScrapper.objects.get(productID=asin)
+		if not item_db.description_en:
+			amazon_aus.ResponseValidate(item_db)
+
+	def get_valid_uk(self):
+		asin = self.asin
+
+		item_db = productPagesScrapper.objects.get(productID=asin)
+		if not item_db.description_en:
+			amazon_uk.ResponseValidate(item_db)
+
+	def get_valid_com(self):
+		asin = self.asin
+
+		item_db = productPagesScrapper.objects.get(productID=asin)
+		if not item_db.description_en:
+			amazon_com.ResponseValidate(item_db)
 
 	def get_product_data_EN(self,item):
 		
@@ -271,7 +295,7 @@ class amazon_DBHandler_cls():
 
 
 		asin = self.asin
-		items = productPagesScrapper.objects.filter(Q(productID=asin, description_en=True, description_ar=True, source__startswith='amazon') | Q(productID=asin, description_en=True, source='amazon.in'))
+		items = productPagesScrapper.objects.filter(Q(productID=asin, description_en=True, description_ar=True, source__startswith='amazon') | Q(productID=asin, description_en=True, source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk')))
 
 		if items:
 			item = items[0]
@@ -286,7 +310,7 @@ class amazon_DBHandler_cls():
 
 					variationSettings_instance = variationSettings.objects.filter(current_asin=asin) or variationSettings.objects.filter(parent_asin=asin)
 
-					if item.source == 'amazon.in':
+					if item.source == 'amazon.in' or item.source == 'amazon.com.au' or item.source == 'amazon.co.uk' or item.source == 'amazon.com':
 
 						func_totalVariationsEN(variation,parent_asin,item)
 						func_variationSettingsEN(variation,parent_asin,variationSettings_instance,item)
@@ -341,13 +365,13 @@ class amazon_DBHandler_cls():
 
 		asin = self.asin
 
-		items = productPagesScrapper.objects.filter(Q(productID=asin, description_en=True, description_ar=True, source__startswith='amazon') | Q(productID=asin, description_en=True, source='amazon.in'))
+		items = productPagesScrapper.objects.filter(Q(productID=asin, description_en=True, description_ar=True, source__startswith='amazon') | Q(productID=asin, description_en=True, source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk')))
 
 		if items:
 			item = items[0]
 
-			total_asins_en = [i for x in variationSettings.objects.filter(current_asin=item.productID) for i in variationSettings.objects.filter(parent_asin=x.parent_asin) if x] or variationSettings.objects.filter(parent_asin=item.productID)
-			total_asins_ar = [i for x in variationSettings.objects.filter(current_asin=item.productID) for i in variationSettings.objects.filter(parent_asin=x.parent_asin) if x] or variationSettings.objects.filter(parent_asin=item.productID)
+			total_asins_en = [i for x in variationSettings.objects.filter(current_asin=item.productID) for i in variationSettings.objects.filter(productID=x.productID) if x] or variationSettings.objects.filter(parent_asin=item.productID)
+			total_asins_ar = [i for x in variationSettings.objects.filter(current_asin=item.productID) for i in variationSettings.objects.filter(productID=x.productID) if x] or variationSettings.objects.filter(parent_asin=item.productID)
 
 			all_asins = list(total_asins_en)
 

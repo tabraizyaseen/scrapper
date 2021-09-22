@@ -110,7 +110,7 @@ def searchTitles(request):
 			item_db.description_en = False
 			item_db.save()
 
-	def asin_manager(item, results, validated, results_ksa, results_india, variations):
+	def asin_manager(item, results, validated, results_ksa, results_india, results_aus, results_uk, results_com, variations):
 
 		item_db = productPagesScrapper.objects.filter(productID=item)
 		if item_db:
@@ -121,11 +121,9 @@ def searchTitles(request):
 			# check_latest(item_db)
 
 			# Differentiating SA and AE products
-			(lambda x: results_ksa.append(x) if x.source == 'amazon.sa' else (results_india.append(x) if x.source == 'amazon.in' else results.append(x)))(item_db)
+			(lambda x: results_ksa.append(x) if x.source == 'amazon.sa' else (results_india.append(x) if x.source == 'amazon.in' else (results_aus.append(x) if x.source=='amazon.com.au' else (results_uk.append(x) if x.source == 'amazon.co.uk' else (results_com.append(x) if x.source == 'amazon.com' else results.append(x))))))(item_db)
 
-			# Get count of validated items
-			(lambda x: validated.append(x) if x.description_en and x.description_ar else (validated.append(x) if x.description_en and x.source=='amazon.in' else x))(item_db)
-
+			
 			# Get variations
 			variations.append([i for x in variationSettings.objects.filter(current_asin=item_db.productID) for i in variationSettings.objects.filter(productID=x.productID) if x])
 
@@ -144,6 +142,9 @@ def searchTitles(request):
 	validated = []
 	results_ksa = []
 	results_india = []
+	results_aus = []
+	results_uk = []
+	results_com = []
 	variations = []
 	variations_lst = []
 	
@@ -166,7 +167,7 @@ def searchTitles(request):
 		if 'Amazon_Category' in global_file.columns:
 			print('Amazon_Category given')
 			for counting,(item,category) in enumerate(zip(global_file['ASIN'], global_file['Amazon_Category']), start=1):
-				asin_manager(item, results, validated, results_ksa, results_india, variations)
+				asin_manager(item, results, validated, results_ksa, results_india, results_aus, results_uk, results_com, variations)
 
 				if category:
 					category = category.replace('>','›')
@@ -175,7 +176,7 @@ def searchTitles(request):
 			print('Amazon_Category not given')
 			for counting,item in enumerate(global_file['ASIN'], start=1):
 
-				asin_manager(item, results, validated, results_ksa, results_india, variations)
+				asin_manager(item, results, validated, results_ksa, results_india, results_aus, results_uk, results_com, variations)
 
 
 		variations_lst = [i for sub in variations for i in sub]
@@ -186,13 +187,17 @@ def searchTitles(request):
 
 		end = perf_counter()
 		print(f'file displaying : {end-strt}')
-
+	
+		validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk')))
 
 	context = {
 		'results' : results,
 		'results_ksa' : results_ksa,
 		'results_india': results_india,
-		'counting' : len(results + results_ksa + results_india),
+		'results_aus' : results_aus,
+		'results_uk' : results_uk,
+		'results_com' : results_com,
+		'counting' : len(results + results_ksa + results_india + results_aus + results_uk + results_com),
 		'accepted' : len(validated),
 		'variations' : variations_lst
 	}
@@ -211,7 +216,7 @@ def saveVariations(request):
 
 		if status == 'found':
 
-			single = [i for x in variationSettings.objects.filter(current_asin=product) for i in variationSettings.objects.filter(parent_asin=x.parent_asin) if x] or variationSettings.objects.filter(parent_asin=product)
+			single = [i for x in variationSettings.objects.filter(current_asin=product) for i in variationSettings.objects.filter(productID=x.productID) if x] or variationSettings.objects.filter(parent_asin=product)
 			for s in single:
 				results_data.append(s)
 			
@@ -229,18 +234,56 @@ def saveVariations(request):
 
 		context_lst.append(context)
 
-	updated_record = productPagesScrapper.objects.filter(productID__in=global_file['ASIN'])
-	product_list = []
+	updated_record = productPagesScrapper.objects.filter(productID__in=global_file['ASIN'], source__in=('amazon.ae','amazon.sa','amazon.in','amazon.com','amazon.co.uk','amazon.com.au'))
+	uae_list = []
+	ksa_list = []
+	ind_list = []
+	uk_list = []
+	usa_list = []
+	au_list = []
 	for item_db in updated_record:
 		context = {}
-		context["productID"] = item_db.productID
-		context["description_en"] = item_db.description_en
-		context["description_ar"] = item_db.description_ar
-		product_list.append(context)
+		if item_db.source == 'amazon.ae':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+			context["description_ar"] = item_db.description_ar
 
-	validated = [item for item in updated_record if (item.description_en and item.description_ar) or (item.description_en and item.source=='amazon.in')]
+			uae_list.append(context)
 
-	return JsonResponse({'report':context_lst, 'type':"variation report", 'products':product_list, 'valid_count':len(validated)})
+		elif item_db.source == 'amazon.sa':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+			context["description_ar"] = item_db.description_ar
+			
+			ksa_list.append(context)
+
+		elif item_db.source == 'amazon.in':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+			
+			ind_list.append(context)
+
+		elif item_db.source == 'amazon.com.au':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+			
+			au_list.append(context)
+
+		elif item_db.source == 'amazon.co.uk':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+			
+			uk_list.append(context)
+
+		elif item_db.source == 'amazon.com':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+			
+			usa_list.append(context)
+
+	validated = [item for item in updated_record if (item.description_en and item.description_ar) or (item.description_en and (item.source=='amazon.in' or item.source=='amazon.com.au' or item.source=='amazon.com' or item.source=='amazon.co.uk'))]
+
+	return JsonResponse({'report':context_lst, 'type':"variation report", 'uae':uae_list, 'ksa':ksa_list, 'uk':uk_list, 'au':au_list, 'ind':ind_list, 'usa':usa_list, 'valid_count':len(validated)})
 
 # Varience Crawler
 def varienceCrawler(request):
@@ -256,7 +299,7 @@ def varienceCrawler(request):
 
 			for num_childern,single_asin in enumerate(all_asins, start=1):
 
-				if single_asin.productID.source == 'amazon.in':
+				if single_asin.productID.source == 'amazon.in' or single_asin.productID.source == 'amazon.co.uk' or single_asin.productID.source == 'amazon.com.au' or single_asin.productID.source == 'amazon.com':
 
 					if not single_asin.description_en:
 						variance = Variant(single_asin)
@@ -274,7 +317,7 @@ def varienceCrawler(request):
 
 				print(f'{countings}-{num_childern}')
 
-			single = [i for x in variationSettings.objects.filter(current_asin=product) for i in variationSettings.objects.filter(parent_asin=x.parent_asin) if x] or variationSettings.objects.filter(parent_asin=product)
+			single = [i for x in variationSettings.objects.filter(current_asin=product) for i in variationSettings.objects.filter(productID=x.productID) if x] or variationSettings.objects.filter(parent_asin=product)
 			if single:
 				for s in single:
 					results_data.append(s)
@@ -301,8 +344,8 @@ def productTotalVarience(request):
 
 	for countings, product in enumerate(global_file['ASIN'], start=1):
 
-		item_CA = [i for x in variationSettings.objects.filter(current_asin=product) for i in variationSettings.objects.filter(Q(productID=x.productID,description_ar=True, description_en=True) | Q(productID=x.productID, description_en=True, productID__source='amazon.in')) if x]
-		item_PA = variationSettings.objects.filter(Q(parent_asin=product, description_ar=True, description_en=True) | Q(parent_asin=product, description_en=True, productID__source='amazon.in'))
+		item_CA = [i for x in variationSettings.objects.filter(current_asin=product) for i in variationSettings.objects.filter(Q(productID=x.productID,description_ar=True, description_en=True) | Q(productID=x.productID, description_en=True, productID__source__in=('amazon.in','amazon.co.uk','amazon.com','amazon.com.au'))) if x]
+		item_PA = variationSettings.objects.filter(Q(parent_asin=product, description_ar=True, description_en=True) | Q(parent_asin=product, description_en=True, productID__source__in=('amazon.in','amazon.co.uk','amazon.com','amazon.com.au')))
 
 		items = item_CA or item_PA
 
@@ -340,13 +383,14 @@ def robustSearchValid(request):
 
 		print(counting)
 
-	validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source='amazon.in'))
+	validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk')))
 
 	return JsonResponse({'report':results_lst, 'valid_count':len(validated), 'type':'crawler report'})
 
 def robustSearchValidKSA(request):
 
 	results_lst = []
+	results_lst_uae = []
 
 	# Calling global variable here
 	for counting, item in enumerate(global_file['ASIN'], start=1 ):
@@ -355,24 +399,34 @@ def robustSearchValidKSA(request):
 		dbhandler_ins.get_valid_ksa()
 
 		context = {}
-		item_db = productPagesScrapper.objects.filter(productID=item, source='amazon.sa')
+		item_db = productPagesScrapper.objects.filter(productID=item)
 		if item_db:
 			item_db = item_db[0]
-			context["productID"] = item_db.productID
-			context["description_en"] = item_db.description_en
-			context["description_ar"] = item_db.description_ar
 
-			results_lst.append(context)
+			if item_db.source == 'amazon.sa':
+				context["productID"] = item_db.productID
+				context["description_en"] = item_db.description_en
+				context["description_ar"] = item_db.description_ar
+
+				results_lst.append(context)
+
+			elif item_db.source == 'amazon.ae':
+				context["productID"] = item_db.productID
+				context["description_en"] = item_db.description_en
+				context["description_ar"] = item_db.description_ar
+
+				results_lst_uae.append(context)
 
 		print(counting)
 
-	validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source='amazon.in'))
+	validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk')))
 
-	return JsonResponse({'report':results_lst, 'valid_count':len(validated), 'type':'ksa report'})
+	return JsonResponse({'report':results_lst, 'uae':results_lst_uae, 'valid_count':len(validated), 'type':'ksa report'})
 
 def robustSearchValidIndia(request):
 
 	results_lst = []
+	results_lst_uae = []
 
 	# Calling global variable here
 	for counting, item in enumerate(global_file['ASIN'], start=1 ):
@@ -381,19 +435,137 @@ def robustSearchValidIndia(request):
 		dbhandler_ins.get_valid_india()
 
 		context = {}
-		item_db = productPagesScrapper.objects.filter(productID=item, source='amazon.in')
+		item_db = productPagesScrapper.objects.filter(productID=item)
 		if item_db:
 			item_db = item_db[0]
-			context["productID"] = item_db.productID
-			context["description_en"] = item_db.description_en
 
-			results_lst.append(context)
+			if item_db.source == 'amazon.in':
+				context["productID"] = item_db.productID
+				context["description_en"] = item_db.description_en
+
+				results_lst.append(context)
+
+			elif item_db.source == 'amazon.ae':
+				context["productID"] = item_db.productID
+				context["description_en"] = item_db.description_en
+				context["description_ar"] = item_db.description_ar
+
+				results_lst_uae.append(context)
 
 		print(counting)
 
-	validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source='amazon.in'))
+	validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk')))
 
-	return JsonResponse({'report':results_lst, 'valid_count':len(validated), 'type':'india report'})
+	return JsonResponse({'report':results_lst, 'uae':results_lst_uae, 'valid_count':len(validated), 'type':'india report'})
+
+
+def robustSearchValidAus(request):
+
+	results_lst = []
+	results_lst_uae = []
+
+	# Calling global variable here
+	for counting, item in enumerate(global_file['ASIN'], start=1 ):
+
+		dbhandler_ins = amazon_DBHandler_cls(item)
+		dbhandler_ins.get_valid_aus()
+
+		context = {}
+		item_db = productPagesScrapper.objects.filter(productID=item)
+		if item_db:
+			item_db = item_db[0]
+
+			if item_db.source == 'amazon.com.au':
+				context["productID"] = item_db.productID
+				context["description_en"] = item_db.description_en
+
+				results_lst.append(context)
+
+			elif item_db.source == 'amazon.ae':
+				context["productID"] = item_db.productID
+				context["description_en"] = item_db.description_en
+				context["description_ar"] = item_db.description_ar
+
+				results_lst_uae.append(context)
+
+		print(counting)
+
+	validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk')))
+
+	return JsonResponse({'report':results_lst, 'uae':results_lst_uae, 'valid_count':len(validated), 'type':'aus report'})
+
+
+def robustSearchValidUk(request):
+
+	results_lst = []
+	results_lst_uae = []
+
+	# Calling global variable here
+	for counting, item in enumerate(global_file['ASIN'], start=1 ):
+
+		dbhandler_ins = amazon_DBHandler_cls(item)
+		dbhandler_ins.get_valid_uk()
+
+		context = {}
+		item_db = productPagesScrapper.objects.filter(productID=item)
+		if item_db:
+			item_db = item_db[0]
+
+			if item_db.source == 'amazon.co.uk':
+				context["productID"] = item_db.productID
+				context["description_en"] = item_db.description_en
+
+				results_lst.append(context)
+
+			elif item_db.source == 'amazon.ae':
+				context["productID"] = item_db.productID
+				context["description_en"] = item_db.description_en
+				context["description_ar"] = item_db.description_ar
+
+				results_lst_uae.append(context)
+
+		print(counting)
+
+	validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk')))
+
+	return JsonResponse({'report':results_lst, 'uae':results_lst_uae, 'valid_count':len(validated), 'type':'uk report'})
+
+
+def robustSearchValidCom(request):
+
+	results_lst = []
+	results_lst_uae = []
+
+	# Calling global variable here
+	for counting, item in enumerate(global_file['ASIN'], start=1 ):
+
+		dbhandler_ins = amazon_DBHandler_cls(item)
+		dbhandler_ins.get_valid_com()
+
+		context = {}
+		item_db = productPagesScrapper.objects.filter(productID=item)
+		if item_db:
+			item_db = item_db[0]
+
+			if item_db.source == 'amazon.com':
+				context["productID"] = item_db.productID
+				context["description_en"] = item_db.description_en
+
+				results_lst.append(context)
+
+			elif item_db.source == 'amazon.ae':
+				context["productID"] = item_db.productID
+				context["description_en"] = item_db.description_en
+				context["description_ar"] = item_db.description_ar
+
+				results_lst_uae.append(context)
+
+		print(counting)
+
+	validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk')))
+
+	return JsonResponse({'report':results_lst, 'uae':results_lst_uae, 'valid_count':len(validated), 'type':'usa report'})
+
 
 def robustSearchDetails(request):
 
@@ -401,7 +573,7 @@ def robustSearchDetails(request):
 	for counting, item in enumerate(global_file['ASIN'], start=1):
 
 		product = productPagesScrapper.objects.filter(productID=item, description_ar=True, description_en=True)
-		india_product = productPagesScrapper.objects.filter(productID=item, description_en=True, source="amazon.in")
+		en_product = productPagesScrapper.objects.filter(productID=item, description_en=True, source__in=("amazon.in","amazon.com.au","amazon.co.uk","amazon.com"))
 
 		if product:
 
@@ -409,11 +581,11 @@ def robustSearchDetails(request):
 			dbhandler_ins = amazon_DBHandler_cls(item)
 			dbhandler_ins.get_product_data(product[0])
 
-		if india_product:
+		if en_product:
 
-			print("india - ",counting)
+			print("EN - ",counting)
 			dbhandler_ins = amazon_DBHandler_cls(item)
-			dbhandler_ins.get_product_data_EN(india_product[0])
+			dbhandler_ins.get_product_data_EN(en_product[0])
 
 
 	return JsonResponse({'report':'Okay'})
@@ -619,15 +791,35 @@ def singleProductValidate(request):
 		asin = request.POST['text']
 
 		item = productPagesScrapper.objects.get(productID=asin)
-		if item.source == "amazon.ae" or item.source == "amazon.sa":
+		dbhandler_ins = amazon_DBHandler_cls(asin)
+		if item.source == "amazon.ae":
 
-			dbhandler_ins = amazon_DBHandler_cls(asin)
+			dbhandler_ins.get_valid()
 
 		elif item.source == 'noon.com':
 
-			dbhandler_ins = noon_DBHandler_cls(asin)
+			noonDbhandler_ins = noon_DBHandler_cls(asin)
+			noonDbhandler_ins.get_valid()
 
-		dbhandler_ins.get_valid()
+		elif item.source == "amazon.sa":
+
+			dbhandler_ins.get_valid_ksa()
+
+		elif item.source == "amazon.in":
+
+			dbhandler_ins.get_valid_india()
+
+		elif item.source == "amazon.com.au":
+
+			dbhandler_ins.get_valid_aus()
+
+		elif item.source == "amazon.co.uk":
+
+			dbhandler_ins.get_valid_uk()
+
+		elif item.source == "amazon.com":
+
+			dbhandler_ins.get_valid_com()
 
 		product = productPagesScrapper.objects.filter(productID=asin, description_ar=True, description_en=True)
 
@@ -746,122 +938,6 @@ def productDetailsArabic(request, pk):
 	}
 
 	return render(request, 'scrapper/product_details.html', context)
-
-# Downloading data into json
-def sampleJson(request):
-
-	# products_data = amazonProductPagesScrapper.objects.all()
-
-	
-	# data = {}
-	# for prod_data in products_data:
-
-	# 	data[prod_data.title] = {}
-	# 	data[prod_data.title]['category'] = prod_data.category
-	# 	data[prod_data.title]['asin'] = prod_data.productID
-	# 	data[prod_data.title]['link'] = prod_data.link
-
-	# 	try:
-	# 		data[prod_data.title]['images'] = list(prod_data.productimages_set.values('image'))
-	# 	except AttributeError:
-	# 		data[prod_data.title]['images'] = None
-
-	# 	try:
-	# 		data[prod_data.title]['specifications'] = list(prod_data.amazonproductdetails_set.values('attributes','values'))
-	# 	except AttributeError:
-	# 		data[prod_data.title]['specifications'] = None
-
-	''' As valid_products is a global variable '''
-	data = {}
-	for prod_data in valid_products: # As valid_products is a global variable
-
-		data[prod_data.productID] = {}
-
-		# English
-		data[prod_data.productID]['English'] = {}
-		data[prod_data.productID]['English']['category'] = prod_data.category
-		data[prod_data.productID]['English']['title'] = prod_data.title_en
-
-		data[prod_data.productID]['English']['images'] = list(prod_data.productimages_set.all().values('image'))
-
-		# If data already not available for English
-		if prod_data.source == 'amazon.ae':
-			if not data[prod_data.productID]['English']['images']:
-				# highlights, specifications, images = amazon_scrapper.amazonProductDetails(prod_data)
-				product_details_class = amazon_scrapper.AmazonProductDetails(prod_data)
-
-				highlights = product_details_class.Highlights()
-				specifications = product_details_class.Specifications()
-				images = product_details_class.ImagesList()
-
-				details_data = [
-				productDetails(productID=prod_data, language='EN', attributes=attr, values=val)
-				for attr, val in specifications
-				]
-
-				productDetails.objects.bulk_create(details_data)
-
-				images_data = [
-				productImages(productID=prod_data, image=image)
-				for image in images
-				]
-
-				productImages.objects.bulk_create(images_data)
-
-				highlights_data = [
-					productHighlights(productID=prod_data, language='EN', highlight=highlight)
-					for highlight in highlights
-				]
-
-				productHighlights.objects.bulk_create(highlights_data)
-
-				data[prod_data.productID]['English']['images'] = list(prod_data.productimages_set.all().values('image'))
-
-		data[prod_data.productID]['English']['specifications'] = list(prod_data.productdetails_set.filter(language='EN').values('attributes','values'))
-		data[prod_data.productID]['English']['highlights'] = [highlight.highlight for highlight in prod_data.producthighlights_set.filter(language='EN')]
-
-
-		# Arabic
-		data[prod_data.productID]['Arabic'] = {}
-		data[prod_data.productID]['Arabic']['category'] = prod_data.category
-		data[prod_data.productID]['Arabic']['title'] = prod_data.title_ar
-
-		data[prod_data.productID]['Arabic']['images'] = list(prod_data.productimages_set.all().values('image'))
-		data[prod_data.productID]['Arabic']['specifications'] = list(prod_data.productdetails_set.filter(language='AR').values('attributes','values'))
-
-		# If data already not available for Arabic
-		if prod_data.source == 'amazon.ae':
-			if not data[prod_data.productID]['Arabic']['specifications']:
-				# highlights, specifications, images = amazon_scrapper.amazonProductDetailsArabic(prod_data)
-				product_detailsAR_class = amazon_scrapper.AmazonProductDetailsArabic(prod_data)
-
-				highlights = product_detailsAR_class.Highlights()
-				specifications = product_detailsAR_class.Specifications()
-
-				details_data = [
-				productDetails(productID=prod_data, language='AR', attributes=attr, values=val)
-				for attr, val in specifications
-				]
-
-				productDetails.objects.bulk_create(details_data)
-
-				highlights_data = [
-					productHighlights(productID=prod_data, language='AR', highlight=highlight)
-					for highlight in highlights
-				]
-
-				productHighlights.objects.bulk_create(highlights_data)
-
-				data[prod_data.productID]['Arabic']['specifications'] = list(prod_data.productdetails_set.filter(language='AR').values('attributes','values'))
-		
-		data[prod_data.productID]['Arabic']['highlights'] = [highlight.highlight for highlight in prod_data.producthighlights_set.filter(language='AR')]
-
-	response = HttpResponse(content_type='application/json')
-	response['Content-Disposition'] = 'attachment; filename="sample.json"'
-
-	json.dump(data, response, ensure_ascii = False, indent=2)
-
-	return response
 
 def categoryExportJsonBoth(request):
 

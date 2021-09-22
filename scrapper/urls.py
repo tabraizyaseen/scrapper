@@ -24,8 +24,12 @@ urlpatterns = [
     path('category_attributes/',views.categoryAttributesManager, name='category_attributes'),
     path('upload_stats/',views.uploadStats, name='upload_stats'),
 
+    # Multiple Amazon Countries Crawlers
 	path('robust_search_valid_ksa/', views.robustSearchValidKSA, name='robust_search_valid_ksa'),
     path('robust_search_valid_india/', views.robustSearchValidIndia, name='robust_search_valid_india'),
+    path('robust_search_valid_aus/', views.robustSearchValidAus, name='robust_search_valid_aus'),
+    path('robust_search_valid_uk/', views.robustSearchValidUk, name='robust_search_valid_uk'),
+    path('robust_search_valid_usa/', views.robustSearchValidCom, name='robust_search_valid_usa'),
 
     # Category work
     path('view_categories/', views.viewCategories, name='view_categories'),
@@ -45,6 +49,4 @@ urlpatterns = [
 
     path('single_product/', views.singleProductValidate, name='single_product'),
     path('asin_delete/', views.deleteAsin, name='delete_asin'),
-
-    path('sample_json', views.sampleJson, name='sample_json'),
 ]
