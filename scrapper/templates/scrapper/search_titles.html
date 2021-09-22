@@ -727,6 +727,27 @@
 					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
 				}
 
+				else if(data.type === "variation crawler report"){
+					var txt_data = data.report;
+					var table_data = '';
+
+					for (let i=0; i < txt_data.length; i++){
+						table_data += `
+										<tr>
+										<td>${i+1}</td>
+										<td>${txt_data[i].asin}</td>
+										<td>${txt_data[i].current_asin}</td>
+										<td>${txt_data[i].parent_asin}</td>
+										<td>${txt_data[i].description_en}</td>
+										<td>${txt_data[i].description_ar}</td>
+										<td>${txt_data[i].source}</td>
+										</tr>
+										`;
+					}
+
+					document.getElementById('totalVariationDisplay').innerHTML = table_data;
+				}				
+
 				else if(data.type === "ksa report"){
 					var txt_data = data.report;
 					var table_data = '';

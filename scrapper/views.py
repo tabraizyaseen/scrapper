@@ -337,7 +337,7 @@ def varienceCrawler(request):
 
 		context_lst.append(context)
 
-	return JsonResponse({'report':context_lst, 'type':"variation report"})
+	return JsonResponse({'report':context_lst, 'type':"variation crawler report"})
 
 # Product total variences
 def productTotalVarience(request):
