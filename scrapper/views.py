@@ -1437,7 +1437,7 @@ def uploadStats(request):
 				data_lst.append(asin)
 				data_lst.append(vari.parent_asin)
 				data_lst.append(vari.current_asin)
-				data_lst.append(False)
+				data_lst.append(True)
 
 				csv_data.append(data_lst)
 
@@ -1449,13 +1449,13 @@ def uploadStats(request):
 				data_lst.append(single_asin[0].productID)
 				data_lst.append(single_asin[0].productID)
 				data_lst.append(single_asin[0].productID)
-				data_lst.append(False)
+				data_lst.append(True)
 
 			else:
 				data_lst.append(asin)
 				data_lst.append(asin)
 				data_lst.append(asin)
-				data_lst.append(True)
+				data_lst.append(False)
 
 			csv_data.append(data_lst)
 
