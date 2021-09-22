@@ -1416,7 +1416,7 @@ def uploadStats(request):
 
 	response = HttpResponse(
 		content_type='text/csv',
-		headers={'Content-Disposition': f'attachment; filename="{name}.csv"'},
+		headers={'Content-Disposition': f'attachment; filename="{name}"'},
 	)
 
 	writer = csv.writer(response)
