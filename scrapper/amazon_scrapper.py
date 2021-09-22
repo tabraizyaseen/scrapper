@@ -13,96 +13,23 @@ from django.utils import timezone
 
 from .models import productPagesScrapper
 from .models import productDetails
+from .amazon_response_handler import responseUAE
 
 def soupParser(link):
 
-	try:
+	response = responseUAE(link)
 
-		session = requests.Session()
-		session.mount('https://www.amazon.ae', HTTPAdapter(max_retries=10))
-
-		HEADERS = [{
-			'authority': 'www.amazon.ae',
-			'pragma': 'no-cache',
-			'cache-control': 'no-cache',
-			'dnt': '1',
-			'upgrade-insecure-requests': '1',
-			'accept': '*/*',
-			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0',
-			'sec-fetch-site': 'none',
-			'sec-fetch-mode': 'navigate',
-			'sec-fetch-dest': 'document',
-			'referer': 'https://www.amazon.ae/'
-		}, {
-			'authority': 'www.amazon.ae',
-			'pragma': 'no-cache',
-			'cache-control': 'no-cache',
-			'dnt': '1',
-			'upgrade-insecure-requests': '1',
-			'accept': '*/*',
-			'User-Agent': 'Mozilla/5.0 (iPad; CPU OS 8_4_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12H321 Safari/600.1.4',
-			'sec-fetch-site': 'none',
-			'sec-fetch-mode': 'navigate',
-			'sec-fetch-dest': 'document',
-			'referer': 'https://www.google.com/'
-		}, {
-			'authority': 'www.amazon.ae',
-			'pragma': 'no-cache',
-			'cache-control': 'no-cache',
-			'dnt': '1',
-			'upgrade-insecure-requests': '1',
-			'accept': '*/*',
-			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393',
-			'sec-fetch-site': 'none',
-			'sec-fetch-mode': 'navigate',
-			'sec-fetch-dest': 'document',
-			'referer': 'https://www.amazon.ae/'
-		}, {
-			'authority': 'www.amazon.ae',
-			'pragma': 'no-cache',
-			'cache-control': 'no-cache',
-			'dnt': '1',
-			'upgrade-insecure-requests': '1',
-			'accept': '*/*',
-			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36',
-			'sec-fetch-site': 'none',
-			'sec-fetch-mode': 'navigate',
-			'sec-fetch-dest': 'document',
-			'referer': 'https://www.google.com/'
-		}]
-
-		proxies = [
-			{'http': 'http://151.253.165.70:8080'},
-			{'http': 'http://185.106.121.176:9050'},
-			{'http': 'http://193.223.100.81:1080'},
-			{'http': 'http://217.138.193.62:1080'},
-			{'http': 'http://20.46.192.92:9300'},
-			{'http': 'http://178.80.156.227:8080'},
-			{'http': 'http://5.42.224.18:8080'},
-			{'http': 'http://2.88.5.196:8080'},
-			{'http': 'http://37.104.112.202:8080'},
-			{'http': 'http://37.56.37.130:8080'},
-			{'http': 'http://177.11.84.254:8080'},
-			{'http': 'http://202.29.237.211:3128'},
-			{'http': 'http://167.99.131.11:80'},
-			{'http': 'http://178.72.74.40:31372'},
-			{'http': 'http://1.32.59.217:47045'},
-			{'http': 'http://112.78.162.208:8080'},
-			{'http': 'http://95.208.208.233:8080'},
-			{'http': 'http://5.252.161.48:8080'},
-			{'http': 'http://79.120.177.106:8080'},
-			{'http': 'http://218.88.204.136:3256'},
-		]
-
-		session.proxies.update(random.choice(proxies))
-		session.headers.update(random.choice(HEADERS))
-
-		response = session.get(link, stream=True)
-		soup = BeautifulSoup(response.text, 'html.parser')
+	if response:
+		
+		if response.status_code == 200:
+			soup = BeautifulSoup(response.text, 'html.parser')
+		else:
+			response = None
+			soup = None
 
 		return soup, response
 
-	except RequestException:
+	else:
 		response = None
 		soup = None
 
@@ -125,14 +52,14 @@ def amazonCategoryScrapper(url):
 
 			# Price
 			try:
-				price = container.find('span','a-price-whole').replace(".","").replace(",","").replace('₹','').replace('$','')
+				price = container.find('span','a-price-whole').replace(".","").replace(",","").replace('₹','').replace('$','').replace('£','')
 			except AttributeError:
 				price = ""
 
 			# old price
 			try:
 				old = container.find('span','a-text-price')
-				old_price = old.find('span',{'aria-hidden':'true'}).text.split("D")[-1].split(".")[0].replace(",","").replace('₹','').replace('$','')
+				old_price = old.find('span',{'aria-hidden':'true'}).text.split("D")[-1].split(".")[0].replace(",","").replace('₹','').replace('$','').replace('£','')
 			except AttributeError:
 				old_price = ""
 
@@ -257,15 +184,15 @@ class AmazonProductDetails:
 		soup = self.soup
 
 		try:
-			price = soup.find('span',{'id':'priceblock_ourprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','')
+			price = soup.find('span',{'id':'priceblock_ourprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','').replace('£','')
 		except Exception:
 			try:
 				# Deal price
-				price = soup.find('span',{'id':'priceblock_dealprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','')
+				price = soup.find('span',{'id':'priceblock_dealprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','').replace('£','')
 			except Exception:
 				try:
 					# Book price
-					price = soup.find('span',{'id':'price'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','')
+					price = soup.find('span',{'id':'price'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','').replace('£','')
 				except Exception:
 					price = ''
 
@@ -276,11 +203,11 @@ class AmazonProductDetails:
 		soup = self.soup
 
 		try:
-			old_price = soup.find('span','priceBlockStrikePriceString').text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','')
+			old_price = soup.find('span','priceBlockStrikePriceString').text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','').replace('£','')
 		except Exception:
 			try:
 				# Book price
-				old_price = soup.find('span',{'id':'listPrice'}).text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','')
+				old_price = soup.find('span',{'id':'listPrice'}).text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','').replace('£','')
 			except Exception:
 				old_price = ''
 

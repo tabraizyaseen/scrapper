@@ -4,6 +4,9 @@ from .models import *
 from . import amazon_scrapper
 from . import amazon_ksa
 from . import amazon_india
+from . import amazon_aus
+from . import amazon_com
+from . import amazon_uk
 from .variations import *
 
 class amazon_DBHandler_cls():

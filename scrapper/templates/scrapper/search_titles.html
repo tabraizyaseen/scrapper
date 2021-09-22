@@ -212,13 +212,13 @@
 				  <button class="tablinks" onclick="openDetails(event, 'AmazonIndia')">
 				  	Amazon India
 				  </button>
-				  <button class="tablinks" onclick="openDetails(event, 'AmazonIndia')">
+				  <button class="tablinks" onclick="openDetails(event, 'AmazonAus')">
 				  	Amazon AU
 				  </button>
-				  <button class="tablinks" onclick="openDetails(event, 'AmazonIndia')">
+				  <button class="tablinks" onclick="openDetails(event, 'AmazonUK')">
 				  	Amazon UK
 				  </button>
-				  <button class="tablinks" onclick="openDetails(event, 'AmazonIndia')">
+				  <button class="tablinks" onclick="openDetails(event, 'AmazonUSA')">
 				  	Amazon USA
 				  </button>
 				  <button class="tablinks" onclick="openDetails(event, 'totalVariation')">
@@ -301,9 +301,9 @@
 					<table class="table text-center table-striped table-responsive">
 						<thead>
 							<tr>
-								<th style="width: 5%">#</th>
+								<th style="width: 2%">#</th>
 								<th>Asin</th>
-								<th style="width: 50%">EN</th>
+								<th>EN</th>
 							</tr>
 						</thead>
 						<tbody id="table-amazonIndia">
@@ -320,17 +320,119 @@
 					</table>
 				</div>
 
+				<!-- Amazon UK -->
+				<div id='AmazonUK' class="tabcontent">
+					<div class="text-center" id="activate-crawler-uk">
+						<button class="btn btn-outline-primary btn-sm" id="btn-activate-crawler-uk">
+		                        Activate Crawler of UK for Input Data
+		                </button>
+
+		                <div class="spinner-border text-primary" style="display:none;" role="status">
+						  <span class="visually-hidden"></span>
+						</div>
+	            	</div>
+	                <hr>
+					<table class="table text-center table-striped table-responsive">
+						<thead>
+							<tr>
+								<th style="width: 2%">#</th>
+								<th>Asin</th>
+								<th>EN</th>
+							</tr>
+						</thead>
+						<tbody id="table-amazonUK">
+							
+						{% for products in results_uk %}
+							<tr>
+								<td>{{forloop.counter}}</td>
+								<td>{{products.productID}}</td>
+								<td>{{products.description_en}}</td>
+							</tr>
+						{% endfor %}
+
+						</tbody>
+					</table>
+				</div>
+
+				<!-- Amazon Aus -->
+				<div id='AmazonAus' class="tabcontent">
+					<div class="text-center" id="activate-crawler-aus">
+						<button class="btn btn-outline-primary btn-sm" id="btn-activate-crawler-aus">
+		                        Activate Crawler of AU for Input Data
+		                </button>
+
+		                <div class="spinner-border text-primary" style="display:none;" role="status">
+						  <span class="visually-hidden"></span>
+						</div>
+	            	</div>
+	                <hr>
+					<table class="table text-center table-striped table-responsive">
+						<thead>
+							<tr>
+								<th style="width: 2%">#</th>
+								<th>Asin</th>
+								<th>EN</th>
+							</tr>
+						</thead>
+						<tbody id="table-amazonAUS">
+							
+						{% for products in results_aus %}
+							<tr>
+								<td>{{forloop.counter}}</td>
+								<td>{{products.productID}}</td>
+								<td>{{products.description_en}}</td>
+							</tr>
+						{% endfor %}
+
+						</tbody>
+					</table>
+				</div>
+
+				<!-- Amazon USA -->
+				<div id='AmazonUSA' class="tabcontent">
+					<div class="text-center" id="activate-crawler-usa">
+						<button class="btn btn-outline-primary btn-sm" id="btn-activate-crawler-usa">
+		                        Activate Crawler of USA for Input Data
+		                </button>
+
+		                <div class="spinner-border text-primary" style="display:none;" role="status">
+						  <span class="visually-hidden"></span>
+						</div>
+	            	</div>
+	                <hr>
+					<table class="table text-center table-striped table-responsive">
+						<thead>
+							<tr>
+								<th style="width: 2%">#</th>
+								<th>Asin</th>
+								<th>EN</th>
+							</tr>
+						</thead>
+						<tbody id="table-amazonUSA">
+							
+						{% for products in results_com %}
+							<tr>
+								<td>{{forloop.counter}}</td>
+								<td>{{products.productID}}</td>
+								<td>{{products.description_en}}</td>
+							</tr>
+						{% endfor %}
+
+						</tbody>
+					</table>
+				</div>
+
 				<!-- Total Variations -->
 				<table id= 'totalVariation' class="table text-center table-striped tabcontent table-responsive">
 					<thead>
 						<tr>
 							<th style="width: 5%">#</th>
-							<th>Asin</th>
-							<th>Current Asin</th>
-							<th>Parent Asin</th>
-							<th>EN</th>
-							<th>AR</th>
-							<th>source</th>
+							<th style="width: 20%">Asin</th>
+							<th style="width: 20%">Current Asin</th>
+							<th style="width: 20%">Parent Asin</th>
+							<th style="width: 15%">EN</th>
+							<th style="width: 15%">AR</th>
+							<th style="width: 20%">source</th>
 						</tr>
 					</thead>
 					<tbody id="totalVariationDisplay">
@@ -390,6 +492,9 @@
 	activate_crawler_div = document.getElementById('activate-crawler');
 	activate_crawler_ksa_div = document.getElementById('activate-crawler-ksa');
 	activate_crawler_india_div = document.getElementById('activate-crawler-india');
+	activate_crawler_uk_div = document.getElementById('activate-crawler-uk');
+	activate_crawler_aus_div = document.getElementById('activate-crawler-aus');
+	activate_crawler_usa_div = document.getElementById('activate-crawler-usa');
 	product_details_div = document.getElementById('product-details');
 
 	save_variations_div = document.getElementById('save-variations');
@@ -400,6 +505,9 @@
 	activate_crawler_btn = document.getElementById('btn-activate-crawler');
 	activate_crawler_ksa_btn = document.getElementById('btn-activate-crawler-ksa');
 	activate_crawler_india_btn = document.getElementById('btn-activate-crawler-india');
+	activate_crawler_uk_btn = document.getElementById('btn-activate-crawler-uk');
+	activate_crawler_aus_btn = document.getElementById('btn-activate-crawler-aus');
+	activate_crawler_usa_btn = document.getElementById('btn-activate-crawler-usa');
 	product_details_btn = document.getElementById('btn-product-details');
 
 	save_variations_btn = document.getElementById('btn-save-variations');
@@ -416,6 +524,18 @@
 
 	activate_crawler_india_btn.addEventListener("click", function(){
 		crawler_handler("{% url 'robust_search_valid_india' %}", activate_crawler_india_div, activate_crawler_india_btn)
+	})
+
+	activate_crawler_uk_btn.addEventListener("click", function(){
+		crawler_handler("{% url 'robust_search_valid_uk' %}", activate_crawler_uk_div, activate_crawler_uk_btn)
+	})
+
+	activate_crawler_aus_btn.addEventListener("click", function(){
+		crawler_handler("{% url 'robust_search_valid_aus' %}", activate_crawler_aus_div, activate_crawler_aus_btn)
+	})
+
+	activate_crawler_usa_btn.addEventListener("click", function(){
+		crawler_handler("{% url 'robust_search_valid_usa' %}", activate_crawler_usa_div, activate_crawler_usa_btn)
 	})
 
 	product_details_btn.addEventListener("click", function(){
@@ -534,6 +654,21 @@
 										`;
 					}
 
+					var uae_data = data.uae
+					var table_uae = '';
+
+					for (let i=0; i < uae_data.length; i++){
+						table_uae += `
+										<tr>
+										<td>${i+1}</td>
+										<td>${txt_data[i].productID}</td>
+										<td>${txt_data[i].description_en}</td>
+										<td>${txt_data[i].description_ar}</td>
+										</tr>
+										`;
+					}
+
+					document.getElementById('table-amazonUAE').innerHTML = table_uae;
 					document.getElementById('table-amazonKSA').innerHTML = table_data;
 					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
 				}
@@ -552,7 +687,125 @@
 										`;
 					}
 
+					var uae_data = data.uae
+					var table_uae = '';
+
+					for (let i=0; i < uae_data.length; i++){
+						table_uae += `
+										<tr>
+										<td>${i+1}</td>
+										<td>${txt_data[i].productID}</td>
+										<td>${txt_data[i].description_en}</td>
+										<td>${txt_data[i].description_ar}</td>
+										</tr>
+										`;
+					}
+
+					document.getElementById('table-amazonUAE').innerHTML = table_uae;
+
 					document.getElementById('table-amazonIndia').innerHTML = table_data;
+					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
+				}
+
+				else if(data.type === "uk report"){
+					var txt_data = data.report;
+					var table_data = '';
+
+					for (let i=0; i < txt_data.length; i++){
+						table_data += `
+										<tr>
+										<td>${i+1}</td>
+										<td>${txt_data[i].productID}</td>
+										<td>${txt_data[i].description_en}</td>
+										</tr>
+										`;
+					}
+
+					var uae_data = data.uae
+					var table_uae = '';
+
+					for (let i=0; i < uae_data.length; i++){
+						table_uae += `
+										<tr>
+										<td>${i+1}</td>
+										<td>${txt_data[i].productID}</td>
+										<td>${txt_data[i].description_en}</td>
+										<td>${txt_data[i].description_ar}</td>
+										</tr>
+										`;
+					}
+
+					document.getElementById('table-amazonUAE').innerHTML = table_uae;
+
+					document.getElementById('table-amazonUK').innerHTML = table_data;
+					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
+				}	
+
+				else if(data.type === "aus report"){
+					var txt_data = data.report;
+					var table_data = '';
+
+					for (let i=0; i < txt_data.length; i++){
+						table_data += `
+										<tr>
+										<td>${i+1}</td>
+										<td>${txt_data[i].productID}</td>
+										<td>${txt_data[i].description_en}</td>
+										</tr>
+										`;
+					}
+
+					var uae_data = data.uae
+					var table_uae = '';
+
+					for (let i=0; i < uae_data.length; i++){
+						table_uae += `
+										<tr>
+										<td>${i+1}</td>
+										<td>${txt_data[i].productID}</td>
+										<td>${txt_data[i].description_en}</td>
+										<td>${txt_data[i].description_ar}</td>
+										</tr>
+										`;
+					}
+
+					document.getElementById('table-amazonUAE').innerHTML = table_uae;
+
+					document.getElementById('table-amazonAUS').innerHTML = table_data;
+					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
+				}	
+
+				else if(data.type === "usa report"){
+					var txt_data = data.report;
+					var table_data = '';
+
+					for (let i=0; i < txt_data.length; i++){
+						table_data += `
+										<tr>
+										<td>${i+1}</td>
+										<td>${txt_data[i].productID}</td>
+										<td>${txt_data[i].description_en}</td>
+										</tr>
+										`;
+					}
+
+					var uae_data = data.uae
+					var table_uae = '';
+
+					for (let i=0; i < uae_data.length; i++){
+						table_uae += `
+										<tr>
+										<td>${i+1}</td>
+										<td>${txt_data[i].productID}</td>
+										<td>${txt_data[i].description_en}</td>
+										<td>${txt_data[i].description_ar}</td>
+										</tr>
+										`;
+					}
+
+					document.getElementById('table-amazonUAE').innerHTML = table_uae;
+
+					document.getElementById('table-amazonUSA').innerHTML = table_data;
 					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
 				}	
 
