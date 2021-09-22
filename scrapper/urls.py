@@ -22,6 +22,7 @@ urlpatterns = [
     
     path('requiredJsonFormat/', views.requiredJsonFormat, name='requiredJsonFormat'),
     path('category_attributes/',views.categoryAttributesManager, name='category_attributes'),
+    path('upload_stats/',views.uploadStats, name='upload_stats'),
 
 	path('robust_search_valid_ksa/', views.robustSearchValidKSA, name='robust_search_valid_ksa'),
     path('robust_search_valid_india/', views.robustSearchValidIndia, name='robust_search_valid_india'),

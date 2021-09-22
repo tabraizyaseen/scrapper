@@ -126,9 +126,15 @@
 					    <!-- Dropdown menu links -->
 					    <b class="dropdown-header">Select file format</b>
 					    <a class="dropdown-item" href="{% url 'requiredJsonFormat' %}">JSON</a>
+
 					    <!-- Category Attributes -->
 					    <div class="dropdown-divider"></div>
 					    <a class="dropdown-item" href="{% url 'category_attributes' %}">Category Attributes</a>
+
+					    <!-- Uploaded File Stats -->
+					  	<div class="dropdown-divider"></div>
+					    <a class="dropdown-item" href="{% url 'upload_stats' %}">File Stats</a>
+
 					  </div>
 					</div>
 				</p>
@@ -292,9 +298,9 @@
 					<table class="table text-center table-striped table-responsive">
 						<thead>
 							<tr>
-								<th style="width: 5%">#</th>
+								<th style="width: 2%">#</th>
 								<th>Asin</th>
-								<th style="width: 50%">EN</th>
+								<th>EN</th>
 							</tr>
 						</thead>
 						<tbody id="table-amazonIndia">
@@ -316,12 +322,12 @@
 					<thead>
 						<tr>
 							<th style="width: 5%">#</th>
-							<th>Asin</th>
-							<th>Current Asin</th>
-							<th>Parent Asin</th>
-							<th>EN</th>
-							<th>AR</th>
-							<th>source</th>
+							<th style="width: 20%">Asin</th>
+							<th style="width: 20%">Current Asin</th>
+							<th style="width: 20%">Parent Asin</th>
+							<th style="width: 15%">EN</th>
+							<th style="width: 15%">AR</th>
+							<th style="width: 20%">source</th>
 						</tr>
 					</thead>
 					<tbody id="totalVariationDisplay">

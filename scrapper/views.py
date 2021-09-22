@@ -186,8 +186,8 @@ def searchTitles(request):
 
 		end = perf_counter()
 		print(f'file displaying : {end-strt}')
-	print("results : ",results)
-	print("results India : ",results_india)
+
+
 	context = {
 		'results' : results,
 		'results_ksa' : results_ksa,
@@ -1405,5 +1405,61 @@ def categoryAttributesManager(request):
 	response['Content-Disposition'] = f'attachment; filename="{name}"'
 
 	json.dump(data, response, ensure_ascii = False, indent=4)
+
+	return response
+
+
+def uploadStats(request):
+
+	current_date = str(datetime.date.today())
+	name = current_date+'_fileStates.csv'
+
+	response = HttpResponse(
+		content_type='text/csv',
+		headers={'Content-Disposition': f'attachment; filename="{name}.csv"'},
+	)
+
+	writer = csv.writer(response)
+	writer.writerow(['Uploaded ASIN', 'Parent Asin', 'Child Asin', 'Missing Asin'])
+
+	csv_data = []
+	for asin in global_file['ASIN']:
+		data_lst = []
+
+		data_lst.append(asin)
+
+		parent_asin = variationSettings.objects.filter(current_asin=asin) or variationSettings.objects.filter(parent_asin=asin)
+		if parent_asin:
+			variation_asins = variationSettings.objects.filter(productID=parent_asin[0].productID)
+
+			for vari in variation_asins:
+				data_lst = []
+				data_lst.append(asin)
+				data_lst.append(vari.parent_asin)
+				data_lst.append(vari.current_asin)
+				data_lst.append(False)
+
+				csv_data.append(data_lst)
+
+		else:
+			single_asin = productPagesScrapper.objects.filter(Q(productID=asin, description_en=True, description_ar=True) | Q(productID=asin, description_en=True, source__in=('amazon.in','amazon.co.uk','amazon.com.au','amazon.com')))
+			data_lst = []
+
+			if single_asin:
+				data_lst.append(single_asin[0].productID)
+				data_lst.append(False)
+				data_lst.append(False)
+				data_lst.append(False)
+
+			else:
+				data_lst.append(asin)
+				data_lst.append(False)
+				data_lst.append(False)
+				data_lst.append(True)
+
+			csv_data.append(data_lst)
+
+
+	writer.writerows(csv_data)
 
 	return response
