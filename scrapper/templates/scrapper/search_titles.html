@@ -263,7 +263,6 @@
 						  <span class="visually-hidden"></span>
 						</div>
 	            	</div>
-	                <hr>
 					<table class="table text-center table-striped table-responsive">
 						<thead>
 							<tr>
@@ -297,7 +296,6 @@
 						  <span class="visually-hidden"></span>
 						</div>
 	            	</div>
-	                <hr>
 					<table class="table text-center table-striped table-responsive">
 						<thead>
 							<tr>
@@ -331,7 +329,6 @@
 						  <span class="visually-hidden"></span>
 						</div>
 	            	</div>
-	                <hr>
 					<table class="table text-center table-striped table-responsive">
 						<thead>
 							<tr>
@@ -365,7 +362,6 @@
 						  <span class="visually-hidden"></span>
 						</div>
 	            	</div>
-	                <hr>
 					<table class="table text-center table-striped table-responsive">
 						<thead>
 							<tr>
@@ -399,7 +395,6 @@
 						  <span class="visually-hidden"></span>
 						</div>
 	            	</div>
-	                <hr>
 					<table class="table text-center table-striped table-responsive">
 						<thead>
 							<tr>
@@ -619,24 +614,111 @@
 
 					document.getElementById('totalVariationDisplay').innerHTML = table_data;
 
-					var product_data = data.products;
-					var product_table = '';
+					var uae_data = data.uae;
+					var uae_table = '';
 
-					if (product_data) {
-						for (let i=0; i < product_data.length; i++){
-							product_table += `
+					if (uae_data) {
+						for (let i=0; i < uae_data.length; i++){
+							uae_table += `
 											<tr>
 											<td>${i+1}</td>
-											<td>${product_data[i].productID}</td>
-											<td>${product_data[i].description_en}</td>
-											<td>${product_data[i].description_ar}</td>
+											<td>${uae_data[i].productID}</td>
+											<td>${uae_data[i].description_en}</td>
+											<td>${uae_data[i].description_ar}</td>
 											</tr>
 											`;
 						}
 
-						document.getElementById('table-amazonUAE').innerHTML = product_table;
-						document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
+						document.getElementById('table-amazonUAE').innerHTML = uae_table;
 					}
+
+					var ksa_data = data.ksa;
+					var ksa_table = '';
+
+					if (ksa_data) {
+						for (let i=0; i < ksa_data.length; i++){
+							ksa_table += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${ksa_data[i].productID}</td>
+											<td>${ksa_data[i].description_en}</td>
+											<td>${ksa_data[i].description_ar}</td>
+											</tr>
+											`;
+						}
+
+						document.getElementById('table-amazonKSA').innerHTML = ksa_table;
+					}
+
+					var au_data = data.au;
+					var au_table = '';
+
+					if (au_data) {
+						for (let i=0; i < au_data.length; i++){
+							au_table += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${au_data[i].productID}</td>
+											<td>${au_data[i].description_en}</td>
+											</tr>
+											`;
+						}
+
+						document.getElementById('table-amazonAUS').innerHTML = au_table;
+					}
+
+					var uk_data = data.uk;
+					var uk_table = '';
+
+					if (uk_data) {
+						for (let i=0; i < uk_data.length; i++){
+							uk_table += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${uk_data[i].productID}</td>
+											<td>${uk_data[i].description_en}</td>
+											</tr>
+											`;
+						}
+
+						document.getElementById('table-amazonUK').innerHTML = uk_table;
+					}
+
+					var ind_data = data.ind;
+					var ind_table = '';
+
+					if (ind_data) {
+						for (let i=0; i < ind_data.length; i++){
+							ind_table += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${ind_data[i].productID}</td>
+											<td>${ind_data[i].description_en}</td>
+											</tr>
+											`;
+						}
+
+						document.getElementById('table-amazonIndia').innerHTML = ind_table;
+					}
+
+					var usa_data = data.usa;
+					var usa_table = '';
+
+					if (usa_data) {
+						for (let i=0; i < usa_data.length; i++){
+							usa_table += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${usa_data[i].productID}</td>
+											<td>${usa_data[i].description_en}</td>
+											</tr>
+											`;
+						}
+
+						document.getElementById('table-amazonUSA').innerHTML = usa_table;
+					}
+
+					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
 				}
 
 				else if(data.type === "ksa report"){

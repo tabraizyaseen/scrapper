@@ -234,18 +234,56 @@ def saveVariations(request):
 
 		context_lst.append(context)
 
-	updated_record = productPagesScrapper.objects.filter(productID__in=global_file['ASIN'])
-	product_list = []
+	updated_record = productPagesScrapper.objects.filter(productID__in=global_file['ASIN'], source__in=('amazon.ae','amazon.sa','amazon.in','amazon.com','amazon.co.uk','amazon.com.au'))
+	uae_list = []
+	ksa_list = []
+	ind_list = []
+	uk_list = []
+	usa_list = []
+	au_list = []
 	for item_db in updated_record:
 		context = {}
-		context["productID"] = item_db.productID
-		context["description_en"] = item_db.description_en
-		context["description_ar"] = item_db.description_ar
-		product_list.append(context)
+		if item_db.source == 'amazon.ae':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+			context["description_ar"] = item_db.description_ar
+
+			uae_list.append(context)
+
+		elif item_db.source == 'amazon.sa':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+			context["description_ar"] = item_db.description_ar
+			
+			ksa_list.append(context)
+
+		elif item_db.source == 'amazon.in':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+			
+			ind_list.append(context)
+
+		elif item_db.source == 'amazon.com.au':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+			
+			au_list.append(context)
+
+		elif item_db.source == 'amazon.co.uk':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+			
+			uk_list.append(context)
+
+		elif item_db.source == 'amazon.com':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+			
+			usa_list.append(context)
 
 	validated = [item for item in updated_record if (item.description_en and item.description_ar) or (item.description_en and (item.source=='amazon.in' or item.source=='amazon.com.au' or item.source=='amazon.com' or item.source=='amazon.co.uk'))]
 
-	return JsonResponse({'report':context_lst, 'type':"variation report", 'products':product_list, 'valid_count':len(validated)})
+	return JsonResponse({'report':context_lst, 'type':"variation report", 'uae':uae_list, 'ksa':ksa_list, 'uk':uk_list, 'au':au_list, 'ind':ind_list, 'usa':usa_list, 'valid_count':len(validated)})
 
 # Varience Crawler
 def varienceCrawler(request):
