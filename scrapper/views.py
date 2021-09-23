@@ -152,12 +152,17 @@ def searchTitles(request):
 		file = request.FILES.get(u'titles_file')
 		# try:
 
-		global global_file
+		# global global_file
 		global_file = pd.read_csv(file, encoding='unicode_escape')
 		strt = perf_counter()
 		global_file.dropna(subset=['ASIN'],inplace=True)
 		global_file = global_file.drop_duplicates(['ASIN'],keep= 'last')
 		global_file.fillna('', inplace=True)
+
+		request.session['global_file'] = global_file.to_json()
+		request.session['file_name'] = file.name
+		request.session.modified = True
+
 		end = perf_counter()
 
 		print(f'file cleaning : {end-strt}')
@@ -207,6 +212,9 @@ def searchTitles(request):
 # Saving Varience at import
 def saveVariations(request):
 
+	global_file = request.session['global_file']
+	global_file = json.loads(global_file)
+	global_file = pd.DataFrame(global_file)
 	results_data = []
 
 	for countings, product in enumerate(global_file['ASIN'], start=1):
@@ -288,6 +296,9 @@ def saveVariations(request):
 # Varience Crawler
 def varienceCrawler(request):
 
+	global_file = request.session['global_file']
+	global_file = json.loads(global_file)
+	global_file = pd.DataFrame(global_file)
 	results_data = []
 
 	for countings, product in enumerate(global_file['ASIN'], start=1):
@@ -342,6 +353,9 @@ def varienceCrawler(request):
 # Product total variences
 def productTotalVarience(request):
 
+	global_file = request.session['global_file']
+	global_file = json.loads(global_file)
+	global_file = pd.DataFrame(global_file)
 	for countings, product in enumerate(global_file['ASIN'], start=1):
 
 		item_CA = [i for x in variationSettings.objects.filter(current_asin=product) for i in variationSettings.objects.filter(Q(productID=x.productID,description_ar=True, description_en=True) | Q(productID=x.productID, description_en=True, productID__source__in=('amazon.in','amazon.co.uk','amazon.com','amazon.com.au'))) if x]
@@ -362,6 +376,9 @@ def productTotalVarience(request):
 
 def robustSearchValid(request):
 
+	global_file = request.session['global_file']
+	global_file = json.loads(global_file)
+	global_file = pd.DataFrame(global_file)
 	results_lst = []
 	validated = []
 
@@ -389,6 +406,9 @@ def robustSearchValid(request):
 
 def robustSearchValidKSA(request):
 
+	global_file = request.session['global_file']
+	global_file = json.loads(global_file)
+	global_file = pd.DataFrame(global_file)
 	results_lst = []
 	results_lst_uae = []
 
@@ -425,6 +445,9 @@ def robustSearchValidKSA(request):
 
 def robustSearchValidIndia(request):
 
+	global_file = request.session['global_file']
+	global_file = json.loads(global_file)
+	global_file = pd.DataFrame(global_file)
 	results_lst = []
 	results_lst_uae = []
 
@@ -461,6 +484,9 @@ def robustSearchValidIndia(request):
 
 def robustSearchValidAus(request):
 
+	global_file = request.session['global_file']
+	global_file = json.loads(global_file)
+	global_file = pd.DataFrame(global_file)
 	results_lst = []
 	results_lst_uae = []
 
@@ -497,6 +523,9 @@ def robustSearchValidAus(request):
 
 def robustSearchValidUk(request):
 
+	global_file = request.session['global_file']
+	global_file = json.loads(global_file)
+	global_file = pd.DataFrame(global_file)
 	results_lst = []
 	results_lst_uae = []
 
@@ -533,6 +562,9 @@ def robustSearchValidUk(request):
 
 def robustSearchValidCom(request):
 
+	global_file = request.session['global_file']
+	global_file = json.loads(global_file)
+	global_file = pd.DataFrame(global_file)
 	results_lst = []
 	results_lst_uae = []
 
@@ -569,7 +601,9 @@ def robustSearchValidCom(request):
 
 def robustSearchDetails(request):
 
-	# Call global variable here
+	global_file = request.session['global_file']
+	global_file = json.loads(global_file)
+	global_file = pd.DataFrame(global_file)
 	for counting, item in enumerate(global_file['ASIN'], start=1):
 
 		product = productPagesScrapper.objects.filter(productID=item, description_ar=True, description_en=True)
@@ -664,13 +698,13 @@ def dataStats(request):
 
 def viewCategories(request):
 
-	global global_category
 	global_category = productPagesScrapper.objects.filter(productID__startswith='B').values('category').distinct()
 	total_category = len(global_category)
 
 	categoryFilter = ProductCategoryFilter(request.GET, queryset=global_category)
 	global_category = categoryFilter.qs
 
+	request.session['global_category'] = [category for category in global_category]
 
 	# Pagination
 	product_paginator = Paginator(global_category, 50)
@@ -1059,6 +1093,7 @@ def categoryExportJsonBoth(request):
 # English and Arabic both
 def categoryRequiredExportJson(request,cid):
 
+	global_category = request.session['global_category']
 	data = []
 	for categories in global_category: # As global_category is a global variable
 		category_dic = {}
@@ -1132,6 +1167,7 @@ def categoryRequiredExportJson(request,cid):
 # English
 def categoryExportJson(request):
 
+	global_category = request.session['global_category']
 	data = []
 	for categories in global_category: # As global_category is a global variable
 		category_dic = {}
@@ -1179,6 +1215,7 @@ def categoryExportJson(request):
 # Arabic
 def categoryExportARJson(request):
 
+	global_category = request.session['global_category']
 	data = []
 	for categories in global_category: # As global_category is a global variable
 		category_dic = {}
@@ -1230,6 +1267,9 @@ def requiredJsonFormat(request):
 	current_date = str(datetime.date.today())
 	name = current_date+'_Scrapped.json'
 
+	global_file = request.session['global_file']
+	global_file = json.loads(global_file)
+	global_file = pd.DataFrame(global_file)
 	data = []
 
 	# Avoid Repeating Products
@@ -1464,6 +1504,9 @@ def categoryAttributesManager(request):
 	current_date = str(datetime.date.today())
 	name = current_date+'_Category_Scrapped.json'
 
+	global_file = request.session['global_file']
+	global_file = json.loads(global_file)
+	global_file = pd.DataFrame(global_file)
 	data = []
 
 	# Identifying unique cartlow category ids
@@ -1535,13 +1578,18 @@ def categoryAttributesManager(request):
 
 def uploadStats(request):
 
+	file_name = request.session['file_name']
 	current_date = str(datetime.date.today())
-	name = current_date+'_fileStates.csv'
+	name = f'{file_name}{current_date}.csv'
 
 	response = HttpResponse(
 		content_type='text/csv',
 		headers={'Content-Disposition': f'attachment; filename="{name}"'},
 	)
+
+	global_file = request.session['global_file']
+	global_file = json.loads(global_file)
+	global_file = pd.DataFrame(global_file)
 
 	writer = csv.writer(response)
 	writer.writerow(['Uploaded ASIN', 'Parent Asin', 'Child Asin', 'Asin Available'])
