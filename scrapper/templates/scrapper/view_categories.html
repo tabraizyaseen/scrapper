@@ -73,7 +73,7 @@
 			  <div class="dropdown-menu">
 			    <!-- Dropdown menu links -->
 			    <b class="dropdown-header">Select file format</b>
-			    <a class="dropdown-item" href="{% url 'category_export_json' %}">JSON in English</a>
+			    <a href="{% url 'category_export_json' %}" class="dropdown-item">JSON in English</a>
 			    <div class="dropdown-divider"></div>
 				<a class="dropdown-item" href="{% url 'category_export_ar_json' %}">JSON in Arabic</a>
 				<div class="dropdown-divider"></div>
@@ -260,6 +260,13 @@
 	cid.addEventListener('change',()=>{
 		cid_export.setAttribute('href',`/category_exported/${cid.value}`)
 	})
+
+	document.addEventListener("DOMContentLoaded", function(){
+	    var cat_array = []
+
+	    for 
+
+	});
 
 </script>
 

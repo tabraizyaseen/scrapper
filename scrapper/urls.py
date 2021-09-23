@@ -39,7 +39,7 @@ urlpatterns = [
 
     path('category_exported/<str:cid>/', views.categoryRequiredExportJson, name='category_exported'),
     path('category_export_ar_json', views.categoryExportARJson, name='category_export_ar_json'),
-    path('category_export_json', views.categoryExportJson, name='category_export_json'),
+    path('category_export_json/', views.categoryExportJson, name='category_export_json'),
     path('category_export', views.categoryExportJsonBoth, name='category_export'),
 
     # View Products
