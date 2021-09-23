@@ -684,14 +684,16 @@ def viewCategories(request):
 	if request.is_ajax():
 		category = request.POST['text']
 
-		sel_cats = productPagesScrapper.objects.filter(productID__startswith='B',category=category,description_en=True,description_ar=True)
+		sel_cats = productPagesScrapper.objects.filter(Q(source__in=('amazon.ae','amazon.sa'),category=category,description_en=True,description_ar=True) | Q(source__in=('amazon.in','amazon.com.au','amazon.co.uk','amazon.com'),category=category,description_en=True))
 		print(len(sel_cats))
 		
 		for countings, cat in enumerate(sel_cats, start=1):
 
 			dbhandler_ins = amazon_DBHandler_cls(cat.productID)
-			dbhandler_ins.get_product_data(cat)
-
+			if cat.source == 'amazon.ae' or 'amazon.sa':
+				dbhandler_ins.get_product_data(cat)
+			elif cat.source == 'amazon.com' or 'amazon.co.uk' or 'amazon.com.au' or 'amazon.in':
+				dbhandler_ins.get_product_data_EN(cat)
 			print(countings)
 
 		return JsonResponse({'report':'Okay'})
@@ -863,19 +865,60 @@ def deleteAsin(request):
 
 # Product Details English
 def amazonProductDetails(request, pk):
-	asin = productPagesScrapper.objects.get(id=pk)
-	
-	# Amazon product 
-	if asin.source == 'amazon.ae' or asin.source == 'amazon.sa':
 
-		db_handler_ins = amazon_DBHandler_cls(asin.productID)
-		db_handler_ins.get_valid()
-		db_handler_ins.get_product_data(asin)
+	def fun_details(asin):
 
 		details = productDetails.objects.filter(productID=asin, language='EN')
 		pictures = productImages.objects.filter(productID=asin)
 		about = productHighlights.objects.filter(productID=asin, language='EN')
 		long_desc = productDescription.objects.filter(productID=asin, language='EN')
+
+		return details,pictures,about,long_desc
+
+	asin = productPagesScrapper.objects.get(id=pk)
+	
+	# Amazon product 
+	if asin.source == 'amazon.ae':
+		db_handler_ins = amazon_DBHandler_cls(asin.productID)
+		db_handler_ins.get_valid()
+		db_handler_ins.get_product_data(asin)
+
+		details,pictures,about,long_desc = fun_details(asin)
+
+	elif asin.source == 'amazon.sa':
+		db_handler_ins = amazon_DBHandler_cls(asin.productID)
+		db_handler_ins.get_valid_ksa()
+		db_handler_ins.get_product_data(asin)
+
+		details,pictures,about,long_desc = fun_details(asin)
+
+	elif asin.source == 'amazon.in':
+		db_handler_ins = amazon_DBHandler_cls(asin.productID)
+		db_handler_ins.get_valid_india()
+		db_handler_ins.get_product_data_EN(asin)
+
+		details,pictures,about,long_desc = fun_details(asin)
+
+	elif asin.source == 'amazon.com.au':
+		db_handler_ins = amazon_DBHandler_cls(asin.productID)
+		db_handler_ins.get_valid_aus()
+		db_handler_ins.get_product_data_EN(asin)
+
+		details,pictures,about,long_desc = fun_details(asin)
+
+	elif asin.source == 'amazon.co.uk':
+		db_handler_ins = amazon_DBHandler_cls(asin.productID)
+		db_handler_ins.get_valid_uk()
+		db_handler_ins.get_product_data_EN(asin)
+
+		details,pictures,about,long_desc = fun_details(asin)
+
+	elif asin.source == 'amazon.com':
+		db_handler_ins = amazon_DBHandler_cls(asin.productID)
+		db_handler_ins.get_valid_com()
+		db_handler_ins.get_product_data_EN(asin)
+
+		details,pictures,about,long_desc = fun_details(asin)
 
 	# Noon product
 	elif asin.source == 'noon.com':
@@ -884,10 +927,7 @@ def amazonProductDetails(request, pk):
 		db_handler_ins.get_valid()
 		db_handler_ins.get_product_data(asin)
 
-		details = productDetails.objects.filter(productID=asin, language='EN')
-		pictures = productImages.objects.filter(productID=asin)
-		about = productHighlights.objects.filter(productID=asin, language='EN')
-		long_desc = productDescription.objects.filter(productID=asin, language='EN')
+		details,pictures,about,long_desc = fun_details(asin)
 
 	context = {
 		'details': details,
@@ -902,19 +942,30 @@ def amazonProductDetails(request, pk):
 
 # Product Details Arabic
 def productDetailsArabic(request, pk):
+
+	def fun_details_arabic(asin):
+		pictures = productImages.objects.filter(productID=asin)
+		details = productDetails.objects.filter(productID=asin, language='AR')
+		about = productHighlights.objects.filter(productID=asin, language='AR')
+		long_desc = productDescription.objects.filter(productID=asin, language='AR')
+
+		return pictures, details, about, long_desc
+
 	asin = productPagesScrapper.objects.get(id=pk)
 	
 	# Amazon product 
 	if asin.source == 'amazon.ae' or asin.source == 'amazon.sa':
 
 		db_handler_ins = amazon_DBHandler_cls(asin.productID)
-		db_handler_ins.get_valid()
+
+		if asin.source == 'amazon.ae':
+			db_handler_ins.get_valid()
+		elif asin.source == 'amazon.sa':
+			db_handler_ins.get_valid_ksa()
+
 		db_handler_ins.get_product_data(asin)
 
-		pictures = productImages.objects.filter(productID=asin)
-		details = productDetails.objects.filter(productID=asin, language='AR')
-		about = productHighlights.objects.filter(productID=asin, language='AR')
-		long_desc = productDescription.objects.filter(productID=asin, language='AR')
+		pictures, details, about, long_desc = fun_details_arabic(asin)
 
 	# Noon product
 	elif asin.source == 'noon.com':
@@ -923,10 +974,7 @@ def productDetailsArabic(request, pk):
 		db_handler_ins.get_valid()
 		db_handler_ins.get_product_data(asin)
 
-		pictures = productImages.objects.filter(productID=asin)
-		details = productDetails.objects.filter(productID=asin, language='AR')
-		about = productHighlights.objects.filter(productID=asin, language='AR')
-		long_desc = productDescription.objects.filter(productID=asin, language='AR')
+		pictures, details, about, long_desc = fun_details_arabic(asin)
 
 	context = {
 		'details': details,
