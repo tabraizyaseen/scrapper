@@ -215,6 +215,18 @@
 		var bar_id = `progress-bar-${loopCount}`
 		var message_id = `progress-bar-message-${loopCount}`
 
+		function customSuccess(progressBarElement, progressBarMessageElement, result) {
+			
+			progressBarElement.style.backgroundColor = this.barColors.success;
+        	progressBarMessageElement.textContent = "Success! " + result;
+			setTimeout(()=>{
+				progressBarElement.style.display = "none";
+				progressBarMessageElement.innerText = "";
+			}, 4000)
+		 	
+        
+	    }
+
 		$.ajax({
 			type: 'POST',
 			url: "{% url 'category_job' %}",
@@ -227,6 +239,7 @@
 					CeleryProgressBar.initProgressBar(progressUrl, {
 						progressBarId: bar_id,
 						progressBarMessageId: message_id,
+						onSuccess: customSuccess,
 					});
 
 				}
