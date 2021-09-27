@@ -660,41 +660,6 @@ def noonScrapper(request):
 
 	return render(request, 'scrapper/noon_scrapper.html', context)
 
-def dataStats(request):
-
-	if request.is_ajax():
-
-		total_products = productPagesScrapper.objects.count()
-		valid_products_count = productPagesScrapper.objects.filter(description_en=True, description_ar=True).count()
-
-		amazon_products = productPagesScrapper.objects.filter(source='amazon.ae').count()
-		amazonSA_products = productPagesScrapper.objects.filter(source='amazon.sa').count()
-		noon_products = productPagesScrapper.objects.filter(source='noon.com').count()
-
-		valid_english = productPagesScrapper.objects.filter(description_en=True).count()
-		valid_arabic = productPagesScrapper.objects.filter(description_ar=True).count()
-
-		total_images = productImages.objects.values('productID').distinct().count()
-		total_highlights = productHighlights.objects.values('productID').distinct().count()
-		total_specs = productDetails.objects.values('productID').distinct().count()
-		total_desc = productDescription.objects.values('productID').distinct().count()
-
-		context = {
-			'labels': ['Total','Valid Save','Amazon UAE','Amazon KSA','Noon','English Valid','Arabic Valid'],
-			'labels_data': [total_products,valid_products_count,amazon_products,amazonSA_products,noon_products,valid_english,valid_arabic],
-			'detail_label': ['Total Images','Total Highlights','Total Specifications','Total Descriptions'],
-			'detail_data': [total_images, total_highlights, total_specs,total_desc]
-		}
-
-		return JsonResponse(context)
-
-	
-	context = {
-		
-	}
-
-	return render(request, 'scrapper/stats.html', context)
-
 
 def viewCategories(request):
 
@@ -817,7 +782,7 @@ def viewProducts(request):
 		'download_count': len(all_products),
 	}
 
-	return render(request, 'scrapper/view_products.html', context)
+	return render(request, 'scrapper/home.html', context)
 
 def singleProductValidate(request):
 

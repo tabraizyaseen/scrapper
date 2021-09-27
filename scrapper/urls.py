@@ -4,13 +4,12 @@ from . import views
 
 urlpatterns = [
     # main pages
-	path('', views.home, name='home'),
+	path('', views.viewProducts, name='home'),
 	path('amazon_scrapper/', views.amazonScrapper, name='amazon_scrapper'),
 	path('noon_scrapper/', views.noonScrapper, name='noon_scrapper'),
 	path('search_titles', views.searchTitles, name='search_titles'),
     path('amazon_product_variations/', views.productVaraitions, name='productVaraitions'),
     path('amazon_product_total_variations/', views.productTotalVariations, name='productTotalVariations'),
-	path('stats/', views.dataStats, name='stats'),
 
     # Cartlow Manager
 	path('robust_search_valid/', views.robustSearchValid, name='robust_search_valid'),
@@ -43,7 +42,6 @@ urlpatterns = [
     path('category_export', views.categoryExportJsonBoth, name='category_export'),
 
     # View Products
-    path('view_products/', views.viewProducts, name='view_products'),
     path('product_details/<str:pk>/', views.amazonProductDetails, name='product_details'),
     path('product_arabic_details/<str:pk>/', views.productDetailsArabic, name='product_arabic_details'),
 
