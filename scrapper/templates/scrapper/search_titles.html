@@ -45,6 +45,15 @@
 	  from {opacity: 0;}
 	  to {opacity: 1;}
 	}
+
+	.table-bordered td, .table-bordered th {
+	    border: 1px solid #060606;
+	}
+
+	.table-bordered thead th {
+	    vertical-align: bottom;
+	    border-bottom: 1px solid #060606;
+	}
 </style>
 {% endblock %}
 
@@ -80,6 +89,35 @@
 	{% if results or results_ksa or results_india or results_aus or results_com or results_uk %}
 	<div class="row data-container">
 	{% else %}
+	<div class="alert alert-info card" role="alert">
+		<h4>Please upload a csv file with following columns</h4>
+		<ul>
+			<li>ASIN</li>
+			<li>Category</li>
+			<li>Conditions</li>
+			<li>weight_class</li>
+		</ul>
+		<b>Sample :-</b>
+		<br>
+		<table class="table text-center table-bordered table-responsive-lg">
+			<thead>
+				<tr>
+					<th>ASIN</th>
+					<th>Category</th>
+					<th>Conditions</th>
+					<th>weight_class</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>B08L5PHJ2Y</td>
+					<td>17004</td>
+					<td>DBW,DB,BNW,BN,OBB,OBBW,OB,OBW,PO,POA,POB,CRA,CRB</td>
+					<td>light</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
 	<div class="row" style="display: none">
 	{% endif %}
 
