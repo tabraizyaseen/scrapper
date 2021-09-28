@@ -220,7 +220,7 @@
 			progressBarElement.style.backgroundColor = this.barColors.success;
         	progressBarMessageElement.textContent = "Success! " + result;
 			setTimeout(()=>{
-				progressBarElement.style.display = "none";
+				progressBarElement.style.width = "0%";
 				progressBarMessageElement.innerText = "";
 			}, 4000)
 		 	
