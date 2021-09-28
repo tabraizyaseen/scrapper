@@ -45,8 +45,8 @@ class productClass:
 		data_dict['brand'] = brand
 		data_dict['title'] = item_db[0].title_en
 		data_dict['title_ar'] = item_db[0].title_ar
-		data_dict['description'] = ' '.join([long_desc.long_description for long_desc in item_db[0].productdescription_set.filter(language='EN')])
-		data_dict['description_ar'] = ' '.join([long_desc.long_description for long_desc in item_db[0].productdescription_set.filter(language='AR')])
+		data_dict['description'] = ' '.join([long_desc.long_description for long_desc in item_db[0].productdescription_set.filter(language='EN')]) or '. '.join([highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='EN')]) or data_dict['title']
+		data_dict['description_ar'] = ' '.join([long_desc.long_description for long_desc in item_db[0].productdescription_set.filter(language='AR')]) or '. '.join([highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='AR')]) or data_dict['title_ar']
 		# data_dict['highlights'] = [highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='EN')]
 		# data_dict['highlights_ar'] = [highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='AR')]
 
