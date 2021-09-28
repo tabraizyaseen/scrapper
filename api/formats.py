@@ -2,6 +2,7 @@ import itertools
 from collections import Counter
 
 from scrapper.models import *
+from django.db.models import Q
 
 
 # Work in progress
@@ -33,11 +34,11 @@ class productClass:
 			category = ''
 
 		data_dict['category'] = category
-		data_dict['weight_class'] = ''
+		data_dict['weight_class'] = 'light'
 
 		# Brand
 		brand = ''
-		brand_db = item_db[0].productdetails_set.filter(language='EN', attributes__in=('Brand','Brand, Seller, or Collection Name','Manufacturer'))
+		brand_db = item_db[0].productdetails_set.filter(Q(language='EN', attributes="Brand") | Q(language='EN', attributes__in=('Seller, or Collection Name','Brand Name','Manufacturer')))
 		if brand_db:
 			brand = brand_db[0].values
 
@@ -72,7 +73,9 @@ class productClass:
 		return data_dict
 
 	
-	def variations(self, item_db, data_dict, grades_provided=''):
+	def variations(self, item_db, data_dict):
+
+		grades_provided='DBW,DB,BNW,BN,OBB,OBBW,OB,OBW,PO,POA,POB,CRA,CRB'
 
 		product_asin = self.product_asin
 
@@ -97,9 +100,11 @@ class productClass:
 				variations_settings_dict = {}
 
 				variations_settings_dict['name'] = variations.name_en.replace('_',' ').title()
-				variations_settings_dict['values'] = variations.value_en.split(',')
-				variations_settings_dict['name_ar'] = variations.name_ar.replace('_',' ').title()
-				variations_settings_dict['values_ar'] = variations.value_ar.split(',')
+				variations_settings_dict['values'] = [i.replace("/","-") for i in variations.value_en.split(',')]
+
+				if variations.productID.source == 'amazon.ae' or variations.productID.source == 'amazon.ae':
+					variations_settings_dict['name_ar'] = variations.name_ar.replace('_',' ').title()
+					variations_settings_dict['values_ar'] = variations.value_ar.split(',')
 
 				variations_settings_list.append(variations_settings_dict)
 
@@ -133,21 +138,28 @@ class productClass:
 
 					lamda_total_variations = lambda x,y : x if x else y
 
-					dimension_list = v[1:]
-					total_variations = lamda_total_variations(variationSettings.objects.filter(productID=single_variant_db[0].productID, dimension_val_en=','.join(dimension_list), available=True), variationSettings.objects.filter(productID=single_variant_db[0].productID, dimension_val_en=','.join(dimension_list[::-1]), available=True))
-					
+					# Match variation despute of order
+					new_v = [i.replace("-","/") for i in v]
+					dimension_list = new_v[1:]
+					total_variations = ''
+
+					for match_variation in variationSettings.objects.filter(productID=single_variant_db[0].productID, available=True):
+						if set(dimension_list) == set(match_variation.dimension_val_en.split(',')):
+							total_variations = match_variation
+							break
+
 					if total_variations:
 
 						# Variation Found
 						variations_dict['variation_index'] = f'{index_dimension}'
 						variations_dict['variation'] = f"{index_value}"
-						variations_dict['asin'] = total_variations[0].current_asin
-						variations_dict['title'] = f"{total_variations[0].title_en}"
-						variations_dict['title_ar'] = f"{total_variations[0].title_ar}"
+						variations_dict['asin'] = total_variations.current_asin
+						variations_dict['title'] = f"{total_variations.title_en}"
+						variations_dict['title_ar'] = f"{total_variations.title_ar}"
 						variations_dict['gtin'] = ''
 						variations_dict['ean'] = ''
 						variations_dict['upc'] = ''
-						variations_dict['images'] = total_variations[0].images.split(',')
+						variations_dict['images'] = total_variations.images.split(',')
 					else:
 
 						# Variation Not Found
@@ -199,17 +211,17 @@ class productClass:
 		data_dict = {}
 
 		product_asin = self.product_asin
-		item_db = productPagesScrapper.objects.filter(productID=product_asin, description_en=True, description_ar=True)
+		item_db = productPagesScrapper.objects.filter(Q(productID=product_asin, description_en=True, description_ar=True) | Q(productID=product_asin, description_en=True, source__in=('amazon.in','amazon.co.uk','amazon.com','amazon.com.au')))
 
 		if item_db:
 			data_dict = self.productAttributes(item_db, data_dict)
 			data_dict = self.variations(item_db, data_dict)
 
 		else:
-			vari = variationSettings.objects.filter(current_asin=product_asin, description_en=True, description_ar=True)
+			vari = variationSettings.objects.filter(Q(current_asin=product_asin, description_en=True, description_ar=True) | Q(parent_asin=product_asin, description_en=True, description_ar=True) | Q(current_asin=product_asin, description_en=True, productID__source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk')))
 
 			if vari:
-				item_db = productPagesScrapper.objects.filter(productID=vari[0].productID.productID, description_en=True, description_ar=True)
+				item_db = productPagesScrapper.objects.filter(Q(productID=product_asin, description_en=True, description_ar=True) | Q(productID=product_asin, description_en=True, source__in=('amazon.in','amazon.co.uk','amazon.com','amazon.com.au')))
 			
 				data_dict = self.productAttributes(item_db, data_dict)
 				data_dict = self.variations(item_db, data_dict)
