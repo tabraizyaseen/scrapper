@@ -966,6 +966,14 @@ def productDetailsArabic(request, pk):
 
 		pictures, details, about, long_desc = fun_details_arabic(asin)
 
+	# If a product arabic response was already available and english found later
+	if asin.source == 'amazon.in' or 'amazon.com' or 'amazon.co.uk' or 'amazon.com.au':
+
+		db_handler_ins = amazon_DBHandler_cls(asin.productID)
+		db_handler_ins.get_product_data(asin)
+
+		pictures, details, about, long_desc = fun_details_arabic(asin)
+
 	# Noon product
 	elif asin.source == 'noon.com':
 
