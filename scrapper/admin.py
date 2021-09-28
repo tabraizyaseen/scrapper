@@ -17,7 +17,7 @@ class productsAdmin(admin.ModelAdmin):
 	list_display = ('productID','title_en')
 	# list_filter = ('category',)
 	empty_value_display = '-empty-'
-	search_fields = ('title_en','productID','category')
+	search_fields = ('title_en','productID','category','source')
 
 @admin.register(productDetails)
 class productsDetailsAdmin(admin.ModelAdmin):
