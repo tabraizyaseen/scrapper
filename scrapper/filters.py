@@ -37,7 +37,7 @@ class ProductFilter(django_filters.FilterSet):
 
 	def my_custom_filter(self, queryset, name, value):
 		return productPagesScrapper.objects.filter(
-			Q(category__icontains=value) | Q(title_en__icontains=value) | Q(productID__startswith=value) | Q(source=value) | Q(description_en=value) | Q(description_ar=value)
+			Q(category__icontains=value) | Q(title_en__icontains=value) | Q(productID__startswith=value) | Q(source=value)
 		)
 		
 		
@@ -61,7 +61,7 @@ class VariationSettingsFilter(django_filters.FilterSet):
 
 	def my_custom_filter(self, queryset, name, value):
 		return variationSettings.objects.filter(
-			Q(current_asin__icontains=value) | Q(parent_asin__icontains=value) | Q(title_en__icontains=value) | Q(description_en=value) | Q(description_ar=value)
+			Q(current_asin__icontains=value) | Q(parent_asin__icontains=value) | Q(title_en__icontains=value)
 		)
 
 class TotalVariationsFilter(django_filters.FilterSet):

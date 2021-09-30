@@ -237,8 +237,12 @@ class amazon_DBHandler_cls():
 			if variationSettings_instance:
 				for countings, (k,v) in enumerate(dimensions.items()):
 
-					create_dict = {'parent_asin':parent_asin,'dimension':k, 'dimension_val_en':','.join(dimensionsDetails[v]), 'dimension_val_ar':','.join(dimensionsDetailsAR[v])}
-					variationSettings.objects.get_or_create(productID=variationSettings_instance[0].productID, current_asin=v, defaults=create_dict)
+					if variationSettings_instance[0].productID.productID == v:
+						create_dict = {'parent_asin':parent_asin,'dimension':k, 'dimension_val_en':','.join(dimensionsDetails[v]), 'dimension_val_ar':','.join(dimensionsDetailsAR[v]), 'description_en':variationSettings_instance[0].productID.description_en, 'description_ar':variationSettings_instance[0].productID.description_ar}
+						variationSettings.objects.get_or_create(productID=variationSettings_instance[0].productID, current_asin=v, defaults=create_dict)
+					else:
+						create_dict = {'parent_asin':parent_asin,'dimension':k, 'dimension_val_en':','.join(dimensionsDetails[v]), 'dimension_val_ar':','.join(dimensionsDetailsAR[v])}
+						variationSettings.objects.get_or_create(productID=variationSettings_instance[0].productID, current_asin=v, defaults=create_dict)
 					
 
 					# if parent asin is the same
@@ -248,7 +252,10 @@ class amazon_DBHandler_cls():
 					'''
 			else:
 				for k,v in dimensions.items():
-					variationSettings.objects.create(productID=item, parent_asin=parent_asin, current_asin=v, dimension=k, dimension_val_en=','.join(dimensionsDetails[v]), dimension_val_ar=','.join(dimensionsDetailsAR[v]))
+					if item.productID == v:
+						variationSettings.objects.create(productID=item, parent_asin=parent_asin, current_asin=v, dimension=k, dimension_val_en=','.join(dimensionsDetails[v]), dimension_val_ar=','.join(dimensionsDetailsAR[v]), description_en=item.description_en, description_ar=item.description_ar)
+					else:
+						variationSettings.objects.create(productID=item, parent_asin=parent_asin, current_asin=v, dimension=k, dimension_val_en=','.join(dimensionsDetails[v]), dimension_val_ar=','.join(dimensionsDetailsAR[v]))
 
 		def func_totalVariationsEN(variation,parent_asin,item):
 
