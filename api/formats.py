@@ -221,10 +221,9 @@ class productClass:
 			vari = variationSettings.objects.filter(Q(current_asin=product_asin, description_en=True, description_ar=True) | Q(parent_asin=product_asin, description_en=True, description_ar=True) | Q(current_asin=product_asin, description_en=True, productID__source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk')))
 
 			if vari:
-				item_db = productPagesScrapper.objects.filter(Q(productID=product_asin, description_en=True, description_ar=True) | Q(productID=product_asin, description_en=True, source__in=('amazon.in','amazon.co.uk','amazon.com','amazon.com.au')))
 			
-				data_dict = self.productAttributes(item_db, data_dict)
-				data_dict = self.variations(item_db, data_dict)
+				data_dict = self.productAttributes(vari.productID, data_dict)
+				data_dict = self.variations(vari.productID, data_dict)
 
 		return data_dict
 
