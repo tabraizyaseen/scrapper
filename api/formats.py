@@ -144,7 +144,7 @@ class productClass:
 					total_variations = ''
 
 					for match_variation in variationSettings.objects.filter(productID=single_variant_db[0].productID, available=True):
-						if set(dimension_list) == set(match_variation.dimension_val_en.split(',')):
+						if set(dimension_list) == set([i.replace("-","/") for i in match_variation.dimension_val_en.split(',')]):
 							total_variations = match_variation
 							break
 
