@@ -222,8 +222,8 @@ class productClass:
 
 			if vari:
 			
-				data_dict = self.productAttributes(vari.productID, data_dict)
-				data_dict = self.variations(vari.productID, data_dict)
+				data_dict = self.productAttributes(vari[0].productID, data_dict)
+				data_dict = self.variations(vari[0].productID, data_dict)
 
 		return data_dict
 
