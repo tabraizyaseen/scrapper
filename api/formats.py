@@ -29,7 +29,7 @@ class productClass:
 			return category_lst
 
 		try:
-			category = item_db[0].category
+			category = item_db.category
 		except Exception:
 			category = ''
 
@@ -38,31 +38,31 @@ class productClass:
 
 		# Brand
 		brand = ''
-		brand_db = item_db[0].productdetails_set.filter(Q(language='EN', attributes="Brand") | Q(language='EN', attributes__in=('Seller, or Collection Name','Brand Name','Manufacturer')))
+		brand_db = item_db.productdetails_set.filter(Q(language='EN', attributes="Brand") | Q(language='EN', attributes__in=('Seller, or Collection Name','Brand Name','Manufacturer')))
 		if brand_db:
 			brand = brand_db[0].values
 
 		data_dict['brand'] = brand
-		data_dict['title'] = item_db[0].title_en
-		data_dict['title_ar'] = item_db[0].title_ar
-		data_dict['description'] = ' '.join([long_desc.long_description for long_desc in item_db[0].productdescription_set.filter(language='EN')]) or '. '.join([highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='EN')]) or data_dict['title']
-		data_dict['description_ar'] = ' '.join([long_desc.long_description for long_desc in item_db[0].productdescription_set.filter(language='AR')]) or '. '.join([highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='AR')]) or data_dict['title_ar']
-		# data_dict['highlights'] = [highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='EN')]
-		# data_dict['highlights_ar'] = [highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='AR')]
+		data_dict['title'] = item_db.title_en
+		data_dict['title_ar'] = item_db.title_ar
+		data_dict['description'] = ' '.join([long_desc.long_description for long_desc in item_db.productdescription_set.filter(language='EN')]) or '. '.join([highlight.highlight for highlight in item_db.producthighlights_set.filter(language='EN')]) or data_dict['title']
+		data_dict['description_ar'] = ' '.join([long_desc.long_description for long_desc in item_db.productdescription_set.filter(language='AR')]) or '. '.join([highlight.highlight for highlight in item_db.producthighlights_set.filter(language='AR')]) or data_dict['title_ar']
+		# data_dict['highlights'] = [highlight.highlight for highlight in item_db.producthighlights_set.filter(language='EN')]
+		# data_dict['highlights_ar'] = [highlight.highlight for highlight in item_db.producthighlights_set.filter(language='AR')]
 
 		data_dict['gtin'] = ''
 		data_dict['ean'] = ''
 		data_dict['upc'] = ''
 
-		data_dict['asin'] = item_db[0].productID
+		data_dict['asin'] = item_db.productID
 
-		data_dict['default_images'] = [images.image for images in item_db[0].productimages_set.all()]
+		data_dict['default_images'] = [images.image for images in item_db.productimages_set.all()]
 
 		# Specifications
 		category_lst = []
 
-		specs_en = item_db[0].productdetails_set.filter(language='EN').exclude(attributes__in=('Brand','Asin','ASIN'))
-		specs_ar = item_db[0].productdetails_set.filter(language='AR').exclude(attributes__in=('Brand','Asin','العلامة التجارية','ASIN'))
+		specs_en = item_db.productdetails_set.filter(language='EN').exclude(attributes__in=('Brand','Asin','ASIN'))
+		specs_ar = item_db.productdetails_set.filter(language='AR').exclude(attributes__in=('Brand','Asin','العلامة التجارية','ASIN'))
 
 
 		category_lst = specifications(specs_en, category_lst)
@@ -83,7 +83,7 @@ class productClass:
 		lambda_variant_func = lambda x,y: x if x else y
 
 		# Variation_Settings
-		single_variant_db = lambda_variant_func(variationSettings.objects.filter(current_asin=item_db[0].productID),variationSettings.objects.filter(parent_asin=item_db[0].productID))
+		single_variant_db = lambda_variant_func(variationSettings.objects.filter(current_asin=item_db.productID),variationSettings.objects.filter(parent_asin=item_db.productID))
 
 		if single_variant_db:
 			variations_settings = totalVariations.objects.filter(parent_asin=single_variant_db[0].parent_asin).order_by('-id')
@@ -171,7 +171,7 @@ class productClass:
 						variations_dict['gtin'] = ''
 						variations_dict['ean'] = ''
 						variations_dict['upc'] = ''
-						variations_dict['images'] =[] # [images.image for images in item_db[0].productimages_set.all()]
+						variations_dict['images'] =[] # [images.image for images in item_db.productimages_set.all()]
 
 					variations_list.append(variations_dict)
 
@@ -214,8 +214,8 @@ class productClass:
 		item_db = productPagesScrapper.objects.filter(Q(productID=product_asin, description_en=True, description_ar=True) | Q(productID=product_asin, description_en=True, source__in=('amazon.in','amazon.co.uk','amazon.com','amazon.com.au')))
 
 		if item_db:
-			data_dict = self.productAttributes(item_db, data_dict)
-			data_dict = self.variations(item_db, data_dict)
+			data_dict = self.productAttributes(item_db[0], data_dict)
+			data_dict = self.variations(item_db[0], data_dict)
 
 		else:
 			vari = variationSettings.objects.filter(Q(current_asin=product_asin, description_en=True, description_ar=True) | Q(parent_asin=product_asin, description_en=True, description_ar=True) | Q(current_asin=product_asin, description_en=True, productID__source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk')))
