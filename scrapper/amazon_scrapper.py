@@ -295,7 +295,7 @@ class AmazonProductDetails:
 
 		specifications = (lambda x,y : x if x else y)(SpecificationsNorm(soup,product,specifications),SpecificationsApple(soup,specifications))
 		brand = self.Brand()
-		if brand and not ('Brand' in str(specifications)):
+		if brand and not ("'Brand'," in str(specifications)):
 			specifications.insert(0,('Brand',brand))
 			
 
@@ -475,7 +475,7 @@ class AmazonProductDetailsArabic:
 
 		specifications = (lambda x,y : x if x else y)(SpecificationsNorm(soup,product,specifications),SpecificationsApple(soup,specifications))
 		brand = self.Brand()
-		if brand and not ('Brand' in str(specifications)):
+		if brand and not ("'Brand'," in str(specifications)):
 			specifications.insert(0,('Brand',brand))
 
 		return specifications
