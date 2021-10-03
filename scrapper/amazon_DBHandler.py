@@ -238,7 +238,7 @@ class amazon_DBHandler_cls():
 				for countings, (k,v) in enumerate(dimensions.items()):
 
 					if variationSettings_instance[0].productID.productID == v:
-						create_dict = {'parent_asin':parent_asin,'dimension':k, 'dimension_val_en':','.join(dimensionsDetails[v]), 'dimension_val_ar':','.join(dimensionsDetailsAR[v]), 'description_en':variationSettings_instance[0].productID.description_en, 'description_ar':variationSettings_instance[0].productID.description_ar}
+						create_dict = {'parent_asin':parent_asin,'dimension':k, 'dimension_val_en':','.join(dimensionsDetails[v]), 'dimension_val_ar':','.join(dimensionsDetailsAR[v]), 'description_en':variationSettings_instance[0].productID.description_en, 'description_ar':variationSettings_instance[0].productID.description_ar, 'available':True}
 						variationSettings.objects.get_or_create(productID=variationSettings_instance[0].productID, current_asin=v, defaults=create_dict)
 					else:
 						create_dict = {'parent_asin':parent_asin,'dimension':k, 'dimension_val_en':','.join(dimensionsDetails[v]), 'dimension_val_ar':','.join(dimensionsDetailsAR[v])}
@@ -253,7 +253,7 @@ class amazon_DBHandler_cls():
 			else:
 				for k,v in dimensions.items():
 					if item.productID == v:
-						variationSettings.objects.create(productID=item, parent_asin=parent_asin, current_asin=v, dimension=k, dimension_val_en=','.join(dimensionsDetails[v]), dimension_val_ar=','.join(dimensionsDetailsAR[v]), description_en=item.description_en, description_ar=item.description_ar)
+						variationSettings.objects.create(productID=item, parent_asin=parent_asin, current_asin=v, dimension=k, dimension_val_en=','.join(dimensionsDetails[v]), dimension_val_ar=','.join(dimensionsDetailsAR[v]), description_en=item.description_en, description_ar=item.description_ar, available=True)
 					else:
 						variationSettings.objects.create(productID=item, parent_asin=parent_asin, current_asin=v, dimension=k, dimension_val_en=','.join(dimensionsDetails[v]), dimension_val_ar=','.join(dimensionsDetailsAR[v]))
 

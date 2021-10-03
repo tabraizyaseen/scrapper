@@ -788,172 +788,182 @@
 
 				else if(data.type === "ksa report"){
 					var txt_data = data.report;
-					var table_data = '';
+					if (txt_data) {
+						var table_data = '';
 
-					for (let i=0; i < txt_data.length; i++){
-						table_data += `
-										<tr>
-										<td>${i+1}</td>
-										<td>${txt_data[i].productID}</td>
-										<td>${txt_data[i].description_en}</td>
-										<td>${txt_data[i].description_ar}</td>
-										</tr>
-										`;
+						for (let i=0; i < txt_data.length; i++){
+							table_data += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${txt_data[i].productID}</td>
+											<td>${txt_data[i].description_en}</td>
+											<td>${txt_data[i].description_ar}</td>
+											</tr>
+											`;
+						}
+
+						var uae_data = data.uae
+						var table_uae = '';
+
+						for (let i=0; i < uae_data.length; i++){
+							table_uae += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${uae_data[i].productID}</td>
+											<td>${uae_data[i].description_en}</td>
+											<td>${uae_data[i].description_ar}</td>
+											</tr>
+											`;
+						}
+
+						document.getElementById('table-amazonUAE').innerHTML = table_uae;
+						document.getElementById('table-amazonKSA').innerHTML = table_data;
+						document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
 					}
-
-					var uae_data = data.uae
-					var table_uae = '';
-
-					for (let i=0; i < uae_data.length; i++){
-						table_uae += `
-										<tr>
-										<td>${i+1}</td>
-										<td>${txt_data[i].productID}</td>
-										<td>${txt_data[i].description_en}</td>
-										<td>${txt_data[i].description_ar}</td>
-										</tr>
-										`;
-					}
-
-					document.getElementById('table-amazonUAE').innerHTML = table_uae;
-					document.getElementById('table-amazonKSA').innerHTML = table_data;
-					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
 				}
 
 				else if(data.type === "india report"){
 					var txt_data = data.report;
-					var table_data = '';
+					if (txt_data) {
+						var table_data = '';
 
-					for (let i=0; i < txt_data.length; i++){
-						table_data += `
-										<tr>
-										<td>${i+1}</td>
-										<td>${txt_data[i].productID}</td>
-										<td>${txt_data[i].description_en}</td>
-										</tr>
-										`;
+						for (let i=0; i < txt_data.length; i++){
+							table_data += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${txt_data[i].productID}</td>
+											<td>${txt_data[i].description_en}</td>
+											</tr>
+											`;
+						}
+
+						var uae_data = data.uae
+						var table_uae = '';
+
+						for (let i=0; i < uae_data.length; i++){
+							table_uae += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${uae_data[i].productID}</td>
+											<td>${uae_data[i].description_en}</td>
+											<td>${uae_data[i].description_ar}</td>
+											</tr>
+											`;
+						}
+
+						document.getElementById('table-amazonUAE').innerHTML = table_uae;
+
+						document.getElementById('table-amazonIndia').innerHTML = table_data;
+						document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
 					}
-
-					var uae_data = data.uae
-					var table_uae = '';
-
-					for (let i=0; i < uae_data.length; i++){
-						table_uae += `
-										<tr>
-										<td>${i+1}</td>
-										<td>${txt_data[i].productID}</td>
-										<td>${txt_data[i].description_en}</td>
-										<td>${txt_data[i].description_ar}</td>
-										</tr>
-										`;
-					}
-
-					document.getElementById('table-amazonUAE').innerHTML = table_uae;
-
-					document.getElementById('table-amazonIndia').innerHTML = table_data;
-					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
 				}
 
 				else if(data.type === "uk report"){
 					var txt_data = data.report;
-					var table_data = '';
+					if (txt_data) {
+						var table_data = '';
 
-					for (let i=0; i < txt_data.length; i++){
-						table_data += `
-										<tr>
-										<td>${i+1}</td>
-										<td>${txt_data[i].productID}</td>
-										<td>${txt_data[i].description_en}</td>
-										</tr>
-										`;
+						for (let i=0; i < txt_data.length; i++){
+							table_data += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${txt_data[i].productID}</td>
+											<td>${txt_data[i].description_en}</td>
+											</tr>
+											`;
+						}
+
+						var uae_data = data.uae
+						var table_uae = '';
+
+						for (let i=0; i < uae_data.length; i++){
+							table_uae += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${uae_data[i].productID}</td>
+											<td>${uae_data[i].description_en}</td>
+											<td>${uae_data[i].description_ar}</td>
+											</tr>
+											`;
+						}
+
+						document.getElementById('table-amazonUAE').innerHTML = table_uae;
+
+						document.getElementById('table-amazonUK').innerHTML = table_data;
+						document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
 					}
-
-					var uae_data = data.uae
-					var table_uae = '';
-
-					for (let i=0; i < uae_data.length; i++){
-						table_uae += `
-										<tr>
-										<td>${i+1}</td>
-										<td>${txt_data[i].productID}</td>
-										<td>${txt_data[i].description_en}</td>
-										<td>${txt_data[i].description_ar}</td>
-										</tr>
-										`;
-					}
-
-					document.getElementById('table-amazonUAE').innerHTML = table_uae;
-
-					document.getElementById('table-amazonUK').innerHTML = table_data;
-					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
 				}	
 
 				else if(data.type === "aus report"){
 					var txt_data = data.report;
-					var table_data = '';
+					if (txt_data) {
+						var table_data = '';
 
-					for (let i=0; i < txt_data.length; i++){
-						table_data += `
-										<tr>
-										<td>${i+1}</td>
-										<td>${txt_data[i].productID}</td>
-										<td>${txt_data[i].description_en}</td>
-										</tr>
-										`;
+						for (let i=0; i < txt_data.length; i++){
+							table_data += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${txt_data[i].productID}</td>
+											<td>${txt_data[i].description_en}</td>
+											</tr>
+											`;
+						}
+
+						var uae_data = data.uae
+						var table_uae = '';
+
+						for (let i=0; i < uae_data.length; i++){
+							table_uae += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${uae_data[i].productID}</td>
+											<td>${uae_data[i].description_en}</td>
+											<td>${uae_data[i].description_ar}</td>
+											</tr>
+											`;
+						}
+
+						document.getElementById('table-amazonUAE').innerHTML = table_uae;
+
+						document.getElementById('table-amazonAUS').innerHTML = table_data;
+						document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
 					}
-
-					var uae_data = data.uae
-					var table_uae = '';
-
-					for (let i=0; i < uae_data.length; i++){
-						table_uae += `
-										<tr>
-										<td>${i+1}</td>
-										<td>${txt_data[i].productID}</td>
-										<td>${txt_data[i].description_en}</td>
-										<td>${txt_data[i].description_ar}</td>
-										</tr>
-										`;
-					}
-
-					document.getElementById('table-amazonUAE').innerHTML = table_uae;
-
-					document.getElementById('table-amazonAUS').innerHTML = table_data;
-					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
 				}	
 
 				else if(data.type === "usa report"){
 					var txt_data = data.report;
-					var table_data = '';
+					if (txt_data) {
+						var table_data = '';
 
-					for (let i=0; i < txt_data.length; i++){
-						table_data += `
-										<tr>
-										<td>${i+1}</td>
-										<td>${txt_data[i].productID}</td>
-										<td>${txt_data[i].description_en}</td>
-										</tr>
-										`;
+						for (let i=0; i < txt_data.length; i++){
+							table_data += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${txt_data[i].productID}</td>
+											<td>${txt_data[i].description_en}</td>
+											</tr>
+											`;
+						}
+
+						var uae_data = data.uae
+						var table_uae = '';
+
+						for (let i=0; i < uae_data.length; i++){
+							table_uae += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${uae_data[i].productID}</td>
+											<td>${uae_data[i].description_en}</td>
+											<td>${uae_data[i].description_ar}</td>
+											</tr>
+											`;
+						}
+
+						document.getElementById('table-amazonUAE').innerHTML = table_uae;
+
+						document.getElementById('table-amazonUSA').innerHTML = table_data;
+						document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
 					}
-
-					var uae_data = data.uae
-					var table_uae = '';
-
-					for (let i=0; i < uae_data.length; i++){
-						table_uae += `
-										<tr>
-										<td>${i+1}</td>
-										<td>${txt_data[i].productID}</td>
-										<td>${txt_data[i].description_en}</td>
-										<td>${txt_data[i].description_ar}</td>
-										</tr>
-										`;
-					}
-
-					document.getElementById('table-amazonUAE').innerHTML = table_uae;
-
-					document.getElementById('table-amazonUSA').innerHTML = table_data;
-					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
 				}	
 
 				
