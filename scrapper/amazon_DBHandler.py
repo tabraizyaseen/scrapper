@@ -270,9 +270,9 @@ class amazon_DBHandler_cls():
 
 				if instance_check:
 					instance_check = instance_check[0]
-					value_en = instance_check.value_en.split(',') + list(set(v1).difference(instance_check.value_en.split(',')))
+					value_en = instance_check.value_en.replace(', ','&&&').split(',') + list(set([i.replace(', ','&&&') for i in v1]).difference(instance_check.value_en.replace(', ','&&&').split(',')))
 
-					update_dict = {'value_en':','.join(value_en)}
+					update_dict = {'value_en':','.join([i.replace('&&&',', ') for i in value_en])}
 					_, created = totalVariations.objects.update_or_create(productID=instance_check.productID, name_en=k1, defaults=update_dict)
 				else:
 					totalVariations.objects.create(productID=item, parent_asin=parent_asin, name_en=k1, value_en=','.join(v1))
@@ -292,10 +292,10 @@ class amazon_DBHandler_cls():
 
 				if instance_check:
 					instance_check = instance_check[0]
-					value_en = instance_check.value_en.split(',') + list(set(v1).difference(instance_check.value_en.split(',')))
-					value_ar = instance_check.value_ar.split(',') + list(set(v2).difference(instance_check.value_ar.split(',')))
+					value_en = instance_check.value_en.replace(', ','&&&').split(',') + list(set([i.replace(', ','&&&') for i in v1]).difference(instance_check.value_en.replace(', ','&&&').split(',')))
+					value_ar = instance_check.value_ar.replace(', ','&&&').split(',') + list(set([i.replace(', ','&&&') for i in v2]).difference(instance_check.value_en.replace(', ','&&&').split(',')))
 
-					update_dict = {'value_en':','.join(value_en), 'value_ar':','.join(value_ar)}
+					update_dict = {'value_en':','.join([i.replace('&&&',', ') for i in value_en]), 'value_ar':','.join([i.replace('&&&',', ') for i in value_ar])}
 					_, created = totalVariations.objects.update_or_create(productID=instance_check.productID, name_en=k1, name_ar=k2, defaults=update_dict)
 				else:
 					totalVariations.objects.create(productID=item, parent_asin=parent_asin, name_en=k1, name_ar=k2, value_en=','.join(v1), value_ar=','.join(v2))
