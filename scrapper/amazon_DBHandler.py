@@ -291,9 +291,10 @@ class amazon_DBHandler_cls():
 				instance_check = lambda_presence_check(totalVariations.objects.filter(productID=item, name_en=k1, name_ar=k2), totalVariations.objects.filter(parent_asin=parent_asin, name_en=k1, name_ar=k2))
 
 				if instance_check:
+					print("arabic name : ",v2," : ",k2)
 					instance_check = instance_check[0]
 					value_en = instance_check.value_en.replace(', ','&&&').split(',') + list(set([i.replace(', ','&&&') for i in v1]).difference(instance_check.value_en.replace(', ','&&&').split(',')))
-					value_ar = instance_check.value_ar.replace(', ','&&&').split(',') + list(set([i.replace(', ','&&&') for i in v2]).difference(instance_check.value_en.replace(', ','&&&').split(',')))
+					value_ar = instance_check.value_ar.replace(', ','&&&').split(',') + list(set([i.replace(', ','&&&') for i in v2]).difference(instance_check.value_ar.replace(', ','&&&').split(',')))
 
 					update_dict = {'value_en':','.join([i.replace('&&&',', ') for i in value_en]), 'value_ar':','.join([i.replace('&&&',', ') for i in value_ar])}
 					_, created = totalVariations.objects.update_or_create(productID=instance_check.productID, name_en=k1, name_ar=k2, defaults=update_dict)
