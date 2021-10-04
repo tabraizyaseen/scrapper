@@ -215,18 +215,18 @@ class amazon_DBHandler_cls():
 			if variationSettings_instance:
 				for countings, (k,v) in enumerate(dimensions.items()):
 
-					create_dict = {'parent_asin':parent_asin,'dimension':k, 'dimension_val_en':','.join(dimensionsDetails[v])}
+					create_dict = {'parent_asin':parent_asin,'dimension':k, 'dimension_val_en':':||:'.join(dimensionsDetails[v])}
 					variationSettings.objects.get_or_create(productID=variationSettings_instance[0].productID, current_asin=v, defaults=create_dict)
 					
 
 					# if parent asin is the same
 					'''
-					create_dict = {'dimension':k, 'dimension_val_en':','.join(dimensionsDetails[v])}
+					create_dict = {'dimension':k, 'dimension_val_en':':||:'.join(dimensionsDetails[v])}
 					variationSettings.objects.get_or_create(productID=variationSettings_instance[0].productID, parent_asin=parent_asin, current_asin=v, defaults=create_dict)
 					'''
 			else:
 				for k,v in dimensions.items():
-					variationSettings.objects.create(productID=item, parent_asin=parent_asin, current_asin=v, dimension=k, dimension_val_en=','.join(dimensionsDetails[v]))
+					variationSettings.objects.create(productID=item, parent_asin=parent_asin, current_asin=v, dimension=k, dimension_val_en=':||:'.join(dimensionsDetails[v]))
 
 		def func_variationSettings(variation,parent_asin,variationSettings_instance,item):
 
@@ -238,24 +238,24 @@ class amazon_DBHandler_cls():
 				for countings, (k,v) in enumerate(dimensions.items()):
 
 					if variationSettings_instance[0].productID.productID == v:
-						create_dict = {'parent_asin':parent_asin,'dimension':k, 'dimension_val_en':','.join(dimensionsDetails[v]), 'dimension_val_ar':','.join(dimensionsDetailsAR[v]), 'description_en':variationSettings_instance[0].productID.description_en, 'description_ar':variationSettings_instance[0].productID.description_ar, 'available':True}
+						create_dict = {'parent_asin':parent_asin,'dimension':k, 'dimension_val_en':':||:'.join(dimensionsDetails[v]), 'dimension_val_ar':':||:'.join(dimensionsDetailsAR[v]), 'description_en':variationSettings_instance[0].productID.description_en, 'description_ar':variationSettings_instance[0].productID.description_ar, 'available':True}
 						variationSettings.objects.get_or_create(productID=variationSettings_instance[0].productID, current_asin=v, defaults=create_dict)
 					else:
-						create_dict = {'parent_asin':parent_asin,'dimension':k, 'dimension_val_en':','.join(dimensionsDetails[v]), 'dimension_val_ar':','.join(dimensionsDetailsAR[v])}
+						create_dict = {'parent_asin':parent_asin,'dimension':k, 'dimension_val_en':':||:'.join(dimensionsDetails[v]), 'dimension_val_ar':':||:'.join(dimensionsDetailsAR[v])}
 						variationSettings.objects.get_or_create(productID=variationSettings_instance[0].productID, current_asin=v, defaults=create_dict)
 					
 
 					# if parent asin is the same
 					'''
-					create_dict = {'dimension':k, 'dimension_val_en':','.join(dimensionsDetails[v]), 'dimension_val_ar':','.join(dimensionsDetailsAR[v])}
+					create_dict = {'dimension':k, 'dimension_val_en':':||:'.join(dimensionsDetails[v]), 'dimension_val_ar':':||:'.join(dimensionsDetailsAR[v])}
 					variationSettings.objects.get_or_create(productID=variationSettings_instance[0].productID, parent_asin=parent_asin, current_asin=v, defaults=create_dict)
 					'''
 			else:
 				for k,v in dimensions.items():
 					if item.productID == v:
-						variationSettings.objects.create(productID=item, parent_asin=parent_asin, current_asin=v, dimension=k, dimension_val_en=','.join(dimensionsDetails[v]), dimension_val_ar=','.join(dimensionsDetailsAR[v]), description_en=item.description_en, description_ar=item.description_ar, available=True)
+						variationSettings.objects.create(productID=item, parent_asin=parent_asin, current_asin=v, dimension=k, dimension_val_en=':||:'.join(dimensionsDetails[v]), dimension_val_ar=':||:'.join(dimensionsDetailsAR[v]), description_en=item.description_en, description_ar=item.description_ar, available=True)
 					else:
-						variationSettings.objects.create(productID=item, parent_asin=parent_asin, current_asin=v, dimension=k, dimension_val_en=','.join(dimensionsDetails[v]), dimension_val_ar=','.join(dimensionsDetailsAR[v]))
+						variationSettings.objects.create(productID=item, parent_asin=parent_asin, current_asin=v, dimension=k, dimension_val_en=':||:'.join(dimensionsDetails[v]), dimension_val_ar=':||:'.join(dimensionsDetailsAR[v]))
 
 		def func_totalVariationsEN(variation,parent_asin,item):
 
@@ -270,12 +270,12 @@ class amazon_DBHandler_cls():
 
 				if instance_check:
 					instance_check = instance_check[0]
-					value_en = instance_check.value_en.replace(', ','&&&').split(',') + list(set([i.replace(', ','&&&') for i in v1]).difference(instance_check.value_en.replace(', ','&&&').split(',')))
+					value_en = instance_check.value_en.split(':||:') + list(set(v1).difference(instance_check.value_en.split(':||:')))
 
-					update_dict = {'value_en':','.join([i.replace('&&&',', ') for i in value_en])}
+					update_dict = {'value_en':':||:'.join(value_en)}
 					_, created = totalVariations.objects.update_or_create(productID=instance_check.productID, name_en=k1, defaults=update_dict)
 				else:
-					totalVariations.objects.create(productID=item, parent_asin=parent_asin, name_en=k1, value_en=','.join(v1))
+					totalVariations.objects.create(productID=item, parent_asin=parent_asin, name_en=k1, value_en=':||:'.join(v1))
 
 
 		def func_totalVariations(variation,parent_asin,item):
@@ -291,15 +291,14 @@ class amazon_DBHandler_cls():
 				instance_check = lambda_presence_check(totalVariations.objects.filter(productID=item, name_en=k1, name_ar=k2), totalVariations.objects.filter(parent_asin=parent_asin, name_en=k1, name_ar=k2))
 
 				if instance_check:
-					print("arabic name : ",v2," : ",k2)
 					instance_check = instance_check[0]
-					value_en = instance_check.value_en.replace(', ','&&&').split(',') + list(set([i.replace(', ','&&&') for i in v1]).difference(instance_check.value_en.replace(', ','&&&').split(',')))
-					value_ar = instance_check.value_ar.replace(', ','&&&').split(',') + list(set([i.replace(', ','&&&') for i in v2]).difference(instance_check.value_ar.replace(', ','&&&').split(',')))
+					value_en = instance_check.value_en.split(':||:') + list(set(v1).difference(instance_check.value_en.split(':||:')))
+					value_ar = instance_check.value_ar.split(':||:') + list(set(v2).difference(instance_check.value_ar.split(':||:')))
 
-					update_dict = {'value_en':','.join([i.replace('&&&',', ') for i in value_en]), 'value_ar':','.join([i.replace('&&&',', ') for i in value_ar])}
+					update_dict = {'value_en':':||:'.join(value_en), 'value_ar':':||:'.join(value_ar)}
 					_, created = totalVariations.objects.update_or_create(productID=instance_check.productID, name_en=k1, name_ar=k2, defaults=update_dict)
 				else:
-					totalVariations.objects.create(productID=item, parent_asin=parent_asin, name_en=k1, name_ar=k2, value_en=','.join(v1), value_ar=','.join(v2))
+					totalVariations.objects.create(productID=item, parent_asin=parent_asin, name_en=k1, name_ar=k2, value_en=':||:'.join(v1), value_ar=':||:'.join(v2))
 
 
 		asin = self.asin

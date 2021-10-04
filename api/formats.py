@@ -100,11 +100,11 @@ class productClass:
 				variations_settings_dict = {}
 
 				variations_settings_dict['name'] = variations.name_en.replace('_',' ').title()
-				variations_settings_dict['values'] = [i.replace("/","-") for i in variations.value_en.split(',')]
+				variations_settings_dict['values'] = [i.replace("/","-") for i in variations.value_en.split(':||:')]
 
 				if variations.productID.source == 'amazon.ae' or variations.productID.source == 'amazon.ae':
 					variations_settings_dict['name_ar'] = variations.name_ar.replace('_',' ').title()
-					variations_settings_dict['values_ar'] = variations.value_ar.split(',')
+					variations_settings_dict['values_ar'] = variations.value_ar.split(':||:')
 
 				variations_settings_list.append(variations_settings_dict)
 
@@ -144,7 +144,7 @@ class productClass:
 					total_variations = ''
 
 					for match_variation in variationSettings.objects.filter(productID=single_variant_db[0].productID, available=True):
-						if set(dimension_list) == set([i.replace("-","/") for i in match_variation.dimension_val_en.split(',')]):
+						if set(dimension_list) == set([i.replace("-","/") for i in match_variation.dimension_val_en.split(':||:')]):
 							total_variations = match_variation
 							break
 
