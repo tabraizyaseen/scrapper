@@ -355,7 +355,7 @@ class amazon_DBHandler_cls():
 				if item.productID.source == 'amazon.ae' or item.productID.source == 'amazon.sa':
 					item.title_ar = varience.titleParserAR()
 
-				item.save()
+			item.save()
 
 			if not item.price:
 				varience = varienceDetail(item)
