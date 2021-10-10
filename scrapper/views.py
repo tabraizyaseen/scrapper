@@ -14,6 +14,7 @@ from .variations import *
 from . import tasks
 from .amazon_DBHandler import *
 from .noon_DBHandler import *
+from api.formats import productClass
 
 from django_celery_results.models import TaskResult
 from django.http import HttpResponse, JsonResponse
@@ -1257,6 +1258,13 @@ def requiredJsonFormat(request):
 
 		if item in check_list:
 
+			productClassIns = productClass(item)
+			print(item)
+			data_dict = productClassIns.mainProductData(weight_class=weight, conditions=grades_provided, category=category)
+
+			data.append(data_dict)
+
+			'''
 			item_db = productPagesScrapper.objects.filter(productID=item, description_en=True, description_ar=True) or productPagesScrapper.objects.filter(productID=item, description_en=True, source__in=('amazon.in','amazon.co.uk','amazon.com','amazon.com.au'))
 			if item_db:
 				print(item_db[0].productID)
@@ -1351,7 +1359,7 @@ def requiredJsonFormat(request):
 						variations_settings_dict['name'] = variations.name_en.replace('_',' ').title()
 						variations_settings_dict['values'] = [i.replace("/","-") for i in variations.value_en.split(':||:')]
 
-						if variations.productID.source == 'amazon.ae' or variations.productID.source == 'amazon.ae':
+						if variations.productID.source == 'amazon.ae' or variations.productID.source == 'amazon.sa':
 							variations_settings_dict['name_ar'] = variations.name_ar.replace('_',' ').title()
 							variations_settings_dict['values_ar'] = [i.replace("/","-") for i in variations.value_ar.split(':||:')]
 
@@ -1463,6 +1471,8 @@ def requiredJsonFormat(request):
 					data_dict['variations'] = variations_list
 
 				data.append(data_dict)
+
+			'''
 
 
 	response = HttpResponse(content_type='application/json')

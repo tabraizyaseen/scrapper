@@ -352,10 +352,10 @@ class amazon_DBHandler_cls():
 				item.title_en = varience.titleParser()
 				item.images = varience.allImages()
 
-				if item.productID.source == 'amazon.ae' or item.productID.source == 'amazon.ae':
+				if item.productID.source == 'amazon.ae' or item.productID.source == 'amazon.sa':
 					item.title_ar = varience.titleParserAR()
 
-				item.save()
+			item.save()
 
 			if not item.price:
 				varience = varienceDetail(item)
