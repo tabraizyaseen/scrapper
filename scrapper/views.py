@@ -1351,7 +1351,7 @@ def requiredJsonFormat(request):
 						variations_settings_dict['name'] = variations.name_en.replace('_',' ').title()
 						variations_settings_dict['values'] = [i.replace("/","-") for i in variations.value_en.split(':||:')]
 
-						if variations.productID.source == 'amazon.ae' or variations.productID.source == 'amazon.ae':
+						if variations.productID.source == 'amazon.ae' or variations.productID.source == 'amazon.sa':
 							variations_settings_dict['name_ar'] = variations.name_ar.replace('_',' ').title()
 							variations_settings_dict['values_ar'] = [i.replace("/","-") for i in variations.value_ar.split(':||:')]
 
