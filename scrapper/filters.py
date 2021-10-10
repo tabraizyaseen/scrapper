@@ -61,7 +61,7 @@ class VariationSettingsFilter(django_filters.FilterSet):
 
 	def my_custom_filter(self, queryset, name, value):
 		return variationSettings.objects.filter(
-			Q(current_asin__icontains=value) | Q(parent_asin__icontains=value) | Q(title_en__icontains=value)
+			Q(productID__productID=value) | Q(current_asin__icontains=value) | Q(parent_asin__icontains=value) | Q(title_en__icontains=value)
 		)
 
 class TotalVariationsFilter(django_filters.FilterSet):
