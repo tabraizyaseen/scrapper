@@ -1257,7 +1257,7 @@ def requiredJsonFormat(request):
 
 		if item in check_list:
 
-			item_db = productPagesScrapper.objects.filter(productID=item, description_en=True, description_ar=True) or productPagesScrapper.objects.filter(productID=item, description_en=True, source="amazon.in")
+			item_db = productPagesScrapper.objects.filter(productID=item, description_en=True, description_ar=True) or productPagesScrapper.objects.filter(productID=item, description_en=True, source__in=('amazon.in','amazon.co.uk','amazon.com','amazon.com.au'))
 			if item_db:
 				print(item_db[0].productID)
 				data_dict = {}
