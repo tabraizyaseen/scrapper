@@ -43,7 +43,7 @@ def singleProductDetails(request, asin):
 
 	if db_item:
 
-		items = productClassIns.productAttributes(db_item, data_dict={})
+		items = productClassIns.productAttributes(db_item[0], data_dict={}, category=61003, weight_class='light')
 
 		return Response(items)
 	elif variation_item:
