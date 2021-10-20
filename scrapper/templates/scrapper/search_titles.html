@@ -111,7 +111,7 @@
 			<tbody>
 				<tr>
 					<td>B08L5PHJ2Y</td>
-					<td>17004</td>
+					<td>61003</td>
 					<td>DBW,DB,BNW,BN,OBB,OBBW,OB,OBW,PO,POA,POB,CRA,CRB</td>
 					<td>light</td>
 				</tr>
@@ -599,7 +599,7 @@
 			type: 'GET',
 			url: url, 
 			beforeSend: function(){
-				div_name.getElementsByTagName('div')[0].style.display = "block";
+				div_name.getElementsByTagName('div')[0].removeAttribute("style");
 				div_name.getElementsByTagName('button')[0].style.display  = 'none';
 
 				for (let i = 0; i < all_btns.length; i++) { 
@@ -611,7 +611,7 @@
 			},
 			success: function(data){
 				div_name.getElementsByTagName('div')[0].style.display = 'none';
-				div_name.getElementsByTagName('button')[0].style.display = "block";
+				div_name.getElementsByTagName('button')[0].removeAttribute("style");
 
 				for (let i = 0; i < all_btns.length; i++) { 
 				  if (all_btns[i] !== skip_btn){

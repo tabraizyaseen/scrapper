@@ -14,6 +14,7 @@ from .variations import *
 from . import tasks
 from .amazon_DBHandler import *
 from .noon_DBHandler import *
+from api.formats import productClass
 
 from django_celery_results.models import TaskResult
 from django.http import HttpResponse, JsonResponse
@@ -1250,220 +1251,16 @@ def requiredJsonFormat(request):
 	no_vari_list = [i for i in global_file['ASIN'] if not variationSettings.objects.filter(current_asin=i).exists()]
 	check_list = set(list(check_dict.values()) + no_vari_list)
 
-
-	# global_file is a global file of Asins
+	# Formulating export format
 	for weight,grades_provided,category,item in zip(global_file['weight_class'],global_file['Conditions'],global_file['Category'],global_file['ASIN']):
-	# for category,item in zip(global_file['Category'],global_file['ASIN']):
 
 		if item in check_list:
-
-			# Working format export
-			item_db = productPagesScrapper.objects.filter(productID=item, description_en=True, description_ar=True) or productPagesScrapper.objects.filter(productID=item, description_en=True, source__in=('amazon.in','amazon.co.uk','amazon.com','amazon.com.au'))
-			if item_db:
-				print(item_db[0].productID)
-				data_dict = {}
-
-				# Category
-				# try:
-				# 	category = item_db[0].category
-				# except Exception:
-				# 	category = ''
-
-				data_dict['category'] = category
-				data_dict['weight_class'] = weight
-
-				# Brand
-				brand = ''
-				brand_db = item_db[0].productdetails_set.filter(language='EN', attributes='Brand') or item_db[0].productdetails_set.filter(language='EN', attributes__in=('Brand, Seller, or Collection Name','Manufacturer','Brand Name'))
-				if brand_db:
-					brand = brand_db[0].values
-
-				data_dict['brand'] = brand
-				data_dict['title'] = item_db[0].title_en
-				data_dict['title_ar'] = item_db[0].title_ar
-				data_dict['market_price'] = int(item_db[0].old_price or 0)
-				data_dict['description'] = ' '.join([long_desc.long_description for long_desc in item_db[0].productdescription_set.filter(language='EN')]) or '. '.join([highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='EN')]) or data_dict['title']
-				data_dict['description_ar'] = ' '.join([long_desc.long_description for long_desc in item_db[0].productdescription_set.filter(language='AR')]) or '. '.join([highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='AR')]) or data_dict['title_ar']
-				# data_dict['highlights'] = [highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='EN')]
-				# data_dict['highlights_ar'] = [highlight.highlight for highlight in item_db[0].producthighlights_set.filter(language='AR')]
-
-				data_dict['gtin'] = ''
-				data_dict['ean'] = ''
-				data_dict['upc'] = ''
-
-				data_dict['asin'] = ''
-
-				data_dict['default_images'] = [images.image for images in item_db[0].productimages_set.all()]
-
-				# Specifications
-				category_lst = []
-
-				specs_en = item_db[0].productdetails_set.filter(language='EN').exclude(attributes__in=('Brand','Asin','ASIN'))
-				specs_ar = item_db[0].productdetails_set.filter(language='AR').exclude(attributes__in=('Brand','Asin','العلامة التجارية','ASIN'))
-
-				for en_spec in specs_en:
-					spec_dict = {}
-
-					try:
-						# spec_dict['type'] = 'text'
-						spec_dict['key'] = en_spec.attributes
-						# spec_dict['name_ar'] = specs_ar[indexes].attributes
-						spec_dict['value'] = [en_spec.values]
-
-						category_lst.append(spec_dict)
-					except Exception:
-						break
-
-				for ar_spec in specs_ar:
-					spec_dict = {}
-
-					try:
-						# spec_dict['type'] = 'text'
-						spec_dict['key'] = ar_spec.attributes
-						# spec_dict['name_ar'] = specs_ar[indexes].attributes
-						spec_dict['value'] = [ar_spec.values]
-
-						category_lst.append(spec_dict)
-					except Exception:
-						break
-					
-				data_dict['category_attributes'] = category_lst
-
-				# Lambda Function
-				lambda_variant_func = lambda x,y: x if x else y
-
-				# Variation_Settings
-				single_variant_db = lambda_variant_func(variationSettings.objects.filter(current_asin=item_db[0].productID),variationSettings.objects.filter(parent_asin=item_db[0].productID))
-
-				if single_variant_db:
-					variations_settings = totalVariations.objects.filter(parent_asin=single_variant_db[0].parent_asin).order_by('-id') or totalVariations.objects.filter(productID=single_variant_db[0].productID).order_by('-id')
-
-					data_dict['asin'] = variations_settings[0].parent_asin
-
-					variations_settings_list = []
-
-					# Grades Variations
-					variations_settings_list.append({'name':'Conditions', 'values':grades_provided.split(','),'name_ar':'الظروف', 'values_ar':grades_provided.split(',')})
-
-					for variations in variations_settings:
-
-						variations_settings_dict = {}
-
-						variations_settings_dict['name'] = variations.name_en.replace('_',' ').title()
-						variations_settings_dict['values'] = [i.replace("/","-") for i in variations.value_en.split(':||:')]
-
-						if variations.productID.source == 'amazon.ae' or variations.productID.source == 'amazon.sa':
-							variations_settings_dict['name_ar'] = variations.name_ar.replace('_',' ').title()
-							variations_settings_dict['values_ar'] = [i.replace("/","-") for i in variations.value_ar.split(':||:')]
-
-						variations_settings_list.append(variations_settings_dict)
-
-					data_dict['variation_settings'] = variations_settings_list
-
-					# Variations
-					variations_list = []
-
-					# Variation Possible Values
-					variations_possibilities_list = []
-					for variations in data_dict['variation_settings']:
-						variations_possibilities_dict = dict(zip(itertools.count(), variations['values']))
-						variations_possibilities_list.append(variations_possibilities_dict)
-
-					# variations_possibilities_list = variations_possibilities_list[::-1]
-					indexes_list = [[x for x in i.keys()] for i in variations_possibilities_list]
-					values_list = [[x for x in i.values()] for i in variations_possibilities_list]
-
-					result_keys = [i for i in itertools.product(*indexes_list)]
-					result_values = [i for i in itertools.product(*values_list)]
-
-					for countings,(k,v) in enumerate(zip(result_keys,result_values)):
-
-						if countings < 9999:
-
-							index_dimension = '_'.join(map(str,k))
-							index_value = '/'.join(v)
-
-							# Initializing variation dictionary
-							variations_dict = {}
-
-							# Match variation despute of order
-							new_v = [i.replace("-","/") for i in v]
-							dimension_list = new_v[1:]
-							total_variations = ''
-
-							for match_variation in variationSettings.objects.filter(productID=single_variant_db[0].productID, available=True):
-								if set(dimension_list) == set([i.replace("-","/") for i in match_variation.dimension_val_en.split(':||:')]):
-									total_variations = match_variation
-									break
 			
-							if total_variations:
+			productClassIns = productClass(item)
+			print(item)
+			data_dict = productClassIns.mainProductData(weight_class=weight, conditions=grades_provided, category=category)
 
-								# Variation Found
-								variations_dict['variation_index'] = f'{index_dimension}'
-								variations_dict['variation'] = f"{index_value}"
-								variations_dict['asin'] = total_variations.current_asin
-								variations_dict['title'] = f"{total_variations.title_en}"
-								variations_dict['title_ar'] = f"{total_variations.title_ar}"
-								variations_dict['market_price'] = int(total_variations.old_price or 0)
-								variations_dict['description'] = data_dict['description']
-								variations_dict['description_ar'] = data_dict['description_ar']
-								variations_dict['gtin'] = ''
-								variations_dict['ean'] = ''
-								variations_dict['upc'] = ''
-								variations_dict['images'] = total_variations.images.split(',')
-							else:
-
-								# Variation Not Found
-								variations_dict['variation_index'] = f'{index_dimension}'
-								variations_dict['variation'] = f"{index_value}"
-								variations_dict['asin'] = '' # data_dict['asin']
-								variations_dict['title'] = '' # f"{item_db[0].title_en}"
-								variations_dict['title_ar'] = ''# f"{item_db[0].title_ar}"
-								variations_dict['market_price'] = 0
-								variations_dict['description'] = ''
-								variations_dict['description_ar'] = ''
-								variations_dict['gtin'] = ''
-								variations_dict['ean'] = ''
-								variations_dict['upc'] = ''
-								variations_dict['images'] =[] # [images.image for images in item_db[0].productimages_set.all()]
-
-							variations_list.append(variations_dict)
-
-					data_dict['variations'] = variations_list
-
-
-				# If variations is not given
-				else:
-					data_dict['asin'] = item
-
-					# all_grades = fc_grades.objects.all()
-					data_dict['variation_settings'] = [{'name':'Conditions', 'values':grades_provided.split(','),'name_ar':'الظروف', 'values_ar':grades_provided.split(',')}]
-
-					# Possible variations
-					variations_list = []
-
-
-					for indexes, grading in enumerate(grades_provided.split(',')): 
-						variations_dict = {}
-
-						variations_dict['variation_index'] = f'{indexes}'
-						variations_dict['variation'] = f"{grading}"
-						variations_dict['asin'] = data_dict['asin']
-						variations_dict['title'] = data_dict['title']
-						variations_dict['title_ar'] = data_dict['title_ar']
-						variations_dict['market_price'] = data_dict['market_price']
-						variations_dict['description'] = data_dict['description']
-						variations_dict['description_ar'] = data_dict['description_ar']
-						variations_dict['gtin'] = ''
-						variations_dict['ean'] = ''
-						variations_dict['upc'] = ''
-						variations_dict['images'] = data_dict['default_images']
-
-						variations_list.append(variations_dict)
-
-					data_dict['variations'] = variations_list
-
-				data.append(data_dict)
+			data.append(data_dict)
 
 
 	response = HttpResponse(content_type='application/json')

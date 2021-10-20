@@ -52,7 +52,7 @@ def amazonCategoryScrapper(url):
 
 			# Price
 			try:
-				price = container.find('span','a-price-whole').replace(".","").replace(",","").replace('₹','').replace('$','').replace('£','')
+				price = container.find('span','a-price-whole').text.replace(".","").replace(",","").replace('₹','').replace('$','').replace('£','')
 			except AttributeError:
 				price = ""
 
@@ -91,11 +91,11 @@ def amazonCategoryScrapper(url):
 		# Last page
 		try:
 			try:
-				total_pages = int(soup.find_all('span',{'class':'s-pagination-item','aria-disabled':'true'})[-1].text)
+				total_pages = int(soup.find_all('li',{'class':'a-disabled','aria-disabled':'true'})[1].text)
 				total_pages +=1
 			except AttributeError:
 				soup, response = soupParser(url)
-				total_pages = int(soup.find_all('span',{'class':'s-pagination-item','aria-disabled':'true'})[-1].text)
+				total_pages = int(soup.find_all('li',{'class':'a-disabled','aria-disabled':'true'})[1].text)
 				total_pages +=1
 		except Exception:
 			total_pages = 0
