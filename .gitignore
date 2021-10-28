@@ -112,6 +112,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+crawler_env/
+.idea/
+
 
 # Spyder project settings
 .spyderproject
