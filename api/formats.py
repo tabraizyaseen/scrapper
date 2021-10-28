@@ -1,5 +1,4 @@
 import itertools
-from collections import Counter
 
 from scrapper.models import *
 from django.db.models import Q

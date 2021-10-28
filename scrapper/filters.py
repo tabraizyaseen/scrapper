@@ -1,8 +1,6 @@
 import django_filters
 from .models import *
-from django_filters import CharFilter,ChoiceFilter, AllValuesFilter
-from django import forms
-from django.forms.widgets import TextInput
+from django_filters import CharFilter,ChoiceFilter
 from django.db.models import Q
 
 # Category Dropdown

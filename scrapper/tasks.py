@@ -5,8 +5,8 @@ from celery_progress.backend import ProgressRecorder
 from django.db.models import Q
 
 from .models import *
-from . import amazon_scrapper
 from .amazon_DBHandler import *
+from .noon_DBHandler import *
 
 
 @shared_task(bind=True)
@@ -17,7 +17,7 @@ def category_validator(self, category):
 			dbhandler_ins.get_valid()
 
 		elif item.source == 'noon.com':
-			noonDbhandler_ins = noon_DBHandler_cls(asin)
+			noonDbhandler_ins = noon_DBHandler_cls(item.productID)
 			noonDbhandler_ins.get_valid()
 
 		elif item.source == "amazon.sa":

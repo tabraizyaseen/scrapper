@@ -7,7 +7,6 @@ from django.db.models import Q
 
 from .models import *
 from . import amazon_scrapper
-from . import amazon_ksa
 from . import noon_scrapper
 from .filters import *
 from .variations import *
@@ -20,20 +19,14 @@ from django_celery_results.models import TaskResult
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 
-import re
 import json
 import html
 import csv
 import pandas as pd
-import itertools
-from collections import Counter
 import datetime
 import os
 
-from time import perf_counter 
-
-from bs4 import BeautifulSoup
-import io
+from time import perf_counter
 
 
 # Create your views here.

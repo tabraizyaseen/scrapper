@@ -1,9 +1,5 @@
-import requests
-from requests.exceptions import RequestException
-from requests.adapters import HTTPAdapter
 from bs4 import BeautifulSoup
 import io
-import random
 
 from .models import productPagesScrapper
 from .amazon_response_handler import responseIND
