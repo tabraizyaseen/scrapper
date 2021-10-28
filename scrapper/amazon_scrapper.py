@@ -1,18 +1,11 @@
-import requests
-from requests.exceptions import RequestException
-from requests.adapters import HTTPAdapter
 from bs4 import BeautifulSoup
 import io
-import random
-from time import sleep
 import re
 import json
 
-import datetime
 from django.utils import timezone
 
 from .models import productPagesScrapper
-from .models import productDetails
 from .amazon_response_handler import responseUAE
 
 def soupParser(link):

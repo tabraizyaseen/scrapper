@@ -1,14 +1,8 @@
-import requests
-from requests.exceptions import RequestException
-from requests.adapters import HTTPAdapter
 from bs4 import BeautifulSoup, SoupStrainer
-import random
 import io
 import json
 import re
-from time import sleep
 
-import datetime
 from django.utils import timezone
 
 from .models import *

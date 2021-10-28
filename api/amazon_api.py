@@ -1,4 +1,4 @@
-from .formats import productClass, categoryClass
+from .formats import productClass
 
 from scrapper.models import *
 from scrapper import amazon_scrapper

@@ -6,7 +6,6 @@ import io
 import random
 import json
 
-import datetime
 from django.utils import timezone
 
 from .models import productPagesScrapper
