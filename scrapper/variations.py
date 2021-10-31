@@ -344,45 +344,46 @@ class Variant():
 						)
 
 		item = self.item
-		title_only = SoupStrainer(['script',{'type':'text/javascript'}, 'span' , {'id':'productTitle'}])
+		if not item.description_en:
 
-		print("From Save Response Current Asin : ",item.current_asin)
+			title_only = SoupStrainer(['script',{'type':'text/javascript'}, 'span' , {'id':'productTitle'}])
+			print("From Save Response Current Asin : ",item.current_asin)
 
-		# For UAE
-		if item.productID.source == "amazon.ae":
-			response = responseUAE(f'https://www.amazon.ae/-/en/dp/{item.current_asin}')
-			if response:
-				checkResponse(response, title_only, item)
+			# For UAE
+			if item.productID.source == "amazon.ae":
+				response = responseUAE(f'https://www.amazon.ae/-/en/dp/{item.current_asin}')
+				if response:
+					checkResponse(response, title_only, item)
 
-		# For KSA
-		elif item.productID.source == "amazon.sa":
-			response = responseKSA(f'https://www.amazon.sa/-/en/dp/{item.current_asin}')
-			if response:
-				checkResponse(response, title_only, item)
+			# For KSA
+			elif item.productID.source == "amazon.sa":
+				response = responseKSA(f'https://www.amazon.sa/-/en/dp/{item.current_asin}')
+				if response:
+					checkResponse(response, title_only, item)
 
-		# For India
-		elif item.productID.source == "amazon.in":
-			response = responseIND(f'https://www.amazon.in/-/en/dp/{item.current_asin}')
-			if response:
-				checkResponse(response, title_only, item)
+			# For India
+			elif item.productID.source == "amazon.in":
+				response = responseIND(f'https://www.amazon.in/-/en/dp/{item.current_asin}')
+				if response:
+					checkResponse(response, title_only, item)
 
-		# For AU
-		elif item.productID.source == "amazon.com.au":
-			response = responseAU(f'https://www.amazon.com.au/-/en/dp/{item.current_asin}')
-			if response:
-				checkResponse(response, title_only, item)
+			# For AU
+			elif item.productID.source == "amazon.com.au":
+				response = responseAU(f'https://www.amazon.com.au/-/en/dp/{item.current_asin}')
+				if response:
+					checkResponse(response, title_only, item)
 
-		# For UK
-		elif item.productID.source == "amazon.co.uk":
-			response = responseUK(f'https://www.amazon.co.uk/-/en/dp/{item.current_asin}')
-			if response:
-				checkResponse(response, title_only, item)
+			# For UK
+			elif item.productID.source == "amazon.co.uk":
+				response = responseUK(f'https://www.amazon.co.uk/-/en/dp/{item.current_asin}')
+				if response:
+					checkResponse(response, title_only, item)
 
-		# For USA
-		elif item.productID.source == "amazon.com":
-			response = responseUSA(f'https://www.amazon.com/-/en/dp/{item.current_asin}')
-			if response:
-				checkResponse(response, title_only, item)
+			# For USA
+			elif item.productID.source == "amazon.com":
+				response = responseUSA(f'https://www.amazon.com/-/en/dp/{item.current_asin}')
+				if response:
+					checkResponse(response, title_only, item)
 
 	def saveResponseAR(self):
 
@@ -403,16 +404,17 @@ class Variant():
 				pass
 
 		item = self.item
-		title_only = SoupStrainer('span' , {'id':'productTitle'})
+		if not item.description_ar:
+			title_only = SoupStrainer('span' , {'id':'productTitle'})
 
-		# For UAE
-		if item.productID.source == "amazon.ae":
-			response_ar = responseUAE(f'https://www.amazon.ae/-/ar/dp/{item.current_asin}')
-			if response_ar:
-				checkArResponse(response_ar, title_only, item)
+			# For UAE
+			if item.productID.source == "amazon.ae":
+				response_ar = responseUAE(f'https://www.amazon.ae/-/ar/dp/{item.current_asin}')
+				if response_ar:
+					checkArResponse(response_ar, title_only, item)
 
-		# For KSA
-		elif item.productID.source == "amazon.sa":
-			response_ar = responseKSA(f'https://www.amazon.sa/-/ar/dp/{item.current_asin}')
-			if response_ar:
-				checkArResponse(response_ar, title_only, item)
+			# For KSA
+			elif item.productID.source == "amazon.sa":
+				response_ar = responseKSA(f'https://www.amazon.sa/-/ar/dp/{item.current_asin}')
+				if response_ar:
+					checkArResponse(response_ar, title_only, item)

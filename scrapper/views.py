@@ -25,6 +25,7 @@ import csv
 import pandas as pd
 import datetime
 import os
+import concurrent.futures
 
 from time import perf_counter
 
@@ -302,25 +303,39 @@ def varienceCrawler(request):
 
 		if all_asins:
 
-			for num_childern,single_asin in enumerate(all_asins, start=1):
+			chunks = 20
+			asins_chunks = [all_asins[i:i+chunks] for i in range(0,len(all_asins),chunks)]
+			counting = 0
 
-				if single_asin.productID.source == 'amazon.in' or single_asin.productID.source == 'amazon.co.uk' or single_asin.productID.source == 'amazon.com.au' or single_asin.productID.source == 'amazon.com':
+			for chunk in asins_chunks:
+				with concurrent.futures.ThreadPoolExecutor() as executor:
+					results = [executor.submit(Variant(item).saveResponse) for item in chunk]
+					resultsAR = [executor.submit(Variant(item).saveResponseAR) for item in chunk]
 
-					if not single_asin.description_en:
-						variance = Variant(single_asin)
-						variance.saveResponse()
+					for f in results:
+						f.result()
+						counting +=1
+						print(f'{countings}-{counting}')
 
-				elif single_asin.productID.source == 'amazon.ae' or single_asin.productID.source == 'amazon.sa':
+			# for num_childern,single_asin in enumerate(all_asins, start=1):
 
-					if not single_asin.description_en:
-						variance = Variant(single_asin)
-						variance.saveResponse()
+			# 	if single_asin.productID.source == 'amazon.in' or single_asin.productID.source == 'amazon.co.uk' or single_asin.productID.source == 'amazon.com.au' or single_asin.productID.source == 'amazon.com':
 
-					if not single_asin.description_ar:
-						variance = Variant(single_asin)
-						variance.saveResponseAR()
+			# 		if not single_asin.description_en:
+			# 			variance = Variant(single_asin)
+			# 			variance.saveResponse()
 
-				print(f'{countings}-{num_childern}')
+			# 	elif single_asin.productID.source == 'amazon.ae' or single_asin.productID.source == 'amazon.sa':
+
+			# 		if not single_asin.description_en:
+			# 			variance = Variant(single_asin)
+			# 			variance.saveResponse()
+
+			# 		if not single_asin.description_ar:
+			# 			variance = Variant(single_asin)
+			# 			variance.saveResponseAR()
+
+			# 	print(f'{countings}-{num_childern}')
 
 			single = [i for x in variationSettings.objects.filter(current_asin=product) for i in variationSettings.objects.filter(productID=x.productID) if x] or variationSettings.objects.filter(parent_asin=product)
 			if single:
@@ -376,23 +391,29 @@ def robustSearchValid(request):
 	results_lst = []
 	validated = []
 
-	# Calling global variable here
-	for counting, item in enumerate(global_file['ASIN'], start=1 ):
+	asins = global_file['ASIN']
+	chunks = 20
+	asins_chunks = [asins[i:i+chunks] for i in range(0,len(asins),chunks)]
+	counting = 0
 
-		dbhandler_ins = amazon_DBHandler_cls(item)
-		dbhandler_ins.get_valid()
+	for chunk in asins_chunks:
+		with concurrent.futures.ThreadPoolExecutor() as executor:
+			results = [executor.submit(amazon_DBHandler_cls(item).get_valid) for item in chunk]
 
+			for f in results:
+				f.result()
+				counting +=1
+				print(counting)
+	
+	items_db = productPagesScrapper.objects.filter(productID__in=asins)
+	for item_db in items_db:
 		# Sending updated details
 		context = {}
-
-		item_db = productPagesScrapper.objects.get(productID=item)
 		context["productID"] = item_db.productID
 		context["description_en"] = item_db.description_en
 		context["description_ar"] = item_db.description_ar
 
 		results_lst.append(context)
-
-		print(counting)
 
 	validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk')))
 
@@ -406,32 +427,37 @@ def robustSearchValidKSA(request):
 	results_lst = []
 	results_lst_uae = []
 
-	# Calling global variable here
-	for counting, item in enumerate(global_file['ASIN'], start=1 ):
+	asins = global_file['ASIN']
+	chunks = 20
+	asins_chunks = [asins[i:i+chunks] for i in range(0,len(asins),chunks)]
+	counting = 0
+	
+	for chunk in asins_chunks:
+		with concurrent.futures.ThreadPoolExecutor() as executor:
+			results = [executor.submit(amazon_DBHandler_cls(item).get_valid_ksa) for item in chunk]
 
-		dbhandler_ins = amazon_DBHandler_cls(item)
-		dbhandler_ins.get_valid_ksa()
+			for f in results:
+				f.result()
+				counting +=1
+				print(counting)
+
+	items_db = productPagesScrapper.objects.filter(productID__in=asins)
+	for item_db in items_db:
 
 		context = {}
-		item_db = productPagesScrapper.objects.filter(productID=item)
-		if item_db:
-			item_db = item_db[0]
+		if item_db.source == 'amazon.sa':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+			context["description_ar"] = item_db.description_ar
 
-			if item_db.source == 'amazon.sa':
-				context["productID"] = item_db.productID
-				context["description_en"] = item_db.description_en
-				context["description_ar"] = item_db.description_ar
+			results_lst.append(context)
 
-				results_lst.append(context)
+		elif item_db.source == 'amazon.ae':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+			context["description_ar"] = item_db.description_ar
 
-			elif item_db.source == 'amazon.ae':
-				context["productID"] = item_db.productID
-				context["description_en"] = item_db.description_en
-				context["description_ar"] = item_db.description_ar
-
-				results_lst_uae.append(context)
-
-		print(counting)
+			results_lst_uae.append(context)
 
 	validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk')))
 
@@ -445,31 +471,36 @@ def robustSearchValidIndia(request):
 	results_lst = []
 	results_lst_uae = []
 
-	# Calling global variable here
-	for counting, item in enumerate(global_file['ASIN'], start=1 ):
+	asins = global_file['ASIN']
+	chunks = 20
+	asins_chunks = [asins[i:i+chunks] for i in range(0,len(asins),chunks)]
+	counting = 0
+	
+	for chunk in asins_chunks:
+		with concurrent.futures.ThreadPoolExecutor() as executor:
+			results = [executor.submit(amazon_DBHandler_cls(item).get_valid_india) for item in chunk]
 
-		dbhandler_ins = amazon_DBHandler_cls(item)
-		dbhandler_ins.get_valid_india()
+			for f in results:
+				f.result()
+				counting +=1
+				print(counting)
+
+	items_db = productPagesScrapper.objects.filter(productID__in=asins)
+	for item_db in items_db:
 
 		context = {}
-		item_db = productPagesScrapper.objects.filter(productID=item)
-		if item_db:
-			item_db = item_db[0]
+		if item_db.source == 'amazon.in':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
 
-			if item_db.source == 'amazon.in':
-				context["productID"] = item_db.productID
-				context["description_en"] = item_db.description_en
+			results_lst.append(context)
 
-				results_lst.append(context)
+		elif item_db.source == 'amazon.ae':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+			context["description_ar"] = item_db.description_ar
 
-			elif item_db.source == 'amazon.ae':
-				context["productID"] = item_db.productID
-				context["description_en"] = item_db.description_en
-				context["description_ar"] = item_db.description_ar
-
-				results_lst_uae.append(context)
-
-		print(counting)
+			results_lst_uae.append(context)
 
 	validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk')))
 
@@ -484,31 +515,36 @@ def robustSearchValidAus(request):
 	results_lst = []
 	results_lst_uae = []
 
-	# Calling global variable here
-	for counting, item in enumerate(global_file['ASIN'], start=1 ):
+	asins = global_file['ASIN']
+	chunks = 20
+	asins_chunks = [asins[i:i+chunks] for i in range(0,len(asins),chunks)]
+	counting = 0
+	
+	for chunk in asins_chunks:
+		with concurrent.futures.ThreadPoolExecutor() as executor:
+			results = [executor.submit(amazon_DBHandler_cls(item).get_valid_aus) for item in chunk]
 
-		dbhandler_ins = amazon_DBHandler_cls(item)
-		dbhandler_ins.get_valid_aus()
+			for f in results:
+				f.result()
+				counting +=1
+				print(counting)
+
+	items_db = productPagesScrapper.objects.filter(productID__in=asins)
+	for item_db in items_db:
 
 		context = {}
-		item_db = productPagesScrapper.objects.filter(productID=item)
-		if item_db:
-			item_db = item_db[0]
+		if item_db.source == 'amazon.com.au':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
 
-			if item_db.source == 'amazon.com.au':
-				context["productID"] = item_db.productID
-				context["description_en"] = item_db.description_en
+			results_lst.append(context)
 
-				results_lst.append(context)
+		elif item_db.source == 'amazon.ae':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+			context["description_ar"] = item_db.description_ar
 
-			elif item_db.source == 'amazon.ae':
-				context["productID"] = item_db.productID
-				context["description_en"] = item_db.description_en
-				context["description_ar"] = item_db.description_ar
-
-				results_lst_uae.append(context)
-
-		print(counting)
+			results_lst_uae.append(context)
 
 	validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk')))
 
@@ -523,31 +559,36 @@ def robustSearchValidUk(request):
 	results_lst = []
 	results_lst_uae = []
 
-	# Calling global variable here
-	for counting, item in enumerate(global_file['ASIN'], start=1 ):
+	asins = global_file['ASIN']
+	chunks = 20
+	asins_chunks = [asins[i:i+chunks] for i in range(0,len(asins),chunks)]
+	counting = 0
+	
+	for chunk in asins_chunks:
+		with concurrent.futures.ThreadPoolExecutor() as executor:
+			results = [executor.submit(amazon_DBHandler_cls(item).get_valid_uk) for item in chunk]
 
-		dbhandler_ins = amazon_DBHandler_cls(item)
-		dbhandler_ins.get_valid_uk()
+			for f in results:
+				f.result()
+				counting +=1
+				print(counting)
+
+	items_db = productPagesScrapper.objects.filter(productID__in=asins)
+	for item_db in items_db:
 
 		context = {}
-		item_db = productPagesScrapper.objects.filter(productID=item)
-		if item_db:
-			item_db = item_db[0]
+		if item_db.source == 'amazon.co.uk':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
 
-			if item_db.source == 'amazon.co.uk':
-				context["productID"] = item_db.productID
-				context["description_en"] = item_db.description_en
+			results_lst.append(context)
 
-				results_lst.append(context)
+		elif item_db.source == 'amazon.ae':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+			context["description_ar"] = item_db.description_ar
 
-			elif item_db.source == 'amazon.ae':
-				context["productID"] = item_db.productID
-				context["description_en"] = item_db.description_en
-				context["description_ar"] = item_db.description_ar
-
-				results_lst_uae.append(context)
-
-		print(counting)
+			results_lst_uae.append(context)
 
 	validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk')))
 
@@ -562,31 +603,36 @@ def robustSearchValidCom(request):
 	results_lst = []
 	results_lst_uae = []
 
-	# Calling global variable here
-	for counting, item in enumerate(global_file['ASIN'], start=1 ):
+	asins = global_file['ASIN']
+	chunks = 20
+	asins_chunks = [asins[i:i+chunks] for i in range(0,len(asins),chunks)]
+	counting = 0
+	
+	for chunk in asins_chunks:
+		with concurrent.futures.ThreadPoolExecutor() as executor:
+			results = [executor.submit(amazon_DBHandler_cls(item).get_valid_com) for item in chunk]
 
-		dbhandler_ins = amazon_DBHandler_cls(item)
-		dbhandler_ins.get_valid_com()
+			for f in results:
+				f.result()
+				counting +=1
+				print(counting)
+
+	items_db = productPagesScrapper.objects.filter(productID__in=asins)
+	for item_db in items_db:
 
 		context = {}
-		item_db = productPagesScrapper.objects.filter(productID=item)
-		if item_db:
-			item_db = item_db[0]
+		if item_db.source == 'amazon.com':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
 
-			if item_db.source == 'amazon.com':
-				context["productID"] = item_db.productID
-				context["description_en"] = item_db.description_en
+			results_lst.append(context)
 
-				results_lst.append(context)
+		elif item_db.source == 'amazon.ae':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+			context["description_ar"] = item_db.description_ar
 
-			elif item_db.source == 'amazon.ae':
-				context["productID"] = item_db.productID
-				context["description_en"] = item_db.description_en
-				context["description_ar"] = item_db.description_ar
-
-				results_lst_uae.append(context)
-
-		print(counting)
+			results_lst_uae.append(context)
 
 	validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk')))
 
