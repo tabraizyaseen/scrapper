@@ -68,17 +68,6 @@ class amazon_DBHandler_cls():
 
 			product_details_class = amazon_scrapper.AmazonProductDetails(item)
 
-			if productImages.objects.filter(productID=item).exists():
-
-				images = product_details_class.ImagesList()
-
-				images_db = productImages.objects.filter(productID=item)
-
-				for image, image_db in zip(images,images_db):
-					image_db.image = image
-
-				productImages.objects.bulk_update(images_db, ['image'])
-
 			if not productImages.objects.filter(productID=item).exists():
 
 				images = product_details_class.ImagesList()
@@ -159,17 +148,6 @@ class amazon_DBHandler_cls():
 		if item.description_en and item.description_ar:
 
 			product_details_class = amazon_scrapper.AmazonProductDetails(item)
-
-			if productImages.objects.filter(productID=item).exists():
-
-				images = product_details_class.ImagesList()
-
-				images_db = productImages.objects.filter(productID=item)
-
-				for image, image_db in zip(images,images_db):
-					image_db.image = image
-
-				productImages.objects.bulk_update(images_db, ['image'])
 
 			if not productImages.objects.filter(productID=item).exists():
 
