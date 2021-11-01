@@ -35,7 +35,7 @@ class ProductFilter(django_filters.FilterSet):
 
 	def my_custom_filter(self, queryset, name, value):
 		return productPagesScrapper.objects.filter(
-			Q(category__icontains=value) | Q(title_en__icontains=value) | Q(productID__startswith=value) | Q(source=value)
+			Q(category__icontains=value) | Q(title_en__icontains=value) | Q(productID__startswith=value) | Q(source=value) | Q(id=value if value.isdigit() else 0)
 		)
 		
 		
