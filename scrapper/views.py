@@ -13,7 +13,7 @@ from .variations import *
 from . import tasks
 from .amazon_DBHandler import *
 from .noon_DBHandler import *
-from api.formats import productClass
+from api.formats import productClass, excelFormating
 
 from django_celery_results.models import TaskResult
 from django.http import HttpResponse, JsonResponse
@@ -26,6 +26,7 @@ import pandas as pd
 import datetime
 import os
 import concurrent.futures
+import xlsxwriter
 
 from time import perf_counter
 
@@ -1445,3 +1446,90 @@ def uploadStats(request):
 	writer.writerows(csv_data)
 
 	return response
+
+def exportExcel(request):
+
+	global_file = request.session['global_file']
+	global_file = json.loads(global_file)
+	global_file = pd.DataFrame(global_file)
+
+	# Avoid Repeating Products
+	check_dict = {i.parent_asin:item for item in global_file['ASIN'] for i in variationSettings.objects.filter(current_asin=item)}
+	no_vari_list = [i for i in global_file['ASIN'] if not variationSettings.objects.filter(current_asin=i).exists()]
+	check_list = set(list(check_dict.values()) + no_vari_list)
+
+	current_date = str(datetime.date.today())
+	name = current_date+'_Excel.xlsx'
+
+	workbook = xlsxwriter.Workbook(f'static/docs/excels/{name}')
+
+	worksheet = workbook.add_worksheet('family')
+
+	# Formating
+	bold = workbook.add_format({'bold': True, 'color':'black','font':'20','border':True, 'align':'center'})
+
+
+	# Single Product Headings
+	headings = [
+		'Provided Asin', 
+		'Category', 
+		'Weight Class', 
+		'Brand', 
+		'Title', 
+		'Title Arabic', 
+		'Market Price', 
+		'Description', 
+		'Description Arabic', 
+		'GTIN', 
+		'EAN', 
+		'UPC',
+		'Parent Asin',
+		'Images',
+	]
+
+	worksheet.set_column('A:D', 20)
+	worksheet.set_row(0, 20)
+	worksheet.set_column('E:AC', 30)
+	worksheet.merge_range('O1:P1', 'Category Attributes', bold)
+	worksheet.merge_range('Q1:R1', 'Category Attributes Arabic', bold)
+	worksheet.merge_range('S1:T1', 'Variation Settings', bold)
+	worksheet.merge_range('U1:V1', 'Variation Settings Arabic', bold)
+	worksheet.merge_range('W1:AC1', 'Variations', bold)
+
+	worksheet.write_row(0,0,headings,bold)
+	worksheet.write_row(1,14,['key','value'],bold)
+	worksheet.write_row(1,16,['key','value'],bold)
+	worksheet.write_row(1,18,['Name','Values'],bold)
+	worksheet.write_row(1,20,['Name','Values'],bold)
+	worksheet.write_row(1,22,['Index', 'Variation', 'Asin', 'Title', 'Title Arabic', 'Market Price', 'Images (Comma Seprated)'],bold)
+
+	worksheet.freeze_panes(1, 1)
+	data = []
+
+	# Formulating export format
+	for weight,grades_provided,category,item in zip(global_file['weight_class'],global_file['Conditions'],global_file['Category'],global_file['ASIN']):
+
+		if item in check_list:
+			data_list = excelFormating(weight_class=weight, conditions=grades_provided, category=category, asin=item)
+
+			data.append(data_list)
+	row = 2
+	row_len = 0
+	for asin_data in data:
+		for col, d in enumerate(asin_data):
+			worksheet.write_column(row, col, d)
+			if len(d) > row_len:
+				row_len = len(d)
+		row += row_len
+	'''
+	# Start writing from row 1
+	row = 1
+
+	# Data
+	array2 = [[f'{j}-{i}' for i in range(100)] for j in ['First', 'Second', 'Thrid', 'Forth']]
+
+	for col, data in enumerate(array2):
+		worksheet.write_column(row, col, data)
+	'''
+	workbook.close()
+	return redirect(f"http://{request.META['HTTP_HOST']}/static/docs/excels/{name}")
