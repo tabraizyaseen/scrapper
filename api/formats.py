@@ -150,11 +150,11 @@ class productClass:
 					if total_variations:
 
 						# Variation Found
-						variations_dict['variation_index'] = f'{index_dimension}'
-						variations_dict['variation'] = f"{index_value}"
+						variations_dict['variation_index'] = index_dimension
+						variations_dict['variation'] = index_value
 						variations_dict['asin'] = total_variations.current_asin
-						variations_dict['title'] = f"{total_variations.title_en}"
-						variations_dict['title_ar'] = f"{total_variations.title_ar}"
+						variations_dict['title'] = total_variations.title_en
+						variations_dict['title_ar'] = total_variations.title_ar
 						variations_dict['market_price'] = int(total_variations.old_price or 0)
 						variations_dict['description'] = data_dict['description']
 						variations_dict['description_ar'] = data_dict['description_ar']
@@ -165,11 +165,11 @@ class productClass:
 					else:
 
 						# Variation Not Found
-						variations_dict['variation_index'] = f'{index_dimension}'
-						variations_dict['variation'] = f"{index_value}"
+						variations_dict['variation_index'] = index_dimension
+						variations_dict['variation'] = index_value
 						variations_dict['asin'] = '' # data_dict['asin']
-						variations_dict['title'] = '' # f"{item_db.title_en}"
-						variations_dict['title_ar'] = ''# f"{item_db.title_ar}"
+						variations_dict['title'] = '' # item_db.title_en
+						variations_dict['title_ar'] = ''# item_db.title_ar
 						variations_dict['market_price'] = 0
 						variations_dict['description'] = ''
 						variations_dict['description_ar'] = ''
@@ -195,8 +195,8 @@ class productClass:
 			for indexes, grading in enumerate(grades_provided.split(',')):
 				variations_dict = {}
 
-				variations_dict['variation_index'] = f'{indexes}'
-				variations_dict['variation'] = f"{grading}"
+				variations_dict['variation_index'] = indexes
+				variations_dict['variation'] = grading
 				variations_dict['asin'] = data_dict['asin']
 				variations_dict['title'] = data_dict['title']
 				variations_dict['title_ar'] = data_dict['title_ar']
@@ -340,4 +340,171 @@ class categoryClass:
 
 		return category_dic
 
+def excelFormating(weight_class, conditions, category, asin):
+	def specifications(specs):
+		k = []
+		v = []
+		for spec in specs:
+			try:
+				k.append(spec.attributes)
+				v.append(spec.values)
+			except Exception:
+				break
 
+		return k,v
+	data = []
+
+	data.append([asin])
+	data.append([category])
+	data.append([weight_class])
+
+	item_db = productPagesScrapper.objects.filter(Q(productID=asin, description_en=True, description_ar=True) | Q(productID=asin, description_en=True, source__in=('amazon.in','amazon.co.uk','amazon.com','amazon.com.au')))
+
+	if item_db:
+		item_db=item_db[0]
+
+		# Brand
+		brand = ''
+		brand_db = item_db.productdetails_set.filter(Q(language='EN', attributes="Brand") | Q(language='EN', attributes__in=('Brand, Seller, or Collection Name','Manufacturer','Brand Name')))
+		if brand_db:
+			brand = brand_db[0].values
+
+		data.append([brand])
+		data.append([item_db.title_en])
+		data.append([item_db.title_ar])
+		data.append([int(item_db.old_price or 0)])
+		data.append([' '.join([long_desc.long_description for long_desc in item_db.productdescription_set.filter(language='EN')]) or '. '.join([highlight.highlight for highlight in item_db.producthighlights_set.filter(language='EN')]) or data[4][0]])
+		data.append([' '.join([long_desc.long_description for long_desc in item_db.productdescription_set.filter(language='AR')]) or '. '.join([highlight.highlight for highlight in item_db.producthighlights_set.filter(language='AR')]) or data[5][0]])
+
+		data.append([''])
+		data.append([''])
+		data.append([''])
+
+		data.append([images.image for images in item_db.productimages_set.all()])
+
+		specs_en = item_db.productdetails_set.filter(language='EN').exclude(attributes__in=('Brand','Asin','ASIN'))
+		specs_ar = item_db.productdetails_set.filter(language='AR').exclude(attributes__in=('Brand','Asin','العلامة التجارية','ASIN'))
+
+		
+		k,v = specifications(specs_en)
+		data.append(k)
+		data.append(v)
+		k,v = specifications(specs_ar)
+		data.append(k)
+		data.append(v)
+
+
+		# Lambda Function
+		lambda_variant_func = lambda x,y: x if x else y
+
+		# Variation_Settings
+		single_variant_db = lambda_variant_func(variationSettings.objects.filter(current_asin=item_db.productID),variationSettings.objects.filter(parent_asin=item_db.productID))
+
+		if single_variant_db:
+			variations_settings = totalVariations.objects.filter(parent_asin=single_variant_db[0].parent_asin).order_by('-id') or totalVariations.objects.filter(productID=single_variant_db[0].productID).order_by('-id')
+
+			data.insert(12,[variations_settings[0].parent_asin])
+
+			variations_settings_values = conditions.split(',')
+			variations_settings_names = ['Conditions' for _ in range(len(variations_settings_values))]
+
+			variations_settings_values_ar = conditions.split(',')
+			variations_settings_names_ar = ['الظروف' for _ in range(len(variations_settings_values))]
+						
+			# Grades Variations
+			variations_settings_list = []
+			variations_settings_list.append({'name':'Conditions', 'values':conditions.split(','),'name_ar':'الظروف', 'values_ar':conditions.split(',')})
+			data_dict = {}
+
+			for variations in variations_settings:
+
+				variations_settings_dict = {}
+
+				variations_settings_dict['name'] = variations.name_en.replace('_',' ').title()
+				variations_settings_dict['values'] = [i.replace("/","-") for i in variations.value_en.split(':||:')]
+				variations_settings_list.append(variations_settings_dict)
+
+				variations_settings_names.extend(variations.name_en.replace('_',' ').title() for _ in range(len(variations.value_en.split(':||:'))))
+				variations_settings_values.extend(i.replace("/","-") for i in variations.value_en.split(':||:'))
+
+				if variations.productID.source == 'amazon.ae' or variations.productID.source == 'amazon.sa':
+					variations_settings_names_ar.extend(variations.name_ar.replace('_',' ').title() for _ in range(len(variations.value_ar.split(':||:'))))
+					variations_settings_values_ar.extend(i.replace("/","-") for i in variations.value_ar.split(':||:'))
+			
+			data_dict['variation_settings'] = variations_settings_list
+			data.append(variations_settings_names)
+			data.append(variations_settings_values)
+			data.append(variations_settings_names_ar)
+			data.append(variations_settings_values_ar)
+
+			# Variations
+			index_list = []
+			variation_list = []
+			asin_list = []
+			title_list = []
+			title_ar_list = []
+			price_list = []
+			images_list = []
+
+			# Variation Possible Values
+			variations_possibilities_list = []
+			for variations in data_dict['variation_settings']:
+				variations_possibilities_dict = dict(zip(itertools.count(), variations['values']))
+				variations_possibilities_list.append(variations_possibilities_dict)
+
+			# variations_possibilities_list = variations_possibilities_list[::-1]
+			indexes_list = [[x for x in i.keys()] for i in variations_possibilities_list]
+			values_list = [[x for x in i.values()] for i in variations_possibilities_list]
+
+			result_keys = [i for i in itertools.product(*indexes_list)]
+			result_values = [i for i in itertools.product(*values_list)]
+
+			for countings,(k,v) in enumerate(zip(result_keys,result_values)):
+
+				if countings < 9999:
+
+					index_dimension = '_'.join(map(str,k))
+					index_value = '/'.join(v)
+
+					# Match variation despute of order
+					new_v = [i.replace("-","/") for i in v]
+					dimension_list = new_v[1:]
+					total_variations = ''
+
+					for match_variation in variationSettings.objects.filter(productID=single_variant_db[0].productID, available=True):
+						if set(dimension_list) == set([i.replace("-","/") for i in match_variation.dimension_val_en.split(':||:')]):
+							total_variations = match_variation
+							break
+
+					if total_variations:
+
+						# Variation Found
+						index_list.append(index_dimension)
+						variation_list.append(index_value)
+						asin_list.append(total_variations.current_asin)
+						title_list.append(total_variations.title_en)
+						title_ar_list.append(total_variations.title_ar)
+						price_list.append(int(total_variations.old_price or 0))
+						images_list.append(','.join(total_variations.images.split(',')))
+					else:
+
+						# Variation Not Found
+						index_list.append(index_dimension)
+						variation_list.append(index_value)
+						asin_list.append('')
+						title_list.append('')
+						title_ar_list.append('')
+						price_list.append(0)
+						images_list.append('')
+
+			data.append(index_list)
+			data.append(variation_list)
+			data.append(asin_list)
+			data.append(title_list)
+			data.append(title_ar_list)
+			data.append(price_list)
+			data.append(images_list)
+
+
+			
+		return data		
