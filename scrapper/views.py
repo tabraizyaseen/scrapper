@@ -1521,15 +1521,6 @@ def exportExcel(request):
 			if len(d) > row_len:
 				row_len = len(d)
 		row += row_len
-	'''
-	# Start writing from row 1
-	row = 1
-
-	# Data
-	array2 = [[f'{j}-{i}' for i in range(100)] for j in ['First', 'Second', 'Thrid', 'Forth']]
-
-	for col, data in enumerate(array2):
-		worksheet.write_column(row, col, data)
-	'''
+	
 	workbook.close()
 	return redirect(f"http://{request.META['HTTP_HOST']}/static/docs/excels/{name}")
