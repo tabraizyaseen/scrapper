@@ -364,10 +364,8 @@ def excelFormating(weight_class, conditions, category, asin):
 		item_db=item_db[0]
 
 		# Brand
-		brand = ''
 		brand_db = item_db.productdetails_set.filter(Q(language='EN', attributes="Brand") | Q(language='EN', attributes__in=('Brand, Seller, or Collection Name','Manufacturer','Brand Name')))
-		if brand_db:
-			brand = brand_db[0].values
+		brand = brand_db[0].values if brand_db else ''
 
 		data.append([brand])
 		data.append([item_db.title_en])
@@ -504,6 +502,9 @@ def excelFormating(weight_class, conditions, category, asin):
 			data.append(title_ar_list)
 			data.append(price_list)
 			data.append(images_list)
+
+		elif not single_variant_db:
+			data.insert(12,[])
 
 
 			
