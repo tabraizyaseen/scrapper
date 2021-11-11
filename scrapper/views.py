@@ -1300,7 +1300,9 @@ def requiredJsonFormat(request):
 			print(item)
 			data_dict = productClassIns.mainProductData(weight_class=weight, conditions=grades_provided, category=category)
 
-			data.append(data_dict)
+			if data_dict:
+
+				data.append(data_dict)
 
 
 	response = HttpResponse(content_type='application/json')
