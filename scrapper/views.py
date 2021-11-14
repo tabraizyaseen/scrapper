@@ -313,30 +313,11 @@ def varienceCrawler(request):
 					results = [executor.submit(Variant(item).saveResponse) for item in chunk]
 					resultsAR = [executor.submit(Variant(item).saveResponseAR) for item in chunk]
 
-					for f in results:
-						f.result()
+					for r1, r2 in zip(results, resultsAR):
+						r1.result()
+						r2.result()
 						counting +=1
 						print(f'{countings}-{counting}')
-
-			# for num_childern,single_asin in enumerate(all_asins, start=1):
-
-			# 	if single_asin.productID.source == 'amazon.in' or single_asin.productID.source == 'amazon.co.uk' or single_asin.productID.source == 'amazon.com.au' or single_asin.productID.source == 'amazon.com':
-
-			# 		if not single_asin.description_en:
-			# 			variance = Variant(single_asin)
-			# 			variance.saveResponse()
-
-			# 	elif single_asin.productID.source == 'amazon.ae' or single_asin.productID.source == 'amazon.sa':
-
-			# 		if not single_asin.description_en:
-			# 			variance = Variant(single_asin)
-			# 			variance.saveResponse()
-
-			# 		if not single_asin.description_ar:
-			# 			variance = Variant(single_asin)
-			# 			variance.saveResponseAR()
-
-			# 	print(f'{countings}-{num_childern}')
 
 			single = [i for x in variationSettings.objects.filter(current_asin=product) for i in variationSettings.objects.filter(productID=x.productID) if x] or variationSettings.objects.filter(parent_asin=product)
 			if single:

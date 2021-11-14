@@ -273,7 +273,8 @@ class AmazonProductDetails:
 				for specification_table in specifications_div.find_all('table'):
 					for specification_tr in specification_table.find_all('tr'):
 						specification_tds = specification_tr.find_all('td')
-						specifications.append((specification_tds[0].text.strip(),specification_tds[1].text.strip()))
+						if specification_tds:
+							specifications.append((specification_tds[0].text.strip(),specification_tds[1].text.strip()))
 			except AttributeError:
 				pass
 		
