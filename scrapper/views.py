@@ -106,7 +106,7 @@ def searchTitles(request):
 			item_db.description_en = False
 			item_db.save()
 
-	def asin_manager(item, results, validated, results_ksa, results_india, results_aus, results_uk, results_com, variations):
+	def asin_manager(item, results, validated, results_ksa, results_india, results_aus, results_uk, results_com, variations, filename):
 
 		item_db = productPagesScrapper.objects.filter(productID=item)
 		if item_db:
@@ -118,13 +118,16 @@ def searchTitles(request):
 
 			# Differentiating SA and AE products
 			(lambda x: results_ksa.append(x) if x.source == 'amazon.sa' else (results_india.append(x) if x.source == 'amazon.in' else (results_aus.append(x) if x.source=='amazon.com.au' else (results_uk.append(x) if x.source == 'amazon.co.uk' else (results_com.append(x) if x.source == 'amazon.com' else results.append(x))))))(item_db)
-
 			
 			# Get variations
 			variations.append([i for x in variationSettings.objects.filter(current_asin=item_db.productID) for i in variationSettings.objects.filter(productID=x.productID) if x])
 
+			# adding batch name with asin
+			if not item_db.batchname:
+				item_db.batchname = filename
+				item_db.save()
 		else:
-			productPagesScrapper.objects.create(productID=item.strip(), source='amazon.ae')
+			productPagesScrapper.objects.create(productID=item.strip(), source='amazon.ae', batchname=filename)
 
 			single_item = productPagesScrapper.objects.get(productID=item)
 			results.append(single_item)
@@ -143,9 +146,11 @@ def searchTitles(request):
 	results_com = []
 	variations = []
 	variations_lst = []
+	filename = ''
 	
 	if request.method == 'POST':
 		file = request.FILES.get(u'titles_file')
+		filename = file.name
 		# try:
 
 		# global global_file
@@ -156,7 +161,7 @@ def searchTitles(request):
 		global_file.fillna('', inplace=True)
 
 		request.session['global_file'] = global_file.to_json()
-		request.session['file_name'] = file.name
+		request.session['file_name'] = filename
 		request.session.modified = True
 
 		end = perf_counter()
@@ -168,7 +173,7 @@ def searchTitles(request):
 		if 'Amazon_Category' in global_file.columns:
 			print('Amazon_Category given')
 			for counting,(item,category) in enumerate(zip(global_file['ASIN'], global_file['Amazon_Category']), start=1):
-				asin_manager(item, results, validated, results_ksa, results_india, results_aus, results_uk, results_com, variations)
+				asin_manager(item, results, validated, results_ksa, results_india, results_aus, results_uk, results_com, variations, filename)
 
 				if category:
 					category = category.replace('>','›')
@@ -177,7 +182,7 @@ def searchTitles(request):
 			print('Amazon_Category not given')
 			for counting,item in enumerate(global_file['ASIN'], start=1):
 
-				asin_manager(item, results, validated, results_ksa, results_india, results_aus, results_uk, results_com, variations)
+				asin_manager(item, results, validated, results_ksa, results_india, results_aus, results_uk, results_com, variations, filename)
 
 
 		variations_lst = [i for sub in variations for i in sub]
@@ -200,7 +205,8 @@ def searchTitles(request):
 		'results_com' : results_com,
 		'counting' : len(results + results_ksa + results_india + results_aus + results_uk + results_com),
 		'accepted' : len(validated),
-		'variations' : variations_lst
+		'variations' : variations_lst,
+		'filename' : filename
 	}
 	
 	return render(request, 'scrapper/search_titles.html', context)

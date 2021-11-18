@@ -120,9 +120,9 @@
 	</div>
 	<div class="row" style="display: none">
 	{% endif %}
-
+		
 		<div class="col-md">
-
+			<p>File Name : <b>{{filename}}</b></p>
 			<!-- Stats of uploaded file -->
 			<div class="row">
 				<div class="col">
@@ -598,7 +598,7 @@
 	});
 
 	function crawler_handler(url, div_name, skip_btn) {
-		all_btns = [activate_crawler_btn, activate_crawler_ksa_btn, activate_crawler_india_btn, product_details_btn, save_variations_btn, variation_crawler_btn, product_variations_btn];
+		all_btns = [activate_crawler_btn, activate_crawler_ksa_btn, activate_crawler_india_btn, activate_crawler_uk_btn, activate_crawler_aus_btn, activate_crawler_usa_btn, product_details_btn, save_variations_btn, variation_crawler_btn, product_variations_btn];
 		$.ajax({
 			type: 'GET',
 			url: url, 
