@@ -211,7 +211,7 @@ class amazon_DBHandler_cls():
 			dimensions = variation.Dimensions()
 			dimensionsDetails = variation.DimensionsDetails()
 			dimensionsDetailsAR = variation.DimensionsDetailsAR()
-			
+
 			if variationSettings_instance:
 				for countings, (k,v) in enumerate(dimensions.items()):
 
@@ -288,8 +288,10 @@ class amazon_DBHandler_cls():
 			# instance of VariationsSoup
 			variation = VariationsSoup(asin)
 			parent_asin = variation.ParentAsin()
+			currentAsin = variation.CurrentAsin()
 			
-			if parent_asin:
+			# Prevent asin from creating a family if asin has no association with family
+			if item.productID == currentAsin or item.productID == parent_asin:
 
 				try:
 
