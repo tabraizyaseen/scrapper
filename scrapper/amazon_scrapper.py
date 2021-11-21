@@ -45,16 +45,16 @@ def amazonCategoryScrapper(url):
 
 			# Price
 			try:
-				price = container.find('span','a-price-whole').text.replace(".","").replace(",","").replace('₹','').replace('$','').replace('£','')
+				price = float(container.find('span','a-price-whole').text.replace(".","").replace(",","").replace('₹','').replace('$','').replace('£',''))
 			except AttributeError:
-				price = ""
+				price = 0.0
 
 			# old price
 			try:
 				old = container.find('span','a-text-price')
-				old_price = old.find('span',{'aria-hidden':'true'}).text.split("D")[-1].split(".")[0].replace(",","").replace('₹','').replace('$','').replace('£','')
+				old_price = float(old.find('span',{'aria-hidden':'true'}).text.split("D")[-1].split(".")[0].replace(",","").replace('₹','').replace('$','').replace('£',''))
 			except AttributeError:
-				old_price = ""
+				old_price = 0.0
 
 			return p_id, title, price, old_price
 
@@ -177,17 +177,17 @@ class AmazonProductDetails:
 		soup = self.soup
 
 		try:
-			price = soup.find('span',{'id':'priceblock_ourprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','').replace('£','')
+			price = float(soup.find('span',{'id':'priceblock_ourprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','').replace('£',''))
 		except Exception:
 			try:
 				# Deal price
-				price = soup.find('span',{'id':'priceblock_dealprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','').replace('£','')
+				price = float(soup.find('span',{'id':'priceblock_dealprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','').replace('£',''))
 			except Exception:
 				try:
 					# Book price
-					price = soup.find('span',{'id':'price'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','').replace('£','')
+					price = float(soup.find('span',{'id':'price'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','').replace('£',''))
 				except Exception:
-					price = ''
+					price = 0.0
 
 		return price
 
@@ -196,13 +196,13 @@ class AmazonProductDetails:
 		soup = self.soup
 
 		try:
-			old_price = soup.find('span','priceBlockStrikePriceString').text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','').replace('£','')
+			old_price = float(soup.find('span','priceBlockStrikePriceString').text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','').replace('£',''))
 		except Exception:
 			try:
 				# Book price
-				old_price = soup.find('span',{'id':'listPrice'}).text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','').replace('£','')
+				old_price = float(soup.find('span',{'id':'listPrice'}).text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','').replace('£',''))
 			except Exception:
-				old_price = ''
+				old_price = 0.0
 
 		return old_price
 

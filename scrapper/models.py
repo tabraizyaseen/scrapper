@@ -11,8 +11,8 @@ class productPagesScrapper(models.Model):
 	description_en = models.BooleanField(default=False)
 	description_ar = models.BooleanField(default=False)
 	last_checked = models.DateTimeField(auto_now_add=True, blank=True)
-	price = models.CharField(max_length=20, null=True, blank=True)
-	old_price = models.CharField(max_length=20, null=True, blank=True)
+	price = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
+	old_price = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
 	batchname = models.CharField(max_length=500, null=True, blank=True)
 
 	def __str__(self):
@@ -85,8 +85,8 @@ class variationSettings(models.Model):
 	images = models.TextField(null=True,blank=True)
 	description_en = models.BooleanField(default=False)
 	description_ar = models.BooleanField(default=False)
-	price = models.CharField(max_length=20, null=True, blank=True)
-	old_price = models.CharField(max_length=20, null=True, blank=True)
+	price = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
+	old_price = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
 	available = models.BooleanField(default=False)
 	last_checked = models.DateTimeField(auto_now_add=True, blank=True)
 
