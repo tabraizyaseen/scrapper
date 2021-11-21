@@ -188,7 +188,6 @@ class amazon_DBHandler_cls():
 
 		def func_variationSettingsEN(variation,parent_asin,variationSettings_instance,item):
 			dimensions = variation.Dimensions()
-			currentAsin = variation.CurrentAsin()
 			dimensionsDetails = variation.DimensionsDetails()
 			
 			if variationSettings_instance:
