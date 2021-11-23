@@ -182,10 +182,10 @@ class varienceDetail():
 		soup = BeautifulSoup(html_file, 'lxml', parse_only=price_only)
 
 		try:
-			price = float(soup.find('span',{'id':'priceblock_ourprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹',''))
+			price = float(soup.find('span',{'id':'priceblock_ourprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
 		except Exception:
 			try:
-				price = float(soup.find('span',{'id':'priceblock_dealprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹',''))
+				price = float(soup.find('span',{'id':'priceblock_dealprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
 			except Exception:
 				price = 0.0
 
@@ -198,7 +198,7 @@ class varienceDetail():
 		soup = BeautifulSoup(html_file, 'lxml', parse_only=price_only)
 		
 		try:
-			old_price = float(soup.find('span','priceBlockStrikePriceString').text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('₹',''))
+			old_price = float(soup.find('span','priceBlockStrikePriceString').text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
 		except Exception:
 			old_price = 0.0
 
