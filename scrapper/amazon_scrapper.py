@@ -177,19 +177,19 @@ class AmazonProductDetails:
 		soup = self.soup
 
 		try:
-			price = float(soup.find('span',{'id':'priceblock_ourprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
+			price = float(soup.find('span',{'class':'a-price a-text-price a-size-medium apexPriceToPay', 'data-a-color':'price'}).span.text.split('\xa0')[-1].split('.')[0].replace(',','').replace('SAR','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
 		except Exception:
 			try:
 				# Deal price
-				price = float(soup.find('span',{'id':'priceblock_dealprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
+				price = float(soup.find('span',{'id':'priceblock_dealprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('SAR','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
 			except Exception:
 				try:
 					# Book price
-					price = float(soup.find('span',{'id':'price'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
+					price = float(soup.find('span',{'id':'price'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('SAR','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
 				except Exception:
 					try:
-						# Only Price
-						price = float(soup.find('span','a-offscreen').text.split('\xa0')[-1].split('.')[0].replace(',','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
+						# Only Price	
+						price = float(soup.find('span',{'id':'priceblock_ourprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('SAR','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
 					except Exception:
 						price = 0.0
 
@@ -200,13 +200,17 @@ class AmazonProductDetails:
 		soup = self.soup
 
 		try:
-			old_price = float(soup.find('span','priceBlockStrikePriceString').text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
+			old_price = float(soup.find('span','priceBlockStrikePriceString').text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('SAR','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
 		except Exception:
 			try:
-				# Book price
-				old_price = float(soup.find('span',{'id':'listPrice'}).text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
+				# list price
+				old_price = float(soup.find('span',{'class':'a-price a-text-price a-size-base', 'data-a-color':'secondary'}).span.text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('SAR','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
 			except Exception:
-				old_price = 0.0
+				try:
+					# Book price
+					old_price = float(soup.find('span',{'id':'listPrice'}).text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('SAR','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
+				except Exception:
+					old_price = 0.0
 
 		return old_price
 

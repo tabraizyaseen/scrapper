@@ -44,7 +44,7 @@ class productClass:
 		if brand_db:
 			brand = brand_db[0].values
 
-		data_dict['brand'] = brand
+		data_dict['brand'] = brand or 'Others'
 		data_dict['title'] = item_db.title_en
 		data_dict['title_ar'] = item_db.title_ar
 		data_dict['market_price'] = int(item_db.old_price or 0)
