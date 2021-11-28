@@ -182,13 +182,13 @@ class varienceDetail():
 		soup = BeautifulSoup(html_file, 'lxml', parse_only=price_only)
 
 		try:
-			price = float(soup.find('span',{'class':'a-price a-text-price a-size-medium apexPriceToPay', 'data-a-color':'price'}).span.text.split('\xa0')[-1].split('.')[0].replace(',','').replace('SAR','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
+			price = priceNormalizing(soup.find('span',{'class':'a-price a-text-price a-size-medium apexPriceToPay', 'data-a-color':'price'}).span)
 		except Exception:
 			try:
 				# Book price
 				price_only = SoupStrainer('span',{'id':'price'})
 				soup = BeautifulSoup(html_file, 'lxml', parse_only=price_only)
-				price = float(soup.find('span',{'id':'price'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('SAR','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
+				price = priceNormalizing(soup.find('span',{'id':'price'}))
 			except Exception:
 				price = 0.0
 
@@ -201,13 +201,13 @@ class varienceDetail():
 		soup = BeautifulSoup(html_file, 'lxml', parse_only=price_only)
 		
 		try:
-			old_price = float(soup.find('span',{'class':'a-price a-text-price a-size-base', 'data-a-color':'secondary'}).span.text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('SAR','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
+			old_price = priceNormalizing(soup.find('span',{'class':'a-price a-text-price a-size-base', 'data-a-color':'secondary'}).span)
 		except Exception:
 			try:
 				# Book price
 				price_only = SoupStrainer('span',{'id':'listPrice'})
 				soup = BeautifulSoup(html_file, 'lxml', parse_only=price_only)
-				old_price = float(soup.find('span',{'id':'listPrice'}).text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('SAR','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
+				old_price = priceNormalizing(soup.find('span',{'id':'listPrice'}))
 			except Exception:
 				old_price = 0.0
 

@@ -6,7 +6,7 @@ import json
 from django.utils import timezone
 
 from .models import productPagesScrapper
-from .amazon_response_handler import responseUAE
+from .amazon_response_handler import responseUAE, priceNormalizing
 
 def soupParser(link):
 
@@ -45,14 +45,14 @@ def amazonCategoryScrapper(url):
 
 			# Price
 			try:
-				price = float(container.find('span','a-price-whole').text.replace(".","").replace(",","").replace('₹','').replace('$','').replace('£',''))
+				price = priceNormalizing(container.find('span','a-price-whole'))
 			except AttributeError:
 				price = 0.0
 
 			# old price
 			try:
 				old = container.find('span','a-text-price')
-				old_price = float(old.find('span',{'aria-hidden':'true'}).text.split("D")[-1].split(".")[0].replace(",","").replace('₹','').replace('$','').replace('£',''))
+				old_price = priceNormalizing(old.find('span',{'aria-hidden':'true'}))
 			except AttributeError:
 				old_price = 0.0
 
@@ -177,19 +177,19 @@ class AmazonProductDetails:
 		soup = self.soup
 
 		try:
-			price = float(soup.find('span',{'class':'a-price a-text-price a-size-medium apexPriceToPay', 'data-a-color':'price'}).span.text.split('\xa0')[-1].split('.')[0].replace(',','').replace('SAR','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
+			price = priceNormalizing(soup.find('span',{'class':'a-price a-text-price a-size-medium apexPriceToPay', 'data-a-color':'price'}).span)
 		except Exception:
 			try:
 				# Deal price
-				price = float(soup.find('span',{'id':'priceblock_dealprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('SAR','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
+				price = priceNormalizing(soup.find('span',{'id':'priceblock_dealprice'}))
 			except Exception:
 				try:
 					# Book price
-					price = float(soup.find('span',{'id':'price'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('SAR','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
+					price = priceNormalizing(soup.find('span',{'id':'price'}))
 				except Exception:
 					try:
 						# Only Price	
-						price = float(soup.find('span',{'id':'priceblock_ourprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('SAR','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
+						price = priceNormalizing(soup.find('span',{'id':'priceblock_ourprice'}))
 					except Exception:
 						price = 0.0
 
@@ -200,15 +200,15 @@ class AmazonProductDetails:
 		soup = self.soup
 
 		try:
-			old_price = float(soup.find('span','priceBlockStrikePriceString').text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('SAR','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
+			old_price = priceNormalizing(soup.find('span','priceBlockStrikePriceString'))
 		except Exception:
 			try:
 				# list price
-				old_price = float(soup.find('span',{'class':'a-price a-text-price a-size-base', 'data-a-color':'secondary'}).span.text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('SAR','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
+				old_price = priceNormalizing(soup.find('span',{'class':'a-price a-text-price a-size-base', 'data-a-color':'secondary'}).span)
 			except Exception:
 				try:
 					# Book price
-					old_price = float(soup.find('span',{'id':'listPrice'}).text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('SAR','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
+					old_price = priceNormalizing(soup.find('span',{'id':'listPrice'}))
 				except Exception:
 					old_price = 0.0
 

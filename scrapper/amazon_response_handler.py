@@ -3,6 +3,9 @@ from requests.exceptions import RequestException
 from requests.adapters import HTTPAdapter
 import random
 
+def priceNormalizing(price):
+		price = float(price.text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('SAR','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
+		return price
 
 def responseUAE(link):
 
