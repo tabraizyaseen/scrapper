@@ -64,16 +64,18 @@ def images_updater(self):
 
 	for counting, item in enumerate(all_items):
 		product_details_class = amazon_scrapper.AmazonProductDetails(item)
+		try:
+			if productImages.objects.filter(productID=item).exists():
+				if item.description_en and item.description_ar:
+					images = product_details_class.ImagesList()
+					images_db = productImages.objects.filter(productID=item)
 
-		if productImages.objects.filter(productID=item).exists():
-			if item.description_en and item.description_ar:
-				images = product_details_class.ImagesList()
-				images_db = productImages.objects.filter(productID=item)
+					for image, image_db in zip(images,images_db):
+						image_db.image = image
 
-				for image, image_db in zip(images,images_db):
-					image_db.image = image
-
-				productImages.objects.bulk_update(images_db, ['image'])
+					productImages.objects.bulk_update(images_db, ['image'])
+		except AttributeError:
+			pass
 
 		progress_recorder.set_progress(counting, len(all_items), f"on {item.productID}")
 	
