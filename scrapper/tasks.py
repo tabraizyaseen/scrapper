@@ -66,13 +66,14 @@ def images_updater(self):
 		product_details_class = amazon_scrapper.AmazonProductDetails(item)
 
 		if productImages.objects.filter(productID=item).exists():
-			images = product_details_class.ImagesList()
-			images_db = productImages.objects.filter(productID=item)
+			if item.description_en and item.description_ar:
+				images = product_details_class.ImagesList()
+				images_db = productImages.objects.filter(productID=item)
 
-			for image, image_db in zip(images,images_db):
-				image_db.image = image
+				for image, image_db in zip(images,images_db):
+					image_db.image = image
 
-			productImages.objects.bulk_update(images_db, ['image'])
+				productImages.objects.bulk_update(images_db, ['image'])
 
 		progress_recorder.set_progress(counting, len(all_items), f"on {item.productID}")
 	
