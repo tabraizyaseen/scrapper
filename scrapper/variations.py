@@ -61,8 +61,8 @@ class VariationsSoup():
 
 		if javascript_tag:
 			crnt_st = javascript_tag.find('"currentAsin"')+16
-			crnt_end = javascript_tag.find(',\n"parentAsin"')
-			crnt_asin = json.loads(javascript_tag[crnt_st:crnt_end])
+			crnt_end = javascript_tag.find('"parentAsin"')
+			crnt_asin = json.loads(javascript_tag[crnt_st:crnt_end].strip()[:-1])
 
 			return crnt_asin
 
@@ -74,8 +74,8 @@ class VariationsSoup():
 		if javascript_tag:
 
 			prt_st = javascript_tag.find('"parentAsin"')+15
-			prt_end = javascript_tag.find(',\n"dimensionToAsinMap"')
-			prt_asin = json.loads(javascript_tag[prt_st:prt_end])
+			prt_end = javascript_tag.find('"dimensionToAsinMap"')
+			prt_asin = json.loads(javascript_tag[prt_st:prt_end].strip()[:-1])
 
 			return prt_asin
 
@@ -107,8 +107,8 @@ class VariationsSoup():
 
 		if javascript_tag:
 			dimstr_str = javascript_tag.find('"dimensionValuesDisplayData"')+31
-			dimstr_end = javascript_tag.find(',\n"pwASINs"')
-			dimstr = json.loads(javascript_tag[dimstr_str:dimstr_end])
+			dimstr_end = javascript_tag.find('"pwASINs"')
+			dimstr = json.loads(javascript_tag[dimstr_str:dimstr_end].strip()[:-1])
 			print(len(dimstr))
 
 			return dimstr
@@ -119,8 +119,8 @@ class VariationsSoup():
 
 		if javascript_tag:
 			dimstr_str = javascript_tag.find('"dimensionValuesDisplayData"')+31
-			dimstr_end = javascript_tag.find(',\n"pwASINs"')
-			dimstr = json.loads(javascript_tag[dimstr_str:dimstr_end])
+			dimstr_end = javascript_tag.find('"pwASINs"')
+			dimstr = json.loads(javascript_tag[dimstr_str:dimstr_end].strip()[:-1])
 			print(len(dimstr))
 
 			return dimstr
@@ -132,8 +132,8 @@ class VariationsSoup():
 
 		if javascript_tag:
 			dim_st = javascript_tag.find('"dimensionToAsinMap"')+23
-			dim_end =javascript_tag.find(',\n"variationValues"')
-			dimenstions = json.loads(javascript_tag[dim_st:dim_end])
+			dim_end =javascript_tag.find('"variationValues"')
+			dimenstions = json.loads(javascript_tag[dim_st:dim_end].strip()[:-1])
 
 			return dimenstions
 
@@ -144,8 +144,8 @@ class VariationsSoup():
 
 		if javascript_tag:
 			dim_st = javascript_tag.find('"dimensionToAsinMap"')+23
-			dim_end =javascript_tag.find(',\n"variationValues"')
-			dimenstions = json.loads(javascript_tag[dim_st:dim_end])
+			dim_end =javascript_tag.find('"variationValues"')
+			dimenstions = json.loads(javascript_tag[dim_st:dim_end].strip()[:-1])
 
 			return dimenstions
 
@@ -284,12 +284,12 @@ class varienceDetail():
 		except Exception:
 
 		    # All Book Images
-		    strt = javascript_img.find("'imageGalleryData'")+20
-		    end = javascript_img.find(",\n\'centerColMargin\'")
-		    all_imgs = json.loads(javascript_img[strt:end])
-		    all_image = [imgs['mainUrl'] for imgs in all_imgs if imgs['mainUrl']]
+			strt = javascript_img.find("'imageGalleryData'")+20
+			end = javascript_img.find(",\n\'centerColMargin\'")
+			all_imgs = json.loads(javascript_img[strt:end])
+			all_image = [imgs['mainUrl'] for imgs in all_imgs if imgs['mainUrl']]
 
-		    all_images = ','.join(all_image)
+			all_images = ','.join(all_image)
 
 		return all_images
 
@@ -319,8 +319,8 @@ class Variant():
 
 				# "currentAsin" : "B08L5NLF53"
 				crnt_st = javascript_tag.find('"currentAsin"')+16
-				crnt_end = javascript_tag.find(',\n"parentAsin"')
-				crnt_asin = json.loads(javascript_tag[crnt_st:crnt_end])
+				crnt_end = javascript_tag.find('"parentAsin"')
+				crnt_asin = json.loads(javascript_tag[crnt_st:crnt_end].strip()[:-1])
 
 				if crnt_asin == item.current_asin:
 					# Writing File
