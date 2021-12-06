@@ -274,8 +274,8 @@ class varienceDetail():
 			# All images
 			strt = javascript_img.find("'colorImages\':")+15
 			start2 = javascript_img[strt:].find("'initial\': ")+11+strt
-			end = javascript_img.find("},\n\'colorToAsin\'")
-			all_imgs = json.loads(javascript_img[start2:end])
+			end = javascript_img.find("'colorToAsin\'")
+			all_imgs = json.loads(javascript_img[start2:end].strip()[:-2])
 
 			all_image = [imgs['hiRes'] if imgs['hiRes'] else imgs['large'] for imgs in all_imgs]
 
@@ -285,8 +285,8 @@ class varienceDetail():
 
 		    # All Book Images
 			strt = javascript_img.find("'imageGalleryData'")+20
-			end = javascript_img.find(",\n\'centerColMargin\'")
-			all_imgs = json.loads(javascript_img[strt:end])
+			end = javascript_img.find("'centerColMargin\'")
+			all_imgs = json.loads(javascript_img[strt:end].strip()[:-1])
 			all_image = [imgs['mainUrl'] for imgs in all_imgs if imgs['mainUrl']]
 
 			all_images = ','.join(all_image)
