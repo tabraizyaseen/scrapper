@@ -1268,9 +1268,13 @@ def requiredJsonFormat(request):
 	current_date = str(datetime.date.today())
 	name = current_date+'_Scrapped.json'
 
+	# Uploaded File
 	global_file = request.session['global_file']
 	global_file = json.loads(global_file)
 	global_file = pd.DataFrame(global_file)
+
+	# File Name
+	filename = request.session['file_name']
 	data = []
 
 	# Avoid Repeating Products
@@ -1285,7 +1289,7 @@ def requiredJsonFormat(request):
 			
 			productClassIns = productClass(item)
 			print(item)
-			data_dict = productClassIns.mainProductData(weight_class=weight, conditions=grades_provided, category=category)
+			data_dict = productClassIns.mainProductData(weight_class=weight, conditions=grades_provided, category=category, filename=filename)
 
 			if data_dict:
 

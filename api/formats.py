@@ -214,19 +214,19 @@ class productClass:
 
 		return data_dict
 
-	def mainProductData(self, weight_class="light", conditions="DBW,DB,BNW,BN,OBB,OBBW,OB,OBW,PO,POA,POB,CRA,CRB", category=61003):
+	def mainProductData(self, weight_class="light", conditions="DBW,DB,BNW,BN,OBB,OBBW,OB,OBW,PO,POA,POB,CRA,CRB", category=61003, filename=None):
 
 		data_dict = {}
 
 		product_asin = self.product_asin
-		item_db = productPagesScrapper.objects.filter(Q(productID=product_asin, description_en=True, description_ar=True) | Q(productID=product_asin, description_en=True, source__in=('amazon.in','amazon.co.uk','amazon.com','amazon.com.au')))
+		item_db = productPagesScrapper.objects.filter(Q(productID=product_asin, description_en=True, description_ar=True, batchname=filename) | Q(productID=product_asin, description_en=True, source__in=('amazon.in','amazon.co.uk','amazon.com','amazon.com.au'), batchname=filename))
 
 		if item_db:
 			data_dict = self.productAttributes(item_db[0], data_dict, category, weight_class)
 			data_dict = self.variations(item_db[0], data_dict, conditions)
 
 		else:
-			vari = variationSettings.objects.filter(Q(current_asin=product_asin, description_en=True, description_ar=True) | Q(parent_asin=product_asin, description_en=True, description_ar=True) | Q(current_asin=product_asin, description_en=True, productID__source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk')))
+			vari = variationSettings.objects.filter(Q(current_asin=product_asin, description_en=True, description_ar=True, productID__batchname=filename) | Q(parent_asin=product_asin, description_en=True, description_ar=True, productID__batchname=filename) | Q(current_asin=product_asin, description_en=True, productID__source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk'), productID__batchname=filename))
 
 			if vari:
 			
