@@ -326,7 +326,6 @@ class AmazonProductDetails:
 		except Exception as e:
 
 			try:
-				print("Book ASIN : ",product.productID, " : Error = ",e)
 				
 				# All Book Images
 				strt = javascript_img.find("'imageGalleryData'")+20
