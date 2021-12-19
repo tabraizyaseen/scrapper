@@ -178,7 +178,7 @@ class varienceDetail():
 	def price(self):
 
 		html_file = self.html_fileEN()
-		price_only = SoupStrainer('span',{'class':'a-price a-text-price a-size-base', 'data-a-color':'secondary'})
+		price_only = SoupStrainer('div',{'id':'corePrice_desktop'})
 		soup = BeautifulSoup(html_file, 'lxml', parse_only=price_only)
 
 		try:
@@ -186,8 +186,6 @@ class varienceDetail():
 		except Exception:
 			try:
 				# Book price
-				price_only = SoupStrainer('span',{'id':'price'})
-				soup = BeautifulSoup(html_file, 'lxml', parse_only=price_only)
 				price = priceNormalizing(soup.find('span',{'id':'price'}))
 			except Exception:
 				price = 0.0
@@ -197,7 +195,7 @@ class varienceDetail():
 	def old_price(self):
 
 		html_file = self.html_fileEN()
-		price_only = SoupStrainer('span',{'class':'a-price a-text-price a-size-base', 'data-a-color':'secondary'})
+		price_only = SoupStrainer('div',{'id':'corePrice_desktop'})
 		soup = BeautifulSoup(html_file, 'lxml', parse_only=price_only)
 		
 		try:
@@ -205,8 +203,6 @@ class varienceDetail():
 		except Exception:
 			try:
 				# Book price
-				price_only = SoupStrainer('span',{'id':'listPrice'})
-				soup = BeautifulSoup(html_file, 'lxml', parse_only=price_only)
 				old_price = priceNormalizing(soup.find('span',{'id':'listPrice'}))
 			except Exception:
 				old_price = 0.0
