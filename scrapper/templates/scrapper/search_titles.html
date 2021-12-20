@@ -486,8 +486,13 @@
 							<td>{{variation.productID.productID}}</td>
 							<td>{{variation.current_asin}}</td>
 							<td>{{variation.parent_asin}}</td>
+							{% if variation.productID.source == 'amazon.ae' or variation.productID.source == 'amazon.sa' %}
 							<td>{{variation.description_en}}</td>
 							<td>{{variation.description_ar}}</td>
+							{% else %}
+							<td>{{variation.description_en}}</td>
+							<td>-</td>
+							{% endif %}
 							<td>{{variation.productID.source}}</td>
 						</tr>
 						{% endfor %}
@@ -647,7 +652,8 @@
 					var table_data = '';
 
 					for (let i=0; i < txt_data.length; i++){
-						table_data += `
+						if (txt_data[i].source === 'amazon.ae' || txt_data[i].source === 'amazon.sa'){
+							table_data += `
 										<tr>
 										<td>${i+1}</td>
 										<td>${txt_data[i].asin}</td>
@@ -658,6 +664,20 @@
 										<td>${txt_data[i].source}</td>
 										</tr>
 										`;
+						}else{
+							table_data += `
+										<tr>
+										<td>${i+1}</td>
+										<td>${txt_data[i].asin}</td>
+										<td>${txt_data[i].current_asin}</td>
+										<td>${txt_data[i].parent_asin}</td>
+										<td>${txt_data[i].description_en}</td>
+										<td>-</td>
+										<td>${txt_data[i].source}</td>
+										</tr>
+										`;
+						}
+						
 					}
 
 					document.getElementById('totalVariationDisplay').innerHTML = table_data;
@@ -774,17 +794,34 @@
 					var table_data = '';
 
 					for (let i=0; i < txt_data.length; i++){
-						table_data += `
-										<tr>
-										<td>${i+1}</td>
-										<td>${txt_data[i].asin}</td>
-										<td>${txt_data[i].current_asin}</td>
-										<td>${txt_data[i].parent_asin}</td>
-										<td>${txt_data[i].description_en}</td>
-										<td>${txt_data[i].description_ar}</td>
-										<td>${txt_data[i].source}</td>
-										</tr>
-										`;
+						if (txt_data[i].source === "amazon.ae" || txt_data[i].source === "amazon.sa" ){
+							
+							table_data += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${txt_data[i].asin}</td>
+											<td>${txt_data[i].current_asin}</td>
+											<td>${txt_data[i].parent_asin}</td>
+											<td>${txt_data[i].description_en}</td>
+											<td>${txt_data[i].description_ar}</td>
+											<td>${txt_data[i].source}</td>
+											</tr>
+											`;
+						}
+						else{
+							table_data += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${txt_data[i].asin}</td>
+											<td>${txt_data[i].current_asin}</td>
+											<td>${txt_data[i].parent_asin}</td>
+											<td>${txt_data[i].description_en}</td>
+											<td>-</td>
+											<td>${txt_data[i].source}</td>
+											</tr>
+											`;
+						}
+						
 					}
 
 					document.getElementById('totalVariationDisplay').innerHTML = table_data;
