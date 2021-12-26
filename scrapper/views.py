@@ -154,7 +154,7 @@ def searchTitles(request):
 		# try:
 
 		# global global_file
-		global_file = pd.read_csv(file, encoding='unicode_escape')
+		global_file = pd.read_csv(file, encoding='unicode_escape', converters={'ASIN': lambda x: str(x)})
 		strt = perf_counter()
 		global_file.dropna(subset=['ASIN'],inplace=True)
 		global_file = global_file.drop_duplicates(['ASIN'],keep= 'last')
