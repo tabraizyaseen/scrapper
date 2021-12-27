@@ -156,6 +156,8 @@ def searchTitles(request):
 		# global global_file
 		global_file = pd.read_csv(file, encoding='unicode_escape', converters={'ASIN': lambda x: str(x)})
 		strt = perf_counter()
+		nan_value = float("NaN")
+		global_file.replace("", nan_value, inplace=True)
 		global_file.dropna(subset=['ASIN'],inplace=True)
 		global_file = global_file.drop_duplicates(['ASIN'],keep= 'last')
 		global_file.fillna('', inplace=True)
