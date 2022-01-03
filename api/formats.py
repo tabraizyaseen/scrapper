@@ -27,6 +27,16 @@ class productClass:
 
 			return category_lst
 
+		def description_solver(item_db, language):
+			description = ' '.join([long_desc.long_description for long_desc in item_db.productdescription_set.filter(language=language)])
+			description = description if description else '0'
+			if not description.isdigit():
+				return description
+			else:
+				description = '. '.join([highlight.highlight for highlight in item_db.producthighlights_set.filter(language=language)])
+				description = description if description else None if description.isdigit() else description
+				return description
+
 		# Amazon category
 		'''
 		try:
@@ -48,8 +58,8 @@ class productClass:
 		data_dict['title'] = item_db.title_en
 		data_dict['title_ar'] = item_db.title_ar
 		data_dict['market_price'] = int(item_db.old_price or 0)
-		data_dict['description'] = ' '.join([long_desc.long_description for long_desc in item_db.productdescription_set.filter(language='EN')]) or '. '.join([highlight.highlight for highlight in item_db.producthighlights_set.filter(language='EN')]) or data_dict['title']
-		data_dict['description_ar'] = ' '.join([long_desc.long_description for long_desc in item_db.productdescription_set.filter(language='AR')]) or '. '.join([highlight.highlight for highlight in item_db.producthighlights_set.filter(language='AR')]) or data_dict['title_ar']
+		data_dict['description'] = description_solver(item_db, 'EN') or data_dict['title']
+		data_dict['description_ar'] = description_solver(item_db, 'AR') or data_dict['title_ar']
 		# data_dict['highlights'] = [highlight.highlight for highlight in item_db.producthighlights_set.filter(language='EN')]
 		# data_dict['highlights_ar'] = [highlight.highlight for highlight in item_db.producthighlights_set.filter(language='AR')]
 
