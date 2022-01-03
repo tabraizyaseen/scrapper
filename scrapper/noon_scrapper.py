@@ -136,19 +136,11 @@ def noonCategoryScrapper(url):
 		price = each['sale_price']
 
 		if price:
-			old_price = each['price']
+			price = str(int(price))
+			old_price = str(int(each['price']))
 		else:
-			price = each['price']
+			price = str(int(each['price']))
 			old_price = None
-
-		price = each['sale_price']
-
-		if price:
-		    price = str(int(price))
-		    old_price = str(int(each['price']))
-		else:
-		    price = str(int(each['price']))
-		    old_price = None
 
 
 		return p_id, title, price, old_price
