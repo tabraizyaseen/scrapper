@@ -68,6 +68,7 @@ class productClass:
 		data_dict['upc'] = ''
 
 		data_dict['asin'] = ''
+		data_dict['is_original'] = True
 
 		data_dict['default_images'] = [images.image for images in item_db.productimages_set.all()]
 
@@ -86,7 +87,7 @@ class productClass:
 		return data_dict
 
 	
-	def variations(self, item_db, data_dict, grades_provided):
+	def variations(self, item_db, data_dict, grades_provided, provided_asin):
 
 		product_asin = self.product_asin
 
@@ -100,6 +101,7 @@ class productClass:
 			variations_settings = totalVariations.objects.filter(parent_asin=single_variant_db[0].parent_asin).order_by('-id') or totalVariations.objects.filter(productID=single_variant_db[0].productID).order_by('-id')
 
 			data_dict['asin'] = variations_settings[0].parent_asin
+			data_dict['is_original'] = True if variations_settings[0].parent_asin == provided_asin else False
 
 			variations_settings_list = []
 
@@ -171,6 +173,7 @@ class productClass:
 						variations_dict['gtin'] = ''
 						variations_dict['ean'] = ''
 						variations_dict['upc'] = ''
+						variations_dict['is_original'] = True if total_variations.current_asin == provided_asin else False
 						variations_dict['images'] = total_variations.images.split(',')
 					else:
 
@@ -186,6 +189,7 @@ class productClass:
 						variations_dict['gtin'] = ''
 						variations_dict['ean'] = ''
 						variations_dict['upc'] = ''
+						variations_dict['is_original'] = False
 						variations_dict['images'] =[] # [images.image for images in item_db.productimages_set.all()]
 
 					variations_list.append(variations_dict)
@@ -216,6 +220,7 @@ class productClass:
 				variations_dict['gtin'] = ''
 				variations_dict['ean'] = ''
 				variations_dict['upc'] = ''
+				variations_dict['is_original'] = True
 				variations_dict['images'] = data_dict['default_images']
 
 				variations_list.append(variations_dict)
@@ -233,7 +238,7 @@ class productClass:
 
 		if item_db:
 			data_dict = self.productAttributes(item_db[0], data_dict, category, weight_class)
-			data_dict = self.variations(item_db[0], data_dict, conditions)
+			data_dict = self.variations(item_db[0], data_dict, conditions, product_asin)
 
 		else:
 			vari = variationSettings.objects.filter(Q(current_asin=product_asin, description_en=True, description_ar=True, productID__batchname=filename) | Q(parent_asin=product_asin, description_en=True, description_ar=True, productID__batchname=filename) | Q(current_asin=product_asin, description_en=True, productID__source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk'), productID__batchname=filename))
@@ -241,7 +246,7 @@ class productClass:
 			if vari:
 			
 				data_dict = self.productAttributes(vari[0].productID, data_dict, category, weight_class)
-				data_dict = self.variations(vari[0].productID, data_dict, conditions)
+				data_dict = self.variations(vari[0].productID, data_dict, conditions, product_asin)
 
 		return data_dict
 
