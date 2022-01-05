@@ -241,12 +241,20 @@ class productClass:
 			data_dict = self.variations(item_db[0], data_dict, conditions, product_asin)
 
 		else:
-			vari = variationSettings.objects.filter(Q(current_asin=product_asin, description_en=True, description_ar=True, productID__batchname=filename) | Q(parent_asin=product_asin, description_en=True, description_ar=True, productID__batchname=filename) | Q(current_asin=product_asin, description_en=True, productID__source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk'), productID__batchname=filename))
+			vari = variationSettings.objects.filter(Q(current_asin=product_asin, description_en=True, description_ar=True) | Q(parent_asin=product_asin, description_en=True, description_ar=True) | Q(current_asin=product_asin, description_en=True, productID__source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk')))
 
 			if vari:
+
+				if vari[0].productID.batchname==filename:
 			
-				data_dict = self.productAttributes(vari[0].productID, data_dict, category, weight_class)
-				data_dict = self.variations(vari[0].productID, data_dict, conditions, product_asin)
+					data_dict = self.productAttributes(vari[0].productID, data_dict, category, weight_class)
+					data_dict = self.variations(vari[0].productID, data_dict, conditions, product_asin)
+
+				elif not vari[0].productID.batchname:
+					productPagesScrapper.objects.filter(productID=vari[0].productID.productID).update(batchname=filename)
+
+					data_dict = self.productAttributes(vari[0].productID, data_dict, category, weight_class)
+					data_dict = self.variations(vari[0].productID, data_dict, conditions, product_asin)
 
 		return data_dict
 
