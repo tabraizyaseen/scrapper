@@ -127,7 +127,7 @@ def searchTitles(request):
 				item_db.batchname = filename
 				item_db.save()
 		else:
-			productPagesScrapper.objects.create(productID=item.strip(), source='amazon.ae', batchname=filename)
+			productPagesScrapper.objects.create(productID=item, source='amazon.ae', batchname=filename)
 
 			single_item = productPagesScrapper.objects.get(productID=item)
 			results.append(single_item)
