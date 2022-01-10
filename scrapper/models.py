@@ -32,7 +32,7 @@ class productPagesScrapper(models.Model):
 class productDetails(models.Model):
 	productID = models.ForeignKey(productPagesScrapper, null=True, on_delete=models.CASCADE)
 	attributes = models.CharField(max_length=512, null=True, blank=True)
-	values = models.CharField(max_length=1024, null=True, blank=True)
+	values = models.CharField(max_length=2048, null=True, blank=True)
 	language = models.CharField(max_length=50, null=True, blank=True)
 
 	def __str__(self):
