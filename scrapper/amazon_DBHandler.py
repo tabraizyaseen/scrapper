@@ -18,48 +18,58 @@ class amazon_DBHandler_cls():
 		asin = self.asin
 
 		item_db = productPagesScrapper.objects.get(productID=asin)
-		if not item_db.description_en:
-			amazon_scrapper.ResponseValidate(item_db)
+		if item_db.source == 'amazon.ae':
+			if not item_db.description_en:
+				amazon_scrapper.ResponseValidate(item_db)
 
-		if not item_db.description_ar:
-			amazon_scrapper.ResponseValidateArabic(item_db)
+			if not item_db.description_ar:
+				amazon_scrapper.ResponseValidateArabic(item_db)
+		else:
+			if not (item_db.description_en or item_db.description_ar):
+				amazon_scrapper.ResponseValidate(item_db)
+				amazon_scrapper.ResponseValidateArabic(item_db)
 
 	def get_valid_ksa(self):
 		asin = self.asin
 
 		item_db = productPagesScrapper.objects.get(productID=asin)
-		if not item_db.description_en:
-			amazon_ksa.ResponseValidate(item_db)
+		if item_db.source == 'amazon.sa':
+			if not item_db.description_en:
+				amazon_ksa.ResponseValidate(item_db)
 
-		if not item_db.description_ar:
-			amazon_ksa.ResponseValidateArabic(item_db)
+			if not item_db.description_ar:
+				amazon_ksa.ResponseValidateArabic(item_db)
+		else:
+			if not (item_db.description_en or item_db.description_ar):
+				amazon_ksa.ResponseValidate(item_db)
+				amazon_ksa.ResponseValidateArabic(item_db)
 
 	def get_valid_india(self):
 		asin = self.asin
 
 		item_db = productPagesScrapper.objects.get(productID=asin)
-		if not item_db.description_en:
+		if not (item_db.description_en or item_db.description_ar):
 			amazon_india.ResponseValidate(item_db)
 
 	def get_valid_aus(self):
 		asin = self.asin
 
 		item_db = productPagesScrapper.objects.get(productID=asin)
-		if not item_db.description_en:
+		if not (item_db.description_en or item_db.description_ar):
 			amazon_aus.ResponseValidate(item_db)
 
 	def get_valid_uk(self):
 		asin = self.asin
 
 		item_db = productPagesScrapper.objects.get(productID=asin)
-		if not item_db.description_en:
+		if not (item_db.description_en or item_db.description_ar):
 			amazon_uk.ResponseValidate(item_db)
 
 	def get_valid_com(self):
 		asin = self.asin
 
 		item_db = productPagesScrapper.objects.get(productID=asin)
-		if not item_db.description_en:
+		if not (item_db.description_en or item_db.description_ar):
 			amazon_com.ResponseValidate(item_db)
 
 	def get_product_data_EN(self,item):
