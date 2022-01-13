@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import io
+from django.utils import timezone
 
 from .models import productPagesScrapper
 from .amazon_response_handler import responseAU
@@ -67,6 +68,7 @@ def ResponseValidate(productResponse):
 					category=category,
 					description_en=valid,
 					title_en=title,
+					last_checked = timezone.now(),
 					source='amazon.com.au',
 				)
 

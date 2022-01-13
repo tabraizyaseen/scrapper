@@ -584,6 +584,7 @@ def ResponseValidate(productResponse):
 						description_en=valid,
 						title_en=title,
 						last_checked = timezone.now(),
+						source = "amazon.ae"
 					)
 
 	else:
@@ -612,6 +613,7 @@ def ResponseValidateArabic(productResponse):
 				description_ar=valid,
 				title_ar=title,
 				last_checked = timezone.now(),
+				source='amazon.ae',
 			)
 
 	else:
