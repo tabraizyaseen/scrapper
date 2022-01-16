@@ -161,7 +161,7 @@ def searchTitles(request):
 		global_file.dropna(subset=['ASIN'],inplace=True)
 		global_file = global_file.drop_duplicates(['ASIN'],keep= 'last')
 		global_file.fillna('', inplace=True)
-		global_file['ASIN'].str.strip()
+		global_file = global_file['ASIN'].str.strip()
 
 		request.session['global_file'] = global_file.to_json()
 		request.session['file_name'] = filename
