@@ -2,6 +2,8 @@ from __future__ import absolute_import, unicode_literals
 
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage
 from django.db.models import Q
 
@@ -33,12 +35,28 @@ from time import perf_counter
 
 # Create your views here.
 
-def home(request):
+def loginPage(request):
 
+	if request.method == 'POST':
+		name = request.POST.get('username')
+		password = request.POST.get('password')
+
+		user = authenticate(request, username=name, password=password)
+		if user is not None:
+			login(request, user)
+			# login(request, user)
+			return redirect('home')
+		else:
+			messages.success(request, 'Invalid Username or Password')
 	context = {
+
 	}
 
-	return render(request, 'scrapper/home.html', context)
+	return render(request, 'scrapper/login.html', context)
+
+def logoutPage(request):
+    logout(request)
+    return redirect('login')
 
 def productVaraitions(request):
 
@@ -95,6 +113,7 @@ def productTotalVariations(request):
 
 	return render(request, 'scrapper/product_total_variations.html', context)
 
+# @login_required(login_url='login')
 def searchTitles(request):
 
 	# If an item was last checked 15 days ago
@@ -782,6 +801,7 @@ def viewCategoryAttributes(request,pk):
 	}
 	return render(request, 'scrapper/category_attributes.html', context)
 
+@login_required(login_url='login')
 def viewProducts(request):
 
 	total_products = productPagesScrapper.objects.count()

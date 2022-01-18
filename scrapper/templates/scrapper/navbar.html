@@ -59,5 +59,12 @@
     </a>
   </p>
   {% endif %}
+  {% if request.user.is_active %}
+  <p class="language">
+    <a style="font-size: 15px" href="{% url 'logout' %}">
+      Logout
+    </a>
+  </p>
+  {% endif %}
 </nav>
 
