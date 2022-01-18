@@ -5,6 +5,8 @@ from . import views
 urlpatterns = [
     # main pages
 	path('', views.viewProducts, name='home'),
+    path('login/', views.loginPage, name='login'),
+    path('logout/', views.logoutPage, name='logout'),
 	path('amazon_scrapper/', views.amazonScrapper, name='amazon_scrapper'),
 	path('noon_scrapper/', views.noonScrapper, name='noon_scrapper'),
 	path('search_titles', views.searchTitles, name='search_titles'),
