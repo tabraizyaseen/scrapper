@@ -177,7 +177,7 @@ class AmazonProductDetails:
 		soup = self.soup
 
 		try:
-			price = priceNormalizing(soup.find('span',{'class':'a-price a-text-price a-size-medium apexPriceToPay', 'data-a-color':'price'}).span)
+			price = priceNormalizing(soup.find('span','a-price-whole'))
 		except Exception:
 			try:
 				# Deal price
@@ -204,7 +204,7 @@ class AmazonProductDetails:
 		except Exception:
 			try:
 				# list price
-				old_price = priceNormalizing(soup.find('span',{'class':'a-price a-text-price a-size-base', 'data-a-color':'secondary'}).span)
+				old_price = priceNormalizing(soup.find('span','a-price a-text-price'))
 			except Exception:
 				try:
 					# Book price
