@@ -178,34 +178,46 @@ class varienceDetail():
 	def price(self):
 
 		html_file = self.html_fileEN()
-		price_only = SoupStrainer('div',{'id':'corePrice_desktop'})
+		price_only = SoupStrainer('div',{'id':'ppd'})
 		soup = BeautifulSoup(html_file, 'lxml', parse_only=price_only)
 
 		try:
-			price = priceNormalizing(soup.find('span',{'class':'a-price a-text-price a-size-medium apexPriceToPay', 'data-a-color':'price'}).span)
+			price = priceNormalizing(soup.find('span','a-price-whole'))
 		except Exception:
 			try:
-				# Book price
-				price = priceNormalizing(soup.find('span',{'id':'price'}))
+				# Deal price
+				price = priceNormalizing(soup.find('span',{'id':'priceblock_dealprice'}))
 			except Exception:
-				price = 0.0
+				try:
+					# Book price
+					price = priceNormalizing(soup.find('span',{'id':'price'}))
+				except Exception:
+					try:
+						# Only Price    
+						price = priceNormalizing(soup.find('span',{'id':'priceblock_ourprice'}))
+					except Exception:
+						price = 0.0
 
 		return price
 
 	def old_price(self):
 
 		html_file = self.html_fileEN()
-		price_only = SoupStrainer('div',{'id':'corePrice_desktop'})
+		price_only = SoupStrainer('div',{'id':'ppd'})
 		soup = BeautifulSoup(html_file, 'lxml', parse_only=price_only)
 		
 		try:
-			old_price = priceNormalizing(soup.find('span',{'class':'a-price a-text-price a-size-base', 'data-a-color':'secondary'}).span)
+			old_price = priceNormalizing(soup.find('span','priceBlockStrikePriceString'))
 		except Exception:
 			try:
-				# Book price
-				old_price = priceNormalizing(soup.find('span',{'id':'listPrice'}))
+				# list price
+				old_price = priceNormalizing(soup.find('span','a-price a-text-price'))
 			except Exception:
-				old_price = 0.0
+				try:
+					# Book price
+					old_price = priceNormalizing(soup.find('span',{'id':'listPrice'}))
+				except Exception:
+					old_price = 0.0
 
 		return old_price
 
