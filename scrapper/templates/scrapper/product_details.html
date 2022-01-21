@@ -69,8 +69,16 @@
 
 		{% if language == 'AR' %}
 		<div class="col-md text-right" style="direction: rtl;">
+		<h3>
+			{{title.title_ar}}
+		</h3>
+		<br>
 		{% else %}
 		<div class="col-md">
+		<h3>
+			{{title.title_en}}
+		</h3>
+		<br>
 		{% endif %}
 
 			<!-- Description if given -->
@@ -137,6 +145,26 @@
 				</tr>
 				
 				{% endfor %}
+				{% if language == 'AR' %}
+				<tr>
+					<td>{{title.price}}</td>
+					<td class="table-active" style="width: 40%">Price</td>
+				</tr>
+				<tr>
+					<td>{{title.old_price}}</td>
+					<td class="table-active" style="width: 40%">Market Price</td>
+				</tr>
+
+				{% else %}
+				<tr>
+					<td class="table-active" style="width: 40%">Price</td>
+					<td>{{title.price}}</td>
+				</tr>
+				<tr>
+					<td class="table-active" style="width: 40%">Market Price</td>
+					<td>{{title.old_price}}</td>
+				</tr>
+				{% endif %}
 			</table>
 
 		</div>
