@@ -399,6 +399,7 @@ def robustSearchValid(request):
 	global_file = json.loads(global_file)
 	global_file = pd.DataFrame(global_file)
 	results_lst = []
+	results_lst_ksa = []
 	validated = []
 
 	asins = global_file['ASIN']
@@ -419,15 +420,21 @@ def robustSearchValid(request):
 	for item_db in items_db:
 		# Sending updated details
 		context = {}
-		context["productID"] = item_db.productID
-		context["description_en"] = item_db.description_en
-		context["description_ar"] = item_db.description_ar
+		if item_db.source  == 'amazon.ae':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+			context["description_ar"] = item_db.description_ar
+			results_lst.append(context)
 
-		results_lst.append(context)
+		elif item_db.source == 'amazon.sa':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+			context["description_ar"] = item_db.description_ar
+			results_lst_ksa.append(context)
 
 	validated = productPagesScrapper.objects.filter(Q(productID__in=global_file['ASIN'], description_en=True, description_ar=True) | Q(productID__in=global_file['ASIN'], description_en=True, source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk')))
 
-	return JsonResponse({'report':results_lst, 'valid_count':len(validated), 'type':'crawler report'})
+	return JsonResponse({'report':results_lst, 'ksa': results_lst_ksa, 'valid_count':len(validated), 'type':'crawler report'})
 
 def robustSearchValidKSA(request):
 

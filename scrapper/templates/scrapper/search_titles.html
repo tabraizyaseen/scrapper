@@ -630,20 +630,39 @@
 
 				if (data.type === "crawler report"){
 					var txt_data = data.report;
-					var table_data = '';
+					if (txt_data){
+						var table_data = '';
+						for (let i=0; i < txt_data.length; i++){
+							table_data += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${txt_data[i].productID}</td>
+											<td>${txt_data[i].description_en}</td>
+											<td>${txt_data[i].description_ar}</td>
+											</tr>
+											`;
+						}
 
-					for (let i=0; i < txt_data.length; i++){
-						table_data += `
-										<tr>
-										<td>${i+1}</td>
-										<td>${txt_data[i].productID}</td>
-										<td>${txt_data[i].description_en}</td>
-										<td>${txt_data[i].description_ar}</td>
-										</tr>
-										`;
+						document.getElementById('table-amazonUAE').innerHTML = table_data;
 					}
 
-					document.getElementById('table-amazonUAE').innerHTML = table_data;
+					var ksa_data = data.ksa;
+					if (ksa_data){
+						var table_ksa = '';
+						for (let i=0; i < ksa_data.length; i++){
+							table_ksa += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${ksa_data[i].productID}</td>
+											<td>${ksa_data[i].description_en}</td>
+											<td>${ksa_data[i].description_ar}</td>
+											</tr>
+											`;
+						}
+
+						document.getElementById('table-amazonKSA').innerHTML = table_ksa;
+					}
+					
 					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
 				}
 
