@@ -41,12 +41,12 @@ class ProductFilter(django_filters.FilterSet):
 		
 class ProductCategoryFilter(django_filters.FilterSet):
 
-	category = CharFilter(field_name='category__name', lookup_expr='icontains', label="Category")
-	category_exact = CharFilter(field_name='category__name', lookup_expr='exact', label="Category Exact")
+	name = CharFilter(field_name='name', lookup_expr='icontains', label="Category")
+	category_exact = CharFilter(field_name='name', lookup_expr='exact', label="Category Exact")
 
 	class Meta:
-		model = productPagesScrapper
-		fields = ['category']
+		model = Categories
+		fields = ['name']
 
 
 class VariationSettingsFilter(django_filters.FilterSet):
