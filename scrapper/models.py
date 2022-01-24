@@ -2,9 +2,13 @@ from django.db import models
 
 # Create your models here.
 
+
+class Categories(models.Model):
+	name = models.CharField(max_length=200, null=True, blank=True)
+
 class productPagesScrapper(models.Model):
 	source = models.CharField(max_length=200, null=True, blank=True)
-	category = models.CharField(max_length=200, null=True, blank=True)
+	category = models.ForeignKey(Categories, null=True, on_delete=models.SET_NULL)
 	productID = models.CharField(max_length=50, null=True, blank=True)
 	title_en = models.CharField(max_length=500, null=True, blank=True)
 	title_ar = models.CharField(max_length=500, null=True, blank=True)

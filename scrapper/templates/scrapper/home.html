@@ -86,7 +86,7 @@
 				<tbody>
 				{% for products in page.object_list %}
 					<tr>
-						<td id="cat-{{forloop.counter}}">{{products.category}}</td>
+						<td id="cat-{{forloop.counter}}">{{products.category.name}}</td>
 						<td id="asin-{{forloop.counter}}">{{products.productID}}</td>
 						{% if products.description_en == False or products.description_ar == False %}
 						<td id="title-{{forloop.counter}}">{{products.title_en}}</td>

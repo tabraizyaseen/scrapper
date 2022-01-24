@@ -6,7 +6,7 @@ import json
 from django.utils import timezone
 
 from .models import productPagesScrapper
-from .amazon_response_handler import responseUAE, priceNormalizing
+from .amazon_response_handler import responseUAE, priceNormalizing, category_check
 
 def soupParser(link):
 
@@ -150,7 +150,7 @@ def amazonProductServerResponse(product):
 			responseFile.writelines(response.text)
 			productPagesScrapper.objects.filter(id=product.id).update(
 				source='amazon.ae',
-				category=category,
+				category=category_check(category),
 				title_en=title,
 				description_en=valid,
 				last_checked = timezone.now(),
@@ -570,25 +570,13 @@ def ResponseValidate(productResponse):
 
 				responseFile.writelines(response.text)
 
-				if category:
-
-					productPagesScrapper.objects.filter(id=productResponse.id).update(
-						category=category,
-						description_en=valid,
-						title_en=title,
-						last_checked = timezone.now(),
-						source = "amazon.ae",
-					)
-				else:
-					productPagesScrapper.objects.filter(id=productResponse.id).update(
-						description_en=valid,
-						title_en=title,
-						last_checked = timezone.now(),
-						source = "amazon.ae"
-					)
-
-	else:
-		pass
+				productPagesScrapper.objects.filter(id=productResponse.id).update(
+					category=category_check(category),
+					description_en=valid,
+					title_en=title,
+					last_checked = timezone.now(),
+					source = "amazon.ae",
+				)
 	
 def ResponseValidateArabic(productResponse):
 

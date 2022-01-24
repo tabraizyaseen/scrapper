@@ -27,7 +27,7 @@ class ProductFilter(django_filters.FilterSet):
 
 
 	q = django_filters.CharFilter(method='my_custom_filter',label="Search")
-	category_exact = CharFilter(field_name='category', lookup_expr='exact', label="Category Search")
+	category_exact = CharFilter(field_name='category__name', lookup_expr='exact', label="Category Search")
 
 	class Meta:
 		model = productPagesScrapper
@@ -35,14 +35,14 @@ class ProductFilter(django_filters.FilterSet):
 
 	def my_custom_filter(self, queryset, name, value):
 		return productPagesScrapper.objects.filter(
-			Q(category__icontains=value) | Q(title_en__icontains=value) | Q(productID__startswith=value) | Q(source=value) | Q(id=value if value.isdigit() else 0) | Q(batchname__icontains=value)
+			Q(category__name__icontains=value) | Q(title_en__icontains=value) | Q(productID__startswith=value) | Q(source=value) | Q(id=value if value.isdigit() else 0) | Q(batchname__icontains=value)
 		)
 		
 		
 class ProductCategoryFilter(django_filters.FilterSet):
 
-	category = CharFilter(field_name='category', lookup_expr='icontains', label="Category")
-	category_exact = CharFilter(field_name='category', lookup_expr='exact', label="Category Exact")
+	category = CharFilter(field_name='category__name', lookup_expr='icontains', label="Category")
+	category_exact = CharFilter(field_name='category__name', lookup_expr='exact', label="Category Exact")
 
 	class Meta:
 		model = productPagesScrapper

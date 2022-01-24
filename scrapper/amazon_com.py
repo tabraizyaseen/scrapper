@@ -3,7 +3,7 @@ import io
 from django.utils import timezone
 
 from .models import productPagesScrapper
-from .amazon_response_handler import responseUSA
+from .amazon_response_handler import responseUSA, category_check
 
 def soupParser(link):
 
@@ -65,7 +65,7 @@ def ResponseValidate(productResponse):
 				responseFile.writelines(response.text)
 
 				productPagesScrapper.objects.filter(id=productResponse.id).update(
-					category=category,
+					category=category_check(category),
 					description_en=valid,
 					title_en=title,
 					last_checked = timezone.now(),
