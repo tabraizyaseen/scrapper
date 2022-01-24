@@ -888,7 +888,7 @@ def singleProductValidate(request):
 			item_new = productPagesScrapper.objects.get(productID=asin)
 			context["pk"] = item_new.id
 			context["productID"] = item_new.productID
-			context["category"] = item_new.category
+			context["category"] = item_new.category.name
 			context["title_en"] = item_new.title_en
 			context['status'] = 'Ok'
 		else:

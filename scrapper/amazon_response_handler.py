@@ -1,12 +1,23 @@
+from unicodedata import name
 import requests
 from requests.exceptions import RequestException
 from requests.adapters import HTTPAdapter
 import random
+from scrapper.models import Categories
 
 def priceNormalizing(price):
 		price = float(price.text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('SAR','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
 		return price
 
+def category_check(category):
+	cat_obj = Categories.objects.filter(name=category)
+
+	if cat_obj:
+		return cat_obj[0]
+	else:
+		create_category = Categories.objects.create(name=category)
+		return create_category
+	
 def responseUAE(link):
 
 	try:
