@@ -101,7 +101,7 @@
 				</thead>
 				<tbody>
 				{% for cat in page.object_list %}
-					{% if cat.category %}
+					{% if cat %}
 					<tr>
 						<td class="detail">
 							<div class="progress-td">
@@ -111,18 +111,18 @@
 							</div>
 							{{forloop.counter}}
 						</td>
-						<td><a href="/category_details/{{cat.category}}">{{cat.category}}</a></td>
+						<td><a href="/category_details/{{cat.id}}">{{cat.name}}</a></td>
 						
 						<td>
 							<!-- Spinner -->
 							<div id="btn-{{forloop.counter}}">
-								<button class="btn btn-outline-info rounded-pill btn-sel" data-cat="{{cat.category}}" area-label="{{forloop.counter}}">
+								<button class="btn btn-outline-info rounded-pill btn-sel" data-cat="{{cat.id}}" area-label="{{forloop.counter}}">
 								Get Details
 								</button>
 							</div>
 						</td>
 						<td>
-							<button class="btn btn-outline-info rounded-pill btn-validate" data-cat="{{cat.category}}" area-label="{{forloop.counter}}">Validate</button>
+							<button class="btn btn-outline-info rounded-pill btn-validate" data-cat="{{cat.id}}" area-label="{{forloop.counter}}">Validate</button>
 							<div id="progress-bar-message-{{forloop.counter}}"></div>
 						</td>
 					</tr>

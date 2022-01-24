@@ -720,13 +720,15 @@ def noonScrapper(request):
 
 def viewCategories(request):
 
-	global_category = productPagesScrapper.objects.filter(productID__startswith='B').values('category').distinct()
+	# global_category = productPagesScrapper.objects.values('category').distinct()
+	global_category = Categories.objects.all()
 	total_category = len(global_category)
+	print(global_category[0])
 
 	categoryFilter = ProductCategoryFilter(request.GET, queryset=global_category)
 	global_category = categoryFilter.qs
 
-	request.session['global_category'] = [category for category in global_category]
+	request.session['global_category'] = [category.name for category in global_category]
 
 	# Pagination
 	product_paginator = Paginator(global_category, 50)
