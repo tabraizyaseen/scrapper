@@ -5,6 +5,8 @@ from . import views
 urlpatterns = [
     # main pages
 	path('', views.viewProducts, name='home'),
+    path('login/', views.loginPage, name='login'),
+    path('logout/', views.logoutPage, name='logout'),
 	path('amazon_scrapper/', views.amazonScrapper, name='amazon_scrapper'),
 	path('noon_scrapper/', views.noonScrapper, name='noon_scrapper'),
 	path('search_titles', views.searchTitles, name='search_titles'),
@@ -20,8 +22,9 @@ urlpatterns = [
     path('total_varience/', views.productTotalVarience, name='total_varience'),
     
     path('requiredJsonFormat/', views.requiredJsonFormat, name='requiredJsonFormat'),
-    path('category_attributes/',views.categoryAttributesManager, name='category_attributes'),
-    path('upload_stats/',views.uploadStats, name='upload_stats'),
+    path('category_attributes/', views.categoryAttributesManager, name='category_attributes'),
+    path('upload_stats/', views.uploadStats, name='upload_stats'),
+    path('export_excel/', views.exportExcel, name='export_excel'),
 
     # Multiple Amazon Countries Crawlers
 	path('robust_search_valid_ksa/', views.robustSearchValidKSA, name='robust_search_valid_ksa'),

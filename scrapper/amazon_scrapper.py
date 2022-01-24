@@ -1,19 +1,12 @@
-import requests
-from requests.exceptions import RequestException
-from requests.adapters import HTTPAdapter
 from bs4 import BeautifulSoup
 import io
-import random
-from time import sleep
 import re
 import json
 
-import datetime
 from django.utils import timezone
 
 from .models import productPagesScrapper
-from .models import productDetails
-from .amazon_response_handler import responseUAE
+from .amazon_response_handler import responseUAE, priceNormalizing
 
 def soupParser(link):
 
@@ -52,16 +45,16 @@ def amazonCategoryScrapper(url):
 
 			# Price
 			try:
-				price = container.find('span','a-price-whole').text.replace(".","").replace(",","").replace('₹','').replace('$','').replace('£','')
+				price = priceNormalizing(container.find('span','a-price-whole'))
 			except AttributeError:
-				price = ""
+				price = 0.0
 
 			# old price
 			try:
 				old = container.find('span','a-text-price')
-				old_price = old.find('span',{'aria-hidden':'true'}).text.split("D")[-1].split(".")[0].replace(",","").replace('₹','').replace('$','').replace('£','')
+				old_price = priceNormalizing(old.find('span',{'aria-hidden':'true'}))
 			except AttributeError:
-				old_price = ""
+				old_price = 0.0
 
 			return p_id, title, price, old_price
 
@@ -184,17 +177,21 @@ class AmazonProductDetails:
 		soup = self.soup
 
 		try:
-			price = soup.find('span',{'id':'priceblock_ourprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','').replace('£','')
+			price = priceNormalizing(soup.find('span','a-price-whole'))
 		except Exception:
 			try:
 				# Deal price
-				price = soup.find('span',{'id':'priceblock_dealprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','').replace('£','')
+				price = priceNormalizing(soup.find('span',{'id':'priceblock_dealprice'}))
 			except Exception:
 				try:
 					# Book price
-					price = soup.find('span',{'id':'price'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','').replace('£','')
+					price = priceNormalizing(soup.find('span',{'id':'price'}))
 				except Exception:
-					price = ''
+					try:
+						# Only Price	
+						price = priceNormalizing(soup.find('span',{'id':'priceblock_ourprice'}))
+					except Exception:
+						price = 0.0
 
 		return price
 
@@ -203,13 +200,17 @@ class AmazonProductDetails:
 		soup = self.soup
 
 		try:
-			old_price = soup.find('span','priceBlockStrikePriceString').text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','').replace('£','')
+			old_price = priceNormalizing(soup.find('span','priceBlockStrikePriceString'))
 		except Exception:
 			try:
-				# Book price
-				old_price = soup.find('span',{'id':'listPrice'}).text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','').replace('$','').replace('£','')
+				# list price
+				old_price = priceNormalizing(soup.find('span','a-price a-text-price'))
 			except Exception:
-				old_price = ''
+				try:
+					# Book price
+					old_price = priceNormalizing(soup.find('span',{'id':'listPrice'}))
+				except Exception:
+					old_price = 0.0
 
 		return old_price
 
@@ -280,7 +281,8 @@ class AmazonProductDetails:
 				for specification_table in specifications_div.find_all('table'):
 					for specification_tr in specification_table.find_all('tr'):
 						specification_tds = specification_tr.find_all('td')
-						specifications.append((specification_tds[0].text.strip(),specification_tds[1].text.strip()))
+						if specification_tds:
+							specifications.append((specification_tds[0].text.strip(),specification_tds[1].text.strip()))
 			except AttributeError:
 				pass
 		
@@ -316,20 +318,19 @@ class AmazonProductDetails:
 			# All images
 			strt = javascript_img.find("'colorImages\':")+15
 			start2 = javascript_img[strt:].find("'initial\': ")+11+strt
-			end = javascript_img.find("},\n\'colorToAsin\'")
-			all_imgs = json.loads(javascript_img[start2:end])
+			end = javascript_img.find("'colorToAsin\'")
+			all_imgs = json.loads(javascript_img[start2:end].strip()[:-2])
 
 			all_image = [imgs['hiRes'] if imgs['hiRes'] else imgs['large'] for imgs in all_imgs]
 
 		except Exception as e:
 
 			try:
-				print(e)
-
+				
 				# All Book Images
 				strt = javascript_img.find("'imageGalleryData'")+20
-				end = javascript_img.find(",\n\'centerColMargin\'")
-				all_imgs = json.loads(javascript_img[strt:end])
+				end = javascript_img.find("'centerColMargin\'")
+				all_imgs = json.loads(javascript_img[strt:end].strip()[:-1])
 				all_image = [imgs['mainUrl'] for imgs in all_imgs if imgs['mainUrl']]
 
 			except Exception:
@@ -460,7 +461,12 @@ class AmazonProductDetailsArabic:
 				for specification_table in specifications_div.find_all('table'):
 					for specification_tr in specification_table.find_all('tr'):
 						specification_tds = specification_tr.find_all('td')
-						specifications.append((specification_tds[0].text.strip(),specification_tds[1].text.strip()))
+						if len(specification_tds) < 2:
+							specification_th = specification_tr.th.text.strip()
+							specification_td = specification_tr.td.text.strip()
+							specifications.append((specification_th,specification_td))
+						else:
+							specifications.append((specification_tds[0].text.strip(),specification_tds[1].text.strip()))
 			except AttributeError:
 				pass
 		
@@ -578,6 +584,7 @@ def ResponseValidate(productResponse):
 						description_en=valid,
 						title_en=title,
 						last_checked = timezone.now(),
+						source = "amazon.ae"
 					)
 
 	else:
@@ -606,6 +613,7 @@ def ResponseValidateArabic(productResponse):
 				description_ar=valid,
 				title_ar=title,
 				last_checked = timezone.now(),
+				source='amazon.ae',
 			)
 
 	else:

@@ -120,9 +120,9 @@
 	</div>
 	<div class="row" style="display: none">
 	{% endif %}
-
+		
 		<div class="col-md">
-
+			<p>File Name : <b>{{filename}}</b></p>
 			<!-- Stats of uploaded file -->
 			<div class="row">
 				<div class="col">
@@ -172,6 +172,10 @@
 					    <!-- Uploaded File Stats -->
 					  	<div class="dropdown-divider"></div>
 					    <a class="dropdown-item" href="{% url 'upload_stats' %}">File Stats</a>
+
+						<!-- Export Excel File -->
+						<div class="dropdown-divider"></div>
+					    <a class="dropdown-item" href="{% url 'export_excel' %}">Excel File</a>
 
 					  </div>
 					</div>
@@ -482,8 +486,13 @@
 							<td>{{variation.productID.productID}}</td>
 							<td>{{variation.current_asin}}</td>
 							<td>{{variation.parent_asin}}</td>
+							{% if variation.productID.source == 'amazon.ae' or variation.productID.source == 'amazon.sa' %}
 							<td>{{variation.description_en}}</td>
 							<td>{{variation.description_ar}}</td>
+							{% else %}
+							<td>{{variation.description_en}}</td>
+							<td>-</td>
+							{% endif %}
 							<td>{{variation.productID.source}}</td>
 						</tr>
 						{% endfor %}
@@ -594,7 +603,7 @@
 	});
 
 	function crawler_handler(url, div_name, skip_btn) {
-		all_btns = [activate_crawler_btn, activate_crawler_ksa_btn, activate_crawler_india_btn, product_details_btn, save_variations_btn, variation_crawler_btn, product_variations_btn];
+		all_btns = [activate_crawler_btn, activate_crawler_ksa_btn, activate_crawler_india_btn, activate_crawler_uk_btn, activate_crawler_aus_btn, activate_crawler_usa_btn, product_details_btn, save_variations_btn, variation_crawler_btn, product_variations_btn];
 		$.ajax({
 			type: 'GET',
 			url: url, 
@@ -621,20 +630,39 @@
 
 				if (data.type === "crawler report"){
 					var txt_data = data.report;
-					var table_data = '';
+					if (txt_data){
+						var table_data = '';
+						for (let i=0; i < txt_data.length; i++){
+							table_data += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${txt_data[i].productID}</td>
+											<td>${txt_data[i].description_en}</td>
+											<td>${txt_data[i].description_ar}</td>
+											</tr>
+											`;
+						}
 
-					for (let i=0; i < txt_data.length; i++){
-						table_data += `
-										<tr>
-										<td>${i+1}</td>
-										<td>${txt_data[i].productID}</td>
-										<td>${txt_data[i].description_en}</td>
-										<td>${txt_data[i].description_ar}</td>
-										</tr>
-										`;
+						document.getElementById('table-amazonUAE').innerHTML = table_data;
 					}
 
-					document.getElementById('table-amazonUAE').innerHTML = table_data;
+					var ksa_data = data.ksa;
+					if (ksa_data){
+						var table_ksa = '';
+						for (let i=0; i < ksa_data.length; i++){
+							table_ksa += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${ksa_data[i].productID}</td>
+											<td>${ksa_data[i].description_en}</td>
+											<td>${ksa_data[i].description_ar}</td>
+											</tr>
+											`;
+						}
+
+						document.getElementById('table-amazonKSA').innerHTML = table_ksa;
+					}
+					
 					document.getElementsByClassName('valid-count')[0].innerHTML = data.valid_count;
 				}
 
@@ -643,7 +671,8 @@
 					var table_data = '';
 
 					for (let i=0; i < txt_data.length; i++){
-						table_data += `
+						if (txt_data[i].source === 'amazon.ae' || txt_data[i].source === 'amazon.sa'){
+							table_data += `
 										<tr>
 										<td>${i+1}</td>
 										<td>${txt_data[i].asin}</td>
@@ -654,6 +683,20 @@
 										<td>${txt_data[i].source}</td>
 										</tr>
 										`;
+						}else{
+							table_data += `
+										<tr>
+										<td>${i+1}</td>
+										<td>${txt_data[i].asin}</td>
+										<td>${txt_data[i].current_asin}</td>
+										<td>${txt_data[i].parent_asin}</td>
+										<td>${txt_data[i].description_en}</td>
+										<td>-</td>
+										<td>${txt_data[i].source}</td>
+										</tr>
+										`;
+						}
+						
 					}
 
 					document.getElementById('totalVariationDisplay').innerHTML = table_data;
@@ -770,17 +813,34 @@
 					var table_data = '';
 
 					for (let i=0; i < txt_data.length; i++){
-						table_data += `
-										<tr>
-										<td>${i+1}</td>
-										<td>${txt_data[i].asin}</td>
-										<td>${txt_data[i].current_asin}</td>
-										<td>${txt_data[i].parent_asin}</td>
-										<td>${txt_data[i].description_en}</td>
-										<td>${txt_data[i].description_ar}</td>
-										<td>${txt_data[i].source}</td>
-										</tr>
-										`;
+						if (txt_data[i].source === "amazon.ae" || txt_data[i].source === "amazon.sa" ){
+							
+							table_data += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${txt_data[i].asin}</td>
+											<td>${txt_data[i].current_asin}</td>
+											<td>${txt_data[i].parent_asin}</td>
+											<td>${txt_data[i].description_en}</td>
+											<td>${txt_data[i].description_ar}</td>
+											<td>${txt_data[i].source}</td>
+											</tr>
+											`;
+						}
+						else{
+							table_data += `
+											<tr>
+											<td>${i+1}</td>
+											<td>${txt_data[i].asin}</td>
+											<td>${txt_data[i].current_asin}</td>
+											<td>${txt_data[i].parent_asin}</td>
+											<td>${txt_data[i].description_en}</td>
+											<td>-</td>
+											<td>${txt_data[i].source}</td>
+											</tr>
+											`;
+						}
+						
 					}
 
 					document.getElementById('totalVariationDisplay').innerHTML = table_data;

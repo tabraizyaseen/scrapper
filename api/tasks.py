@@ -160,7 +160,7 @@ def item_variations(self, asin):
 		if not productDescription.objects.filter(productID=item, language=language):
 			long_description = product_details_class.ProductDescription()
 
-			productDescription.objects.create(productID=item, language=language, long_description=long_descriptionEN)
+			productDescription.objects.create(productID=item, language=language, long_description=long_description)
 
 		if not productHighlights.objects.filter(productID=item, language=language):
 			highlights = product_details_class.Highlights()

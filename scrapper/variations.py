@@ -1,14 +1,8 @@
-import requests
-from requests.exceptions import RequestException
-from requests.adapters import HTTPAdapter
 from bs4 import BeautifulSoup, SoupStrainer
-import random
 import io
 import json
 import re
-from time import sleep
 
-import datetime
 from django.utils import timezone
 
 from .models import *
@@ -67,8 +61,8 @@ class VariationsSoup():
 
 		if javascript_tag:
 			crnt_st = javascript_tag.find('"currentAsin"')+16
-			crnt_end = javascript_tag.find(',\n"parentAsin"')
-			crnt_asin = json.loads(javascript_tag[crnt_st:crnt_end])
+			crnt_end = javascript_tag.find('"parentAsin"')
+			crnt_asin = json.loads(javascript_tag[crnt_st:crnt_end].strip()[:-1])
 
 			return crnt_asin
 
@@ -80,8 +74,8 @@ class VariationsSoup():
 		if javascript_tag:
 
 			prt_st = javascript_tag.find('"parentAsin"')+15
-			prt_end = javascript_tag.find(',\n"dimensionToAsinMap"')
-			prt_asin = json.loads(javascript_tag[prt_st:prt_end])
+			prt_end = javascript_tag.find('"dimensionToAsinMap"')
+			prt_asin = json.loads(javascript_tag[prt_st:prt_end].strip()[:-1])
 
 			return prt_asin
 
@@ -113,8 +107,8 @@ class VariationsSoup():
 
 		if javascript_tag:
 			dimstr_str = javascript_tag.find('"dimensionValuesDisplayData"')+31
-			dimstr_end = javascript_tag.find(',\n"pwASINs"')
-			dimstr = json.loads(javascript_tag[dimstr_str:dimstr_end])
+			dimstr_end = javascript_tag.find('"pwASINs"')
+			dimstr = json.loads(javascript_tag[dimstr_str:dimstr_end].strip()[:-1])
 			print(len(dimstr))
 
 			return dimstr
@@ -125,8 +119,8 @@ class VariationsSoup():
 
 		if javascript_tag:
 			dimstr_str = javascript_tag.find('"dimensionValuesDisplayData"')+31
-			dimstr_end = javascript_tag.find(',\n"pwASINs"')
-			dimstr = json.loads(javascript_tag[dimstr_str:dimstr_end])
+			dimstr_end = javascript_tag.find('"pwASINs"')
+			dimstr = json.loads(javascript_tag[dimstr_str:dimstr_end].strip()[:-1])
 			print(len(dimstr))
 
 			return dimstr
@@ -138,8 +132,8 @@ class VariationsSoup():
 
 		if javascript_tag:
 			dim_st = javascript_tag.find('"dimensionToAsinMap"')+23
-			dim_end =javascript_tag.find(',\n"variationValues"')
-			dimenstions = json.loads(javascript_tag[dim_st:dim_end])
+			dim_end =javascript_tag.find('"variationValues"')
+			dimenstions = json.loads(javascript_tag[dim_st:dim_end].strip()[:-1])
 
 			return dimenstions
 
@@ -150,8 +144,8 @@ class VariationsSoup():
 
 		if javascript_tag:
 			dim_st = javascript_tag.find('"dimensionToAsinMap"')+23
-			dim_end =javascript_tag.find(',\n"variationValues"')
-			dimenstions = json.loads(javascript_tag[dim_st:dim_end])
+			dim_end =javascript_tag.find('"variationValues"')
+			dimenstions = json.loads(javascript_tag[dim_st:dim_end].strip()[:-1])
 
 			return dimenstions
 
@@ -184,29 +178,46 @@ class varienceDetail():
 	def price(self):
 
 		html_file = self.html_fileEN()
-		price_only = SoupStrainer('div' , {'id':'price'})
+		price_only = SoupStrainer('div',{'id':'ppd'})
 		soup = BeautifulSoup(html_file, 'lxml', parse_only=price_only)
 
 		try:
-			price = soup.find('span',{'id':'priceblock_ourprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','')
+			price = priceNormalizing(soup.find('span','a-price-whole'))
 		except Exception:
 			try:
-				price = soup.find('span',{'id':'priceblock_dealprice'}).text.split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','')
+				# Deal price
+				price = priceNormalizing(soup.find('span',{'id':'priceblock_dealprice'}))
 			except Exception:
-				price = ''
+				try:
+					# Book price
+					price = priceNormalizing(soup.find('span',{'id':'price'}))
+				except Exception:
+					try:
+						# Only Price    
+						price = priceNormalizing(soup.find('span',{'id':'priceblock_ourprice'}))
+					except Exception:
+						price = 0.0
 
 		return price
 
 	def old_price(self):
 
 		html_file = self.html_fileEN()
-		price_only = SoupStrainer('div' , {'id':'price'})
+		price_only = SoupStrainer('div',{'id':'ppd'})
 		soup = BeautifulSoup(html_file, 'lxml', parse_only=price_only)
 		
 		try:
-			old_price = soup.find('span','priceBlockStrikePriceString').text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('₹','')
+			old_price = priceNormalizing(soup.find('span','priceBlockStrikePriceString'))
 		except Exception:
-			old_price = ''
+			try:
+				# list price
+				old_price = priceNormalizing(soup.find('span','a-price a-text-price'))
+			except Exception:
+				try:
+					# Book price
+					old_price = priceNormalizing(soup.find('span',{'id':'listPrice'}))
+				except Exception:
+					old_price = 0.0
 
 		return old_price
 
@@ -271,8 +282,8 @@ class varienceDetail():
 			# All images
 			strt = javascript_img.find("'colorImages\':")+15
 			start2 = javascript_img[strt:].find("'initial\': ")+11+strt
-			end = javascript_img.find("},\n\'colorToAsin\'")
-			all_imgs = json.loads(javascript_img[start2:end])
+			end = javascript_img.find("'colorToAsin\'")
+			all_imgs = json.loads(javascript_img[start2:end].strip()[:-2])
 
 			all_image = [imgs['hiRes'] if imgs['hiRes'] else imgs['large'] for imgs in all_imgs]
 
@@ -281,12 +292,12 @@ class varienceDetail():
 		except Exception:
 
 		    # All Book Images
-		    strt = javascript_img.find("'imageGalleryData'")+20
-		    end = javascript_img.find(",\n\'centerColMargin\'")
-		    all_imgs = json.loads(javascript_img[strt:end])
-		    all_image = [imgs['mainUrl'] for imgs in all_imgs if imgs['mainUrl']]
+			strt = javascript_img.find("'imageGalleryData'")+20
+			end = javascript_img.find("'centerColMargin\'")
+			all_imgs = json.loads(javascript_img[strt:end].strip()[:-1])
+			all_image = [imgs['mainUrl'] for imgs in all_imgs if imgs['mainUrl']]
 
-		    all_images = ','.join(all_image)
+			all_images = ','.join(all_image)
 
 		return all_images
 
@@ -316,8 +327,8 @@ class Variant():
 
 				# "currentAsin" : "B08L5NLF53"
 				crnt_st = javascript_tag.find('"currentAsin"')+16
-				crnt_end = javascript_tag.find(',\n"parentAsin"')
-				crnt_asin = json.loads(javascript_tag[crnt_st:crnt_end])
+				crnt_end = javascript_tag.find('"parentAsin"')
+				crnt_asin = json.loads(javascript_tag[crnt_st:crnt_end].strip()[:-1])
 
 				if crnt_asin == item.current_asin:
 					# Writing File
@@ -350,45 +361,46 @@ class Variant():
 						)
 
 		item = self.item
-		title_only = SoupStrainer(['script',{'type':'text/javascript'}, 'span' , {'id':'productTitle'}])
+		if not item.description_en:
 
-		print("From Save Response Current Asin : ",item.current_asin)
+			title_only = SoupStrainer(['script',{'type':'text/javascript'}, 'span' , {'id':'productTitle'}])
+			print("From Save Response Current Asin : ",item.current_asin)
 
-		# For UAE
-		if item.productID.source == "amazon.ae":
-			response = responseUAE(f'https://www.amazon.ae/-/en/dp/{item.current_asin}')
-			if response:
-				checkResponse(response, title_only, item)
+			# For UAE
+			if item.productID.source == "amazon.ae":
+				response = responseUAE(f'https://www.amazon.ae/-/en/dp/{item.current_asin}')
+				if response:
+					checkResponse(response, title_only, item)
 
-		# For KSA
-		elif item.productID.source == "amazon.sa":
-			response = responseKSA(f'https://www.amazon.sa/-/en/dp/{item.current_asin}')
-			if response:
-				checkResponse(response, title_only, item)
+			# For KSA
+			elif item.productID.source == "amazon.sa":
+				response = responseKSA(f'https://www.amazon.sa/-/en/dp/{item.current_asin}')
+				if response:
+					checkResponse(response, title_only, item)
 
-		# For India
-		elif item.productID.source == "amazon.in":
-			response = responseIND(f'https://www.amazon.in/-/en/dp/{item.current_asin}')
-			if response:
-				checkResponse(response, title_only, item)
+			# For India
+			elif item.productID.source == "amazon.in":
+				response = responseIND(f'https://www.amazon.in/-/en/dp/{item.current_asin}')
+				if response:
+					checkResponse(response, title_only, item)
 
-		# For AU
-		elif item.productID.source == "amazon.com.au":
-			response = responseAU(f'https://www.amazon.com.au/-/en/dp/{item.current_asin}')
-			if response:
-				checkResponse(response, title_only, item)
+			# For AU
+			elif item.productID.source == "amazon.com.au":
+				response = responseAU(f'https://www.amazon.com.au/-/en/dp/{item.current_asin}')
+				if response:
+					checkResponse(response, title_only, item)
 
-		# For UK
-		elif item.productID.source == "amazon.co.uk":
-			response = responseUK(f'https://www.amazon.co.uk/-/en/dp/{item.current_asin}')
-			if response:
-				checkResponse(response, title_only, item)
+			# For UK
+			elif item.productID.source == "amazon.co.uk":
+				response = responseUK(f'https://www.amazon.co.uk/-/en/dp/{item.current_asin}')
+				if response:
+					checkResponse(response, title_only, item)
 
-		# For USA
-		elif item.productID.source == "amazon.com":
-			response = responseUSA(f'https://www.amazon.com/-/en/dp/{item.current_asin}')
-			if response:
-				checkResponse(response, title_only, item)
+			# For USA
+			elif item.productID.source == "amazon.com":
+				response = responseUSA(f'https://www.amazon.com/-/en/dp/{item.current_asin}')
+				if response:
+					checkResponse(response, title_only, item)
 
 	def saveResponseAR(self):
 
@@ -409,16 +421,17 @@ class Variant():
 				pass
 
 		item = self.item
-		title_only = SoupStrainer('span' , {'id':'productTitle'})
+		if not item.description_ar:
+			title_only = SoupStrainer('span' , {'id':'productTitle'})
 
-		# For UAE
-		if item.productID.source == "amazon.ae":
-			response_ar = responseUAE(f'https://www.amazon.ae/-/ar/dp/{item.current_asin}')
-			if response_ar:
-				checkArResponse(response_ar, title_only, item)
+			# For UAE
+			if item.productID.source == "amazon.ae":
+				response_ar = responseUAE(f'https://www.amazon.ae/-/ar/dp/{item.current_asin}')
+				if response_ar:
+					checkArResponse(response_ar, title_only, item)
 
-		# For KSA
-		elif item.productID.source == "amazon.sa":
-			response_ar = responseKSA(f'https://www.amazon.sa/-/ar/dp/{item.current_asin}')
-			if response_ar:
-				checkArResponse(response_ar, title_only, item)
+			# For KSA
+			elif item.productID.source == "amazon.sa":
+				response_ar = responseKSA(f'https://www.amazon.sa/-/ar/dp/{item.current_asin}')
+				if response_ar:
+					checkArResponse(response_ar, title_only, item)

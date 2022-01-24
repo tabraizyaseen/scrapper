@@ -5,8 +5,9 @@ from celery_progress.backend import ProgressRecorder
 from django.db.models import Q
 
 from .models import *
-from . import amazon_scrapper
 from .amazon_DBHandler import *
+from .noon_DBHandler import *
+from . import amazon_scrapper
 
 
 @shared_task(bind=True)
@@ -17,7 +18,7 @@ def category_validator(self, category):
 			dbhandler_ins.get_valid()
 
 		elif item.source == 'noon.com':
-			noonDbhandler_ins = noon_DBHandler_cls(asin)
+			noonDbhandler_ins = noon_DBHandler_cls(item.productID)
 			noonDbhandler_ins.get_valid()
 
 		elif item.source == "amazon.sa":
@@ -56,4 +57,28 @@ def category_validator(self, category):
 
 	return 'Done'
 
+@shared_task(bind=True)
+def images_updater(self):
+	all_items = productPagesScrapper.objects.filter(last_checked__icontains='2021-06-06')
+	progress_recorder = ProgressRecorder(self)
 
+	for counting, item in enumerate(all_items):
+		product_details_class = amazon_scrapper.AmazonProductDetails(item)
+		try:
+			if productImages.objects.filter(productID=item).exists():
+				if item.description_en and item.description_ar:
+					images = product_details_class.ImagesList()
+					images_db = productImages.objects.filter(productID=item)
+
+					for image, image_db in zip(images,images_db):
+						image_db.image = image
+
+					productImages.objects.bulk_update(images_db, ['image'])
+		except AttributeError:
+			pass
+
+		progress_recorder.set_progress(counting, len(all_items), f"on {item.productID}")
+	
+	return 'Images Updated'
+
+	

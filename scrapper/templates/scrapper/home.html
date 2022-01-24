@@ -77,6 +77,8 @@
 						<th style="width: 15%">Category</th>
 						<th style="width: 15%">Asin</th>
 						<th>Title</th>
+						<th>Batch Name</th>
+						<th>Source</th>
 						<th>Action</th>
 						<th>Delete</th>
 					</tr>
@@ -88,15 +90,20 @@
 						<td id="asin-{{forloop.counter}}">{{products.productID}}</td>
 						{% if products.description_en == False or products.description_ar == False %}
 						<td id="title-{{forloop.counter}}">{{products.title_en}}</td>
+						<td>{{products.batchname}}</td>
+						<td>{{products.source}}</td>
 						<td>
 							<div id="spinner-{{forloop.counter}}">
 								<button class="btn btn-outline-info btn-sm rounded-pill btn-validate" data-asin="{{products.productID}}" area-label="{{forloop.counter}}">Validate</button>
 							</div>
+						</td>
 						{% else %}
 						<td id="title-{{forloop.counter}}"><a href="{% url 'product_details' products.id %}">{{products.title_en}}</a></td>
+						<td>{{products.batchname}}</td>
+						<td>{{products.source}}</td>
 						<td><p class="badge badge-info">Valid</p></td>
 						{% endif %}
-						</td>
+						
 						<td>
 							<!-- Button trigger modal -->
 							<button class="btn btn-sm btn-outline-danger rounded-pill" data-toggle="modal" data-target="#deleteModal" onclick="modal_body('{{products.productID}}')">

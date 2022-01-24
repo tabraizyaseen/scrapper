@@ -1,9 +1,6 @@
-import requests
-from requests.exceptions import RequestException
-from requests.adapters import HTTPAdapter
 from bs4 import BeautifulSoup
 import io
-import random
+from django.utils import timezone
 
 from .models import productPagesScrapper
 from .amazon_response_handler import responseAU
@@ -71,6 +68,7 @@ def ResponseValidate(productResponse):
 					category=category,
 					description_en=valid,
 					title_en=title,
+					last_checked = timezone.now(),
 					source='amazon.com.au',
 				)
 

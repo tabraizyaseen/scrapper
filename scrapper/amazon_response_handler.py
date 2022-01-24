@@ -1,16 +1,11 @@
 import requests
 from requests.exceptions import RequestException
 from requests.adapters import HTTPAdapter
-from bs4 import BeautifulSoup, SoupStrainer
 import random
-import io
-import json
-import re
-from time import sleep
 
-import datetime
-from django.utils import timezone
-
+def priceNormalizing(price):
+		price = float(price.text.strip().split('\xa0')[-1].split('.')[0].replace(',','').replace('SAR','').replace('AED','').replace('₹','').replace('$','').replace('£',''))
+		return price
 
 def responseUAE(link):
 
@@ -112,26 +107,33 @@ def responseUAE(link):
 		}]
 
 		proxies = [
-			{'http': 'http://151.253.165.70:8080'},
-			{'http': 'http://185.106.121.176:9050'},
-			{'http': 'http://193.223.100.81:1080'},
-			{'http': 'http://217.138.193.62:1080'},
-			{'http': 'http://20.46.192.92:9300'},
-			{'http': 'http://178.80.156.227:8080'},
-			{'http': 'http://5.42.224.18:8080'},
-			{'http': 'http://2.88.5.196:8080'},
-			{'http': 'http://37.104.112.202:8080'},
-			{'http': 'http://37.56.37.130:8080'},
-			{'http': 'http://177.11.84.254:8080'},
-			{'http': 'http://202.29.237.211:3128'},
-			{'http': 'http://167.99.131.11:80'},
-			{'http': 'http://178.72.74.40:31372'},
-			{'http': 'http://1.32.59.217:47045'},
-			{'http': 'http://112.78.162.208:8080'},
-			{'http': 'http://95.208.208.233:8080'},
-			{'http': 'http://5.252.161.48:8080'},
-			{'http': 'http://79.120.177.106:8080'},
-			{'http': 'http://218.88.204.136:3256'},
+			{'HTTP': 'HTTP://185.181.166.209:8080'},
+			{'HTTPS': 'HTTPS://181.129.43.3:8080'},
+			{'HTTP': 'HTTP://45.70.198.195:999'},
+			{'HTTP': 'HTTP://103.101.17.170:8080'},
+			{'HTTP': 'HTTP://181.10.171.234:8080'},
+			{'HTTP': 'HTTP://92.60.26.58:8089'},
+			{'HTTPS': 'HTTPS://92.249.122.108:61778'},
+			{'HTTPS': 'HTTPS://91.92.94.69:41890'},
+			{'HTTPS': 'HTTPS://85.234.126.107:55555'},
+			{'HTTPS': 'HTTPS://116.105.87.134:3128'},
+			{'HTTP': 'HTTP://190.103.74.236:999'},
+			{'HTTPS': 'HTTPS://46.35.249.189:41419'},
+			{'HTTP': 'HTTP://45.116.229.183:8080'},
+			{'HTTP': 'HTTP://46.147.110.7:8080'},
+			{'HTTP': 'HTTP://98.154.21.253:3128'},
+			{'HTTP': 'HTTP://170.254.230.201:999'},
+			{'HTTPS': 'HTTPS://177.136.84.164:999'},
+			{'HTTP': 'HTTP://34.208.39.27:3128'},
+			{'HTTP': 'HTTP://195.97.124.164:8080'},
+			{'HTTP': 'HTTP://80.66.81.35:53281'},
+			{'HTTP': 'HTTP://170.79.235.3:999'},
+			{'HTTP': 'HTTP://82.114.97.157:1256'},
+			{'HTTPS': 'HTTPS://178.151.205.154:45099'},
+			{'HTTPS': 'HTTPS://125.25.206.28:8080'},
+			{'HTTPS': 'HTTPS://203.150.113.190:57322'},
+			{'HTTP': 'HTTP://77.70.35.87:37475'},
+			{'HTTPS': 'HTTPS://187.189.132.173:999'},
 		]
 
 		session.proxies.update(random.choice(proxies))
@@ -246,47 +248,38 @@ def responseKSA(link):
 			'referer': 'https://www.google.com/'
 		}]
 
-		proxies = [{
-			"http": "http://151.253.165.70:8080"
-		}, {
-			"http": "http://185.106.121.176:9050"
-		}, {
-			"http": "http://193.223.100.81:1080"
-		}, {
-			"http": "http://217.138.193.62:1080"
-		}, {
-			"http": "http://20.46.192.92:9300"
-		}, {
-			"http": "http://178.80.156.227:8080"
-		}, {
-			"http": "http://5.42.224.18:8080"
-		}, {
-			"http": "http://2.88.5.196:8080"
-		}, {
-			"http": "http://37.104.112.202:8080"
-		}, {
-			"http": "http://37.56.37.130:8080"
-		}, {
-			"http": "http://118.69.219.185"
-		}, {
-			"http": "http://127.0.0.1"
-		}, {
-			"http": "http://50.192.195.69"
-		}, {
-			"http": "http://89.187.177.91"
-		}, {
-			"http": "http://192.168.0.179"
-		}, {
-			"http": "http://139.59.1.14"
-		}, {
-			"http": "http://103.240.77.98"
-		}, {
-			"http": "http://58.69.161.161"
-		}, {
-			"http": "http://103.197.49.165"
-		}, {
-			"http": "http://103.15.140.140"
-		}]
+		proxies = [
+			{'http': 'http://142.154.47.154:8080'},
+			{'http': 'http://145.82.206.237:8080'},
+			{'http': 'http://93.112.203.154:8080'},
+			{'http': 'http://51.223.247.70:8080'},
+			{'http': 'http://88.84.105.68:1080'},
+			{'http': 'http://175.110.204.167:8080'},
+			{'http': 'http://51.223.254.208:8080'},
+			{'http': 'http://188.50.166.251:1981'},
+			{'http': 'http://93.112.168.84:8080'},
+			{'http': 'http://142.154.124.228:8080'},
+			{'http': 'http://37.106.76.27:8080'},
+			{'http': 'http://51.223.246.99:8080'},
+			{'http': 'http://86.60.62.29:8080'},
+			{'http': 'http://93.112.210.235:8080'},
+			{'http': 'http://175.110.197.49:8080'},
+			{'http': 'http://51.223.90.95:8080'},
+			{'http': 'http://51.223.247.165:8080'},
+			{'http': 'http://51.223.248.121:8080'},
+			{'http': 'http://51.223.245.26:8080'},
+			{'http': 'http://86.60.62.40:8080'},
+			{'http': 'http://51.223.244.181:8080'},
+			{'http': 'http://51.223.251.74:8080'},
+			{'http': 'http://51.223.250.58:8080'},
+			{'http': 'http://95.177.160.166:1080'},
+			{'http': 'http://51.211.2.157:8080'},
+			{'http': 'http://51.223.248.225:8080'},
+			{'http': 'http://86.60.62.32:8080'},
+			{'http': 'http://141.164.215.44:8080'},
+			{'http': 'http://31.166.33.7:9090'},
+			{'http': 'http://31.166.194.120:9090'},
+		]
 
 		session.proxies.update(random.choice(proxies))
 		session.headers.update(random.choice(HEADERS))

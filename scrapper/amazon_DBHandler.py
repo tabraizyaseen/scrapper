@@ -18,48 +18,58 @@ class amazon_DBHandler_cls():
 		asin = self.asin
 
 		item_db = productPagesScrapper.objects.get(productID=asin)
-		if not item_db.description_en:
-			amazon_scrapper.ResponseValidate(item_db)
+		if item_db.source == 'amazon.ae':
+			if not item_db.description_en:
+				amazon_scrapper.ResponseValidate(item_db)
 
-		if not item_db.description_ar:
-			amazon_scrapper.ResponseValidateArabic(item_db)
+			if not item_db.description_ar:
+				amazon_scrapper.ResponseValidateArabic(item_db)
+		else:
+			if not (item_db.description_en or item_db.description_ar):
+				amazon_scrapper.ResponseValidate(item_db)
+				amazon_scrapper.ResponseValidateArabic(item_db)
 
 	def get_valid_ksa(self):
 		asin = self.asin
 
 		item_db = productPagesScrapper.objects.get(productID=asin)
-		if not item_db.description_en:
-			amazon_ksa.ResponseValidate(item_db)
+		if item_db.source == 'amazon.sa':
+			if not item_db.description_en:
+				amazon_ksa.ResponseValidate(item_db)
 
-		if not item_db.description_ar:
-			amazon_ksa.ResponseValidateArabic(item_db)
+			if not item_db.description_ar:
+				amazon_ksa.ResponseValidateArabic(item_db)
+		else:
+			if not (item_db.description_en or item_db.description_ar):
+				amazon_ksa.ResponseValidate(item_db)
+				amazon_ksa.ResponseValidateArabic(item_db)
 
 	def get_valid_india(self):
 		asin = self.asin
 
 		item_db = productPagesScrapper.objects.get(productID=asin)
-		if not item_db.description_en:
+		if not (item_db.description_en or item_db.description_ar):
 			amazon_india.ResponseValidate(item_db)
 
 	def get_valid_aus(self):
 		asin = self.asin
 
 		item_db = productPagesScrapper.objects.get(productID=asin)
-		if not item_db.description_en:
+		if not (item_db.description_en or item_db.description_ar):
 			amazon_aus.ResponseValidate(item_db)
 
 	def get_valid_uk(self):
 		asin = self.asin
 
 		item_db = productPagesScrapper.objects.get(productID=asin)
-		if not item_db.description_en:
+		if not (item_db.description_en or item_db.description_ar):
 			amazon_uk.ResponseValidate(item_db)
 
 	def get_valid_com(self):
 		asin = self.asin
 
 		item_db = productPagesScrapper.objects.get(productID=asin)
-		if not item_db.description_en:
+		if not (item_db.description_en or item_db.description_ar):
 			amazon_com.ResponseValidate(item_db)
 
 	def get_product_data_EN(self,item):
@@ -67,17 +77,6 @@ class amazon_DBHandler_cls():
 		if item.description_en:
 
 			product_details_class = amazon_scrapper.AmazonProductDetails(item)
-
-			if productImages.objects.filter(productID=item).exists():
-
-				images = product_details_class.ImagesList()
-
-				images_db = productImages.objects.filter(productID=item)
-
-				for image, image_db in zip(images,images_db):
-					image_db.image = image
-
-				productImages.objects.bulk_update(images_db, ['image'])
 
 			if not productImages.objects.filter(productID=item).exists():
 
@@ -160,17 +159,6 @@ class amazon_DBHandler_cls():
 
 			product_details_class = amazon_scrapper.AmazonProductDetails(item)
 
-			if productImages.objects.filter(productID=item).exists():
-
-				images = product_details_class.ImagesList()
-
-				images_db = productImages.objects.filter(productID=item)
-
-				for image, image_db in zip(images,images_db):
-					image_db.image = image
-
-				productImages.objects.bulk_update(images_db, ['image'])
-
 			if not productImages.objects.filter(productID=item).exists():
 
 				images = product_details_class.ImagesList()
@@ -233,7 +221,7 @@ class amazon_DBHandler_cls():
 			dimensions = variation.Dimensions()
 			dimensionsDetails = variation.DimensionsDetails()
 			dimensionsDetailsAR = variation.DimensionsDetailsAR()
-			
+
 			if variationSettings_instance:
 				for countings, (k,v) in enumerate(dimensions.items()):
 
@@ -310,8 +298,10 @@ class amazon_DBHandler_cls():
 			# instance of VariationsSoup
 			variation = VariationsSoup(asin)
 			parent_asin = variation.ParentAsin()
+			currentAsin = variation.CurrentAsin()
 			
-			if parent_asin:
+			# Prevent asin from creating a family if asin has no association with family
+			if item.productID == currentAsin or item.productID == parent_asin:
 
 				try:
 
