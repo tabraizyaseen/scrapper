@@ -1,12 +1,12 @@
 {% extends 'scrapper/base_template.html' %}
 
-{% block title %}{{category}}{% endblock %}
+{% block title %}{{category.name}}{% endblock %}
 
 {% block content %}
 
 
 <!-- Category compare of English and Arabic -->
-<p><b>Category : </b>{{category}}</p>
+<p><b>Category : </b>{{category.name}}</p>
 <div class="row">
 
 	<div class="col">

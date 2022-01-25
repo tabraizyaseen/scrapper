@@ -7,7 +7,6 @@ from django.db.models import Q
 from .models import *
 from .amazon_DBHandler import *
 from .noon_DBHandler import *
-from . import amazon_scrapper
 
 
 @shared_task(bind=True)
@@ -38,7 +37,8 @@ def category_validator(self, category):
 
 	progress_recorder = ProgressRecorder(self)
 
-	category_items = productPagesScrapper.objects.filter(source__startswith='amazon',category=category)
+	category_ins = Categories.objects.get(id=category)
+	category_items = productPagesScrapper.objects.filter(source__startswith='amazon',category=category_ins)
 
 	for counting,item in enumerate(category_items, start=1):
 		dbhandler_ins = amazon_DBHandler_cls(item.productID)
@@ -57,6 +57,7 @@ def category_validator(self, category):
 
 	return 'Done'
 
+'''
 @shared_task(bind=True)
 def images_updater(self):
 	all_items = productPagesScrapper.objects.filter(last_checked__icontains='2021-06-06')
@@ -80,5 +81,5 @@ def images_updater(self):
 		progress_recorder.set_progress(counting, len(all_items), f"on {item.productID}")
 	
 	return 'Images Updated'
-
+'''
 	
