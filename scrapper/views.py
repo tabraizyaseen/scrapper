@@ -742,7 +742,7 @@ def viewCategories(request):
 	if request.is_ajax():
 		category = request.POST['text']
 
-		sel_cats = productPagesScrapper.objects.filter(Q(source__in=('amazon.ae','amazon.sa'),category=category,description_en=True,description_ar=True) | Q(source__in=('amazon.in','amazon.com.au','amazon.co.uk','amazon.com'),category=category,description_en=True))
+		sel_cats = productPagesScrapper.objects.filter(Q(source__in=('amazon.ae','amazon.sa'),category__id=category,description_en=True,description_ar=True) | Q(source__in=('amazon.in','amazon.com.au','amazon.co.uk','amazon.com'),category__id=category,description_en=True))
 		print(len(sel_cats))
 		
 		for countings, cat in enumerate(sel_cats, start=1):
@@ -772,16 +772,14 @@ def categoryJob(request):
 	if request.is_ajax():
 		category = request.POST['text']
 
-		match_category = category.replace('›',r'\u203a')
-
-		if not TaskResult.objects.filter(task_args=f'"(\'{match_category}\',)"', status__in=('PROGRESS','PENDING')).exists():
+		if not TaskResult.objects.filter(task_args=f'"(\'{category}\',)"', status__in=('PROGRESS','PENDING')).exists():
 
 			print("Revoking task for :",category)
 			task_ins = tasks.category_validator.delay(category)
 			task_id = task_ins.task_id
 		else:
 			try:
-				task_ins = TaskResult.objects.get(task_args=f'"(\'{match_category}\',)"', status__in=('PROGRESS','PENDING'))
+				task_ins = TaskResult.objects.get(task_args=f'"(\'{category}\',)"', status__in=('PROGRESS','PENDING'))
 				task_id = task_ins.task_id
 			except Exception:
 				task_id = None
@@ -794,7 +792,7 @@ def categoryJob(request):
 
 def viewCategoryAttributes(request,pk):
 
-	category = pk
+	category = Categories.objects.get(id=pk)
 
 	categories = productPagesScrapper.objects.filter(productID__startswith='B',category=category,description_en=True,description_ar=True)
 
