@@ -415,7 +415,8 @@ class Variant():
 				with io.open(f'static/docs/productPages/AR_{item.current_asin}.txt', 'w', encoding='UTF-8') as responseFile:
 					responseFile.writelines(response_ar.text)
 					variationSettings.objects.filter(current_asin=item.current_asin).update(
-						description_ar=True
+						description_ar=True,
+						last_checked = timezone.now(),
 					)
 			except AttributeError:
 				pass
