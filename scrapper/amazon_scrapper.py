@@ -380,7 +380,10 @@ class AmazonProductDetails:
 					long_descriptionEN = p_tag.text.strip()
 					break
 		except AttributeError:
-			pass
+			try:
+				long_descriptionEN = str(soup.find('div',{'id':'bookDescription_feature_div'}).span)
+			except AttributeError:
+				pass
 
 		return long_descriptionEN
 
@@ -525,7 +528,10 @@ class AmazonProductDetailsArabic:
 					long_descriptionAR = p_tag.text.strip()
 					break
 		except AttributeError:
-			pass
+			try:
+				long_descriptionAR = str(soup.find('div',{'id':'bookDescription_feature_div'}).span)
+			except AttributeError:
+				pass
 
 		return long_descriptionAR
 
