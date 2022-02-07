@@ -225,7 +225,7 @@ class AmazonProductDetails:
 			brand = brand.split('Visit the')[-1].split('Store')[0].split(':')[-1].strip()
 		except AttributeError:
 			try:
-				brand = soup.find('span','author').text.strip().replace('\n','')
+				brand = soup.find('span','author').text.strip().replace('\n','').replace('),',')')
 			except AttributeError:
 				brand = ''
 
@@ -406,7 +406,7 @@ class AmazonProductDetailsArabic:
 			brand = brand.split('متجر')[-1].split(':')[-1].strip()
 		except AttributeError:
 			try:
-				brand = soup.find('span','author').text.strip().replace('\n','')
+				brand = soup.find('span','author').text.strip().replace('\n','').replace('),',')')
 			except AttributeError:
 				brand = ''
 
