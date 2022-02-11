@@ -814,10 +814,7 @@ def viewProducts(request):
 	total_products = productPagesScrapper.objects.count()
 	all_products = productPagesScrapper.objects.all()
 
-	global valid_products
-	valid_products = productPagesScrapper.objects.filter(description_en=True, description_ar=True).order_by('title_en')
-
-	valid_products_count = valid_products.count()
+	valid_products_count = productPagesScrapper.objects.filter(description_en=True, description_ar=True).count()
 
 	myFilter = ProductFilter(request.GET, queryset=all_products)
 	all_products = myFilter.qs
