@@ -173,7 +173,7 @@ def searchTitles(request):
 		# try:
 
 		# global global_file
-		global_file = pd.read_csv(file, encoding='unicode_escape', converters={'ASIN': lambda x: str(x)})
+		global_file = pd.read_csv(file, encoding='unicode_escape', converters={'ASIN': lambda x: str(x).strip(('\u200e')})
 		strt = perf_counter()
 		nan_value = float("NaN")
 		global_file.replace("", nan_value, inplace=True)
