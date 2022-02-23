@@ -88,7 +88,13 @@
 					<tr>
 						<td id="cat-{{forloop.counter}}">{{products.category.name}}</td>
 						<td id="asin-{{forloop.counter}}">{{products.productID}}</td>
-						{% if products.description_en == False or products.description_ar == False %}
+						{% if products.description_en == True and products.source == 'amazon.in' or products.source == 'amazon.com' or products.source == 'amazon.com.au' or products.source == 'amazon.co.uk' %}
+						<td id="title-{{forloop.counter}}"><a href="{% url 'product_details' products.id %}">{{products.title_en}}</a></td>
+						<td>{{products.batchname}}</td>
+						<td>{{products.source}}</td>
+						<td><p class="badge badge-info">Valid</p></td>
+
+						{% elif products.description_en == False or products.description_ar == False %}
 						<td id="title-{{forloop.counter}}">{{products.title_en}}</td>
 						<td>{{products.batchname}}</td>
 						<td>{{products.source}}</td>

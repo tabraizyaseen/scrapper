@@ -40,7 +40,10 @@
       </li>
     </ul>
   </div>
-  {% if '/product_details/' in request.get_full_path %}
+  {% if title.source == 'amazon.in' or title.source == 'amazon.com' or title.source == 'amazon.com.au' or title.source == 'amazon.co.uk' %}
+  <p class="language">
+  </p>
+  {% elif '/product_details/' in request.get_full_path %}
   <p class="language">
     <a style="font-size: 15px" href="{% url 'product_details' title.id %}">
       English
