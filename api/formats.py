@@ -33,7 +33,11 @@ class productClass:
 			if not description.isdigit():
 				return description
 			else:
-				description = '. '.join([highlight.highlight for highlight in item_db.producthighlights_set.filter(language=language)])
+				description = '<ul>'
+				for highlight in item_db.producthighlights_set.filter(language=language):
+					description = f'{description}<li>{highlight.highlight}</li>'
+				else:
+					description = f'{description}</ul>'
 				description = description if description else None if description.isdigit() else description
 				return description
 
