@@ -357,10 +357,13 @@ class AmazonProductDetails:
 		except AttributeError:
 			
 			'''Book Highlights'''
-			book_highlight = soup.find_all('noscript')[1].text.strip()
+			try:
+				book_highlight = soup.find_all('noscript')[1].text.strip()
 
-			if book_highlight:
-				highlights.append(book_highlight)
+				if book_highlight:
+					highlights.append(book_highlight)
+			except Exception as e:
+				print("No highlights on book page EN",e) 
 
 		return highlights
 
@@ -506,10 +509,13 @@ class AmazonProductDetailsArabic:
 		except AttributeError:
 			
 			'''Book Highlights'''
-			book_highlight = soup.find_all('noscript')[1].text.strip()
+			try:
+				book_highlight = soup.find_all('noscript')[1].text.strip()
 
-			if book_highlight:
-				highlights.append(book_highlight)
+				if book_highlight:
+					highlights.append(book_highlight)
+			except Exception as e:
+				print("No highlights on book page AR",e) 
 
 		return highlights
 
