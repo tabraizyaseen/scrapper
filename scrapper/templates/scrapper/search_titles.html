@@ -621,6 +621,8 @@
 			success: function(data){
 				div_name.getElementsByTagName('div')[0].style.display = 'none';
 				div_name.getElementsByTagName('button')[0].removeAttribute("style");
+				div_name.getElementsByTagName('button')[0].classList.remove("btn-outline-primary");
+				div_name.getElementsByTagName('button')[0].classList.add("btn-primary");
 
 				for (let i = 0; i < all_btns.length; i++) { 
 				  if (all_btns[i] !== skip_btn){
