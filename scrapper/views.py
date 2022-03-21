@@ -199,7 +199,8 @@ def searchTitles(request):
 
 				if category:
 					category = category.replace('>','›')
-					productPagesScrapper.objects.filter(productID=item).update(category=category)
+					category_ins, _ = Categories.objects.get_or_create(name=category)
+					productPagesScrapper.objects.filter(productID=item).update(category=category_ins)
 		else:
 			print('Amazon_Category not given')
 			for counting,item in enumerate(global_file['ASIN'], start=1):
