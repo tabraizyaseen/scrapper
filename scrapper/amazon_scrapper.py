@@ -384,7 +384,8 @@ class AmazonProductDetails:
 					break
 		except AttributeError:
 			try:
-				long_descriptionEN = str(soup.find('div',{'id':'bookDescription_feature_div'}).span)
+				long_descriptionEN = soup.find('div',{'id':'bookDescription_feature_div'}).span
+				long_descriptionEN = str(long_descriptionEN) if long_descriptionEN else ''
 			except AttributeError:
 				pass
 
@@ -535,7 +536,8 @@ class AmazonProductDetailsArabic:
 					break
 		except AttributeError:
 			try:
-				long_descriptionAR = str(soup.find('div',{'id':'bookDescription_feature_div'}).span)
+				long_descriptionAR = soup.find('div',{'id':'bookDescription_feature_div'}).span
+				long_descriptionAR = str(long_descriptionAR) if long_descriptionAR else ''
 			except AttributeError:
 				pass
 
