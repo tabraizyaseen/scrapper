@@ -66,7 +66,6 @@ class productClass:
 		data_dict['title_ar'] = item_db.title_ar
 		data_dict['market_price'] = int(item_db.old_price or 0)
 		data_dict['description'] = description_solver(item_db, 'EN') or data_dict['title']
-		print('This is description',data_dict['description'])
 		data_dict['description_ar'] = description_solver(item_db, 'AR') or data_dict['title_ar']
 		# data_dict['highlights'] = [highlight.highlight for highlight in item_db.producthighlights_set.filter(language='EN')]
 		# data_dict['highlights_ar'] = [highlight.highlight for highlight in item_db.producthighlights_set.filter(language='AR')]
