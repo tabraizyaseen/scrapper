@@ -14,6 +14,7 @@ from .filters import *
 from .variations import *
 from . import tasks
 from .amazon_DBHandler import *
+from .mumzworld_DBHandler import *
 from .noon_DBHandler import *
 from api.formats import productClass, excelFormating
 
@@ -112,6 +113,158 @@ def productTotalVariations(request):
 	}
 
 	return render(request, 'scrapper/product_total_variations.html', context)
+
+def mumzWorldManager(request):
+
+	# If an item was last checked 15 days ago
+	def check_latest(item_db):
+		two_weeks_ago = timezone.now() - datetime.timedelta(weeks=2)
+
+		if two_weeks_ago > item_db.last_checked:
+			item_db.description_ar = False
+			item_db.description_en = False
+			item_db.save()
+
+	def product_handler(item, results, filename):
+
+		item_db = productPagesScrapper.objects.filter(productID=item)
+		if item_db:
+
+			item_db = item_db[0]
+
+			results.append(item_db)
+
+			# To Get the latest
+			# check_latest(item_db)
+
+			# adding batch name with product
+			if not item_db.batchname:
+				item_db.batchname = filename
+				item_db.save()
+		else:
+			productPagesScrapper.objects.create(productID=item, source='mumzworld.com', batchname=filename)
+
+			single_item = productPagesScrapper.objects.get(productID=item)
+			results.append(single_item)
+			
+			print(counting)
+
+		return results
+
+	# Initializing Lists
+	results = []
+	validated = 0
+	filename = ''
+	
+	if request.method == 'POST':
+		file = request.FILES.get(u'titles_file')
+		filename = file.name
+
+		# global global_file
+		global_file = pd.read_csv(file, encoding='unicode_escape', converters={'URL': lambda x: str(x).strip('\u200e').replace('http://www.mumzworld.com/en/','').replace('http://www.mumzworld.com/ar/','').replace('https://www.mumzworld.com/en/','').replace('https://www.mumzworld.com/ar/','').strip('/')})
+		strt = perf_counter()
+		nan_value = float("NaN")
+		global_file.replace("", nan_value, inplace=True)
+		global_file.dropna(subset=['URL'],inplace=True)
+		global_file = global_file.drop_duplicates(['URL'],keep= 'last')
+		global_file.fillna('', inplace=True)
+		global_file['URL'] = global_file['URL'].str.strip()
+
+		# formating URL Column
+		# global_file['URL'] = global_file['URL'].str.replace('https://www.mumzworld.com/en/','').replace('https://www.mumzworld.com/ar/','').replace('/','')
+
+		request.session['mumz_global_file'] = global_file.to_json()
+		request.session['mumz_file_name'] = filename
+		request.session.modified = True
+
+		end = perf_counter()
+
+		print(f'file cleaning : {end-strt}')
+
+		strt = perf_counter()
+
+		if 'mumz_category' in global_file.columns:
+			print('Amazon_Category given')
+			for counting,(item,category) in enumerate(zip(global_file['URL'], global_file['mumz_category']), start=1):
+				product_handler(item, results, filename)
+
+				if category:
+					category_ins, _ = Categories.objects.get_or_create(name=category)
+					productPagesScrapper.objects.filter(productID=item).update(category=category_ins)
+		else:
+			for counting,item in enumerate(global_file['URL'], start=1):
+
+				product_handler(item, results, filename)
+
+		end = perf_counter()
+		print(f'file displaying : {end-strt}')
+	
+		validated = productPagesScrapper.objects.filter(productID__in=global_file['URL'], description_en=True, description_ar=True, source='mumzworld.com').count()
+
+	context = {
+		'results' : results,
+		'counting' : len(results),
+		'accepted' : validated,
+		'filename' : filename
+	}
+	
+	return render(request, 'scrapper/mumzworld_manager.html', context)
+
+
+def mumzProductsSearchValid(request):
+
+	global_file = request.session['mumz_global_file']
+	global_file = json.loads(global_file)
+	global_file = pd.DataFrame(global_file)
+	results_lst = []
+	validated = 0
+
+	asins = global_file['URL']
+	chunks = 20
+	asins_chunks = [asins[i:i+chunks] for i in range(0,len(asins),chunks)]
+	counting = 0
+
+	for chunk in asins_chunks:
+		with concurrent.futures.ThreadPoolExecutor() as executor:
+			results = [executor.submit(mumz_DBHandler_cls(item).get_valid) for item in chunk]
+
+			for f in results:
+				f.result()
+				counting +=1
+				print(counting)
+	
+	items_db = productPagesScrapper.objects.filter(productID__in=asins)
+	for item_db in items_db:
+		# Sending updated details
+		context = {}
+		if item_db.source  == 'mumzworld.com':
+			context["productID"] = item_db.productID
+			context["description_en"] = item_db.description_en
+			context["description_ar"] = item_db.description_ar
+			results_lst.append(context)
+
+	validated = productPagesScrapper.objects.filter(productID__in=global_file['URL'], description_en=True, description_ar=True, source='mumzworld.com').count()
+
+	return JsonResponse({'report':results_lst, 'valid_count':validated, 'type':'crawler report'})
+
+
+def mumzProductsSearchDetails(request):
+
+	global_file = request.session['mumz_global_file']
+	global_file = json.loads(global_file)
+	global_file = pd.DataFrame(global_file)
+	for counting, item in enumerate(global_file['URL'], start=1):
+
+		product = productPagesScrapper.objects.filter(productID=item, description_ar=True, description_en=True)
+
+		if product:
+
+			print(counting)
+			dbhandler_ins = mumz_DBHandler_cls(item)
+			dbhandler_ins.get_product_data(product[0])
+
+	return JsonResponse({'report':'Okay'})
+
 
 # @login_required(login_url='login')
 def searchTitles(request):
@@ -815,7 +968,7 @@ def viewProducts(request):
 	total_products = productPagesScrapper.objects.count()
 	all_products = productPagesScrapper.objects.all()
 
-	valid_products_count = productPagesScrapper.objects.filter(description_en=True, description_ar=True).count()
+	valid_products_count = productPagesScrapper.objects.filter(Q(description_en=True, description_ar=True) | Q(description_en=True, source__in=('amazon.in','amazon.com','amazon.com.au','amazon.co.uk'))).count()
 
 	myFilter = ProductFilter(request.GET, queryset=all_products)
 	all_products = myFilter.qs
@@ -858,6 +1011,11 @@ def singleProductValidate(request):
 			noonDbhandler_ins = noon_DBHandler_cls(asin)
 			noonDbhandler_ins.get_valid()
 
+		elif item.source == 'mumzworld.com':
+
+			noonDbhandler_ins = mumz_DBHandler_cls(asin)
+			noonDbhandler_ins.get_valid()
+
 		elif item.source == "amazon.sa":
 
 			dbhandler_ins.get_valid_ksa()
@@ -886,7 +1044,7 @@ def singleProductValidate(request):
 			item_new = productPagesScrapper.objects.get(productID=asin)
 			context["pk"] = item_new.id
 			context["productID"] = item_new.productID
-			context["category"] = item_new.category.name
+			context["category"] = item_new.category.name if item_new.category else ''
 			context["title_en"] = item_new.title_en
 			context['status'] = 'Ok'
 		else:
@@ -984,6 +1142,15 @@ def amazonProductDetails(request, pk):
 
 		details,pictures,about,long_desc = fun_details(asin)
 
+	# Mumzworld products
+	elif asin.source == 'mumzworld.com':
+
+		db_handler_ins = mumz_DBHandler_cls(asin.productID)
+		db_handler_ins.get_valid()
+		db_handler_ins.get_product_data(asin)
+
+		details,pictures,about,long_desc = fun_details(asin)
+
 	context = {
 		'details': details,
 		'images': pictures,
@@ -1023,7 +1190,7 @@ def productDetailsArabic(request, pk):
 		pictures, details, about, long_desc = fun_details_arabic(asin)
 
 	# If a product arabic response was already available and english found later
-	if asin.source == 'amazon.in' or 'amazon.com' or 'amazon.co.uk' or 'amazon.com.au':
+	elif asin.source in ('amazon.in', 'amazon.com', 'amazon.co.uk', 'amazon.com.au'):
 
 		db_handler_ins = amazon_DBHandler_cls(asin.productID)
 		db_handler_ins.get_product_data(asin)
@@ -1034,6 +1201,15 @@ def productDetailsArabic(request, pk):
 	elif asin.source == 'noon.com':
 
 		db_handler_ins = noon_DBHandler_cls(asin.productID)
+		db_handler_ins.get_valid()
+		db_handler_ins.get_product_data(asin)
+
+		pictures, details, about, long_desc = fun_details_arabic(asin)
+
+	# Mumzworld products
+	elif asin.source == 'mumzworld.com':
+
+		db_handler_ins = mumz_DBHandler_cls(asin.productID)
 		db_handler_ins.get_valid()
 		db_handler_ins.get_product_data(asin)
 
@@ -1289,6 +1465,39 @@ def categoryExportARJson(request):
 	json.dump(data, response, ensure_ascii = False, indent=4)
 
 	return response
+
+# Mumworld export JSON
+def mumzJsonExport(request):
+
+	current_date = str(datetime.date.today())
+	name = current_date+'_Mumz.json'
+
+	# Uploaded File
+	global_file = request.session['mumz_global_file']
+	global_file = json.loads(global_file)
+	global_file = pd.DataFrame(global_file)
+
+	# File Name
+	filename = request.session['mumz_file_name']
+	data = []
+
+	# Formulating export format
+	for weight,grades_provided,category,item in zip(global_file['weight_class'],global_file['Conditions'],global_file['Category'],global_file['URL']):
+			
+		productClassIns = productClass(item)
+		print(item)
+		data_dict = productClassIns.mainProductData(weight_class=weight, conditions=grades_provided, category=category, filename=filename)
+
+		if data_dict:
+			data.append(data_dict)
+
+	response = HttpResponse(content_type='application/json')
+	response['Content-Disposition'] = f'attachment; filename={name}'
+
+	json.dump(data, response, ensure_ascii = False, indent=4)
+
+	return response
+
 
 # New One
 def requiredJsonFormat(request):

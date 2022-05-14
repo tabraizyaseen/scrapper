@@ -82,8 +82,8 @@ class productClass:
 		# Specifications
 		category_lst = []
 
-		specs_en = item_db.productdetails_set.filter(language='EN').exclude(attributes__in=('Brand','Asin','ASIN'))
-		specs_ar = item_db.productdetails_set.filter(language='AR').exclude(attributes__in=('Brand','Asin','العلامة التجارية','ASIN'))
+		specs_en = item_db.productdetails_set.filter(language='EN').exclude(attributes__in=('Brand','Asin','ASIN', 'URL_SLUGIFY'))
+		specs_ar = item_db.productdetails_set.filter(language='AR').exclude(attributes__in=('Brand','Asin','العلامة التجارية','ASIN', 'URL_SLUGIFY'))
 
 
 		category_lst = specifications(specs_en, category_lst)
@@ -288,7 +288,7 @@ class productClass:
 		items['default_images'] = variation_item.images.split(',')
 		items['category_attributes'] = []
 
-		specs = productDetails.objects.filter(productID=variation_item.productID).exclude(attributes__in=('Brand','Asin','العلامة التجارية','ASIN'))
+		specs = productDetails.objects.filter(productID=variation_item.productID).exclude(attributes__in=('Brand','Asin','العلامة التجارية','ASIN', 'URL_SLUGIFY'))
 		if specs:
 			for spec in specs:
 				spec_dict = {}
