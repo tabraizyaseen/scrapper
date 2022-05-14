@@ -1,4 +1,3 @@
-from unicodedata import name
 import requests
 from requests.exceptions import RequestException
 from requests.adapters import HTTPAdapter

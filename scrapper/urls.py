@@ -10,6 +10,7 @@ urlpatterns = [
 	path('amazon_scrapper/', views.amazonScrapper, name='amazon_scrapper'),
 	path('noon_scrapper/', views.noonScrapper, name='noon_scrapper'),
 	path('search_titles', views.searchTitles, name='search_titles'),
+    path('mumz_manager/', views.mumzWorldManager, name='mumzworld_manager'),
     path('amazon_product_variations/', views.productVaraitions, name='productVaraitions'),
     path('amazon_product_total_variations/', views.productTotalVariations, name='productTotalVariations'),
 
@@ -25,6 +26,11 @@ urlpatterns = [
     path('category_attributes/', views.categoryAttributesManager, name='category_attributes'),
     path('upload_stats/', views.uploadStats, name='upload_stats'),
     path('export_excel/', views.exportExcel, name='export_excel'),
+
+    # Mumz World Manager
+    path('mumz_products_valid/', views.mumzProductsSearchValid, name='mumz_products_valid'),
+	path('mumz_products_details/', views.mumzProductsSearchDetails, name='mumz_products_details'),
+    path('mumzJsonExport/', views.mumzJsonExport, name='mumzJsonExport'),
 
     # Multiple Amazon Countries Crawlers
 	path('robust_search_valid_ksa/', views.robustSearchValidKSA, name='robust_search_valid_ksa'),
