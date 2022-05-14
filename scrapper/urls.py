@@ -31,6 +31,7 @@ urlpatterns = [
     path('mumz_products_valid/', views.mumzProductsSearchValid, name='mumz_products_valid'),
 	path('mumz_products_details/', views.mumzProductsSearchDetails, name='mumz_products_details'),
     path('mumzJsonExport/', views.mumzJsonExport, name='mumzJsonExport'),
+    path('mumzMissings/', views.mumzMissingsExport, name='mumzMissings'),
 
     # Multiple Amazon Countries Crawlers
 	path('robust_search_valid_ksa/', views.robustSearchValidKSA, name='robust_search_valid_ksa'),

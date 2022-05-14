@@ -1498,6 +1498,34 @@ def mumzJsonExport(request):
 
 	return response
 
+def mumzMissingsExport(request):
+	current_date = str(datetime.date.today())
+	name = current_date+'_Mumz.json'
+
+	# Uploaded File
+	global_file = request.session['mumz_global_file']
+	global_file = json.loads(global_file)
+	global_file = pd.DataFrame(global_file)
+
+	# File Name
+	filename = request.session['mumz_file_name']
+	filename = filename.rstrip('.csv')
+
+	response = HttpResponse(
+		content_type='text/csv',
+		headers={'Content-Disposition': f'attachment; filename="{filename}_missings.csv"'},
+	)
+
+	writer = csv.writer(response)
+	writer.writerow(['#', 'NOT_FOUND'])
+
+	mumz_obj = productPagesScrapper.objects.filter(productID__in=global_file['URL'], description_en=False, description_ar=False)
+	if mumz_obj:
+		for counts,obj in enumerate(mumz_obj, start=1):
+			writer.writerow([counts, f'https://www.mumzworld.com/en/{obj.productID}'])
+
+
+	return response
 
 # New One
 def requiredJsonFormat(request):

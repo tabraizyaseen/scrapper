@@ -241,7 +241,10 @@ class productClass:
 		data_dict = {}
 
 		product_asin = self.product_asin
-		item_db = productPagesScrapper.objects.filter(Q(productID=product_asin, description_en=True, description_ar=True, batchname=filename) | Q(productID=product_asin, description_en=True, source__in=('amazon.in','amazon.co.uk','amazon.com','amazon.com.au'), batchname=filename))
+		item_db = productPagesScrapper.objects.filter(Q(productID=product_asin, description_en=True, description_ar=True, batchname=filename) | \
+			Q(productID=product_asin, description_en=True, source__in=('amazon.in','amazon.co.uk','amazon.com','amazon.com.au'), batchname=filename) | \
+				Q(productID=product_asin, description_ar=True, source='mumzworld.com') | \
+					Q(productID=product_asin, description_en=True, source='mumzworld.com'))
 
 		if item_db:
 			data_dict = self.productAttributes(item_db[0], data_dict, category, weight_class)
